@@ -61,7 +61,7 @@ Inherits FTPSocket
 	#tag Method, Flags = &h21
 		Private Sub CommandDelayHandler(Sender As Timer)
 		  #pragma Unused Sender
-		  If LoginOK And UBound(PendingCommands) > -1 Then
+		  If IsConnected And UBound(PendingCommands) > -1 Then
 		    Dim s As String = PendingCommands(0)
 		    PendingCommands.Remove(0)
 		    WriteCommand(s + CRLF)
@@ -72,11 +72,11 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub DoVerb(Verb As String, Params As String="")
+		Protected Sub DoVerb(Verb As String, Params As String = "")
 		  Select Case Verb
-		  Case "ABOR" 
+		  Case "ABOR"
 		    'Abort
-		    WriteCommand("ABOR " + Params)
+		    WriteCommand("ABOR " + Params + CRLF)
 		  Case "ACCT"
 		    'Account.
 		    QueueCommand("ACCT " + Params)
@@ -163,7 +163,7 @@ Inherits FTPSocket
 		    QueueCommand("OPTS " + Params)
 		  Case "PASS"
 		    'Password.
-		    WriteCommand("PASS " + Params)
+		    WriteCommand("PASS " + Params + CRLF)
 		  Case "PASV"
 		    'Passive mode.
 		    QueueCommand("PASV " + Params)
@@ -229,7 +229,7 @@ Inherits FTPSocket
 		    QueueCommand("TYPE " + Params)
 		  Case "USER"
 		    'User name.
-		    QueueCommand("USER " + Params)
+		    WriteCommand("USER " + Params + CRLF)
 		  Case "XCUP"
 		    'Change to the parent of the current working directory.
 		    QueueCommand("XCUP " + Params)
@@ -262,28 +262,115 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Function HandleResponse(code As Integer, args As String, raw As String) As Boolean
+		  Select Case Code
+		  Case 215
+		    'NAME system type.
+		    Me.ServerType = args
+		    HandShake()
+		    Return True
+		  Case 220, 230, 331, 332
+		    'loginOK = True
+		    HandShake()
+		    If code = 230 Then
+		      LoginOK = True
+		    End If
+		    Return True
+		  Case 530
+		    HandShakeStep = 0
+		    HandShake()
+		    Return True
+		    
+		  Case 211
+		    If raw.Trim = "211 End" Then Return False
+		    ServerFeatures = Split(DefineEncoding(raw, Encodings.ASCII), CRLF)
+		    ServerFeatures.Remove(0)
+		    For Each feature As String In ServerFeatures
+		      feature = feature.Trim
+		    Next
+		    HandShake()
+		    Return False
+		  Else
+		    Return False
+		  End Select
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub HandShake()
+		  If LoginOK Or HandShakeStep <= 2 Then
+		    If HandShakeStep = 0 Then
+		      If Me.Anonymous Then
+		        FTPLog("Logging in as anonymous")
+		        Me.User = "anonymous"
+		      End If
+		      DoVerb("USER", Me.User)
+		      HandShakeStep = 1
+		    ElseIf HandShakeStep = 1 Then
+		      DoVerb("PASS", Me.Password)
+		      HandShakeStep = 2
+		    ElseIf HandShakeStep = 2 Then
+		      DoVerb("SYST")
+		      HandShakeStep = 3
+		    ElseIf HandShakeStep = 3 Then
+		      DoVerb("FEAT")
+		      HandShakeStep = 4
+		    ElseIf HandShakeStep = 4 Then
+		      If ServerHasFeature("UTF8") Then
+		        DoVerb("OPTS", "UTF8 ON")
+		      End If
+		      HandShakeStep = 5
+		    ElseIf HandShakeStep = 5 Then
+		      DoVerb("PWD")
+		      HandShakeStep = 6
+		    End If
+		    
+		    If HandShakeStep = 6 Then RaiseEvent Connected()
+		    
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub ParseResponse(Response As String)
+		  If HandShakeStep < 6 Then
+		    HandShake()
+		  End If
+		  
 		  Dim num As Integer
 		  Dim msg As String
 		  
 		  num = Val(Left(Response, 3))
 		  msg = msg.Replace(Format(num, "000"), "")
-		  If msg.Trim = "" Then msg = FTPCodeToMessage(num)
-		  FTPLog(Format(num, "000") + ": " + msg)
+		  'If msg.Trim = "" Then msg = FTPCodeToMessage(num)
+		  'FTPLog(Format(num, "000") + ": " + msg)
 		  
-		  RaiseEvent ReceiveReply(num, msg)
+		  If Not HandleResponse(num, msg, Response) Then
+		    RaiseEvent ReceiveReply(num, msg)
+		  End If
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub QueueCommand(Command As String)
+	#tag Method, Flags = &h21
+		Private Sub QueueCommand(Command As String)
 		  PendingCommands.Append(Command.Trim)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Function ServerHasFeature(FeatureName As String) As Boolean
-		  Return ServerFeatures.IndexOf(FeatureName) <> -1
+		  For Each feature As String In ServerFeatures
+		    If feature = FeatureName Then
+		      Return True
+		    End If
+		  Next
+		  '
+		  '
+		  '
+		  '
+		  '
+		  'Return ServerFeatures.IndexOf(FeatureName) <> -1
 		End Function
 	#tag EndMethod
 
@@ -347,7 +434,11 @@ Inherits FTPSocket
 	#tag EndComputedProperty
 
 	#tag Property, Flags = &h21
-		Private LoginOK As Boolean
+		Private HandShakeStep As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected LoginOK As Boolean
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

@@ -134,7 +134,7 @@ Inherits TCPSocket
 		    Return "Requested file action okay, completed."
 		    
 		  Case 257
-		    Return """PATHNAME"" created."
+		    Return ""
 		    
 		  Case 331
 		    Return "User name okay, need password."

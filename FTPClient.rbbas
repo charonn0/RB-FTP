@@ -22,7 +22,7 @@ Inherits FTPClientSocket
 	#tag Event
 		Sub ReceiveReply(ReplyNumber As Integer, ReplyMessage As String)
 		  Select Case ReplyNumber
-		  Case 110  
+		  Case 110
 		    //Restart marker reply
 		  Case 120
 		    'Service ready in nnn minutes.
@@ -39,7 +39,7 @@ Inherits FTPClientSocket
 		    'Command not implemented, superfluous at this site.
 		  Case 211
 		    'System status, or system help reply.
-		    
+		    'Break
 		  Case 212
 		    'Directory status.
 		    
@@ -54,7 +54,7 @@ Inherits FTPClientSocket
 		    Me.ServerType = ReplyMessage
 		  Case 220
 		    'Service ready for new user.
-		    HandShake()
+		    
 		  Case 221
 		    'Service closing control connection.
 		    
@@ -85,16 +85,17 @@ Inherits FTPClientSocket
 		    
 		  Case 230
 		    'User logged in, proceed.
-		    
+		    loginOK = True
 		  Case 250
 		    'Requested file action okay, completed.
 		    
 		  Case 257
 		    '"PATHNAME" created.
-		    
+		    FTPLog("Current directory is " + ReplyMessage)
+		    RemoteDirectory = ReplyMessage
 		  Case 331
 		    'User name okay, need password.
-		    
+		    DoVerb("PASS", Me.Password)
 		  Case 332
 		    'Need account for login.
 		    DoVerb("PASS", Me.Password)
@@ -167,8 +168,7 @@ Inherits FTPClientSocket
 		  Else
 		    'Unknown
 		  End Select
-		  
-		  FTPLog(Str(ReplyNumber) + " " + ReplyMessage)
+		  FTPLog(ReplyMessage)
 		End Sub
 	#tag EndEvent
 
@@ -187,7 +187,7 @@ Inherits FTPClientSocket
 
 	#tag Method, Flags = &h0
 		Sub Get(RemoteFileName As String, SaveTo As FolderItem, OverWrite As Boolean = True)
-		  If ServerHasFeature("PASV") And Me.Passive Then
+		  If Me.Passive Then
 		    DoVerb("PASV")
 		  End If
 		  If TransferMode = BinaryMode Then
@@ -196,23 +196,6 @@ Inherits FTPClientSocket
 		  OutputFile = SaveTo
 		  OutputStream = BinaryStream.Create(OutputFile, OverWrite)
 		  DoVerb("RETR", RemoteFileName)
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
-		Private Sub HandShake()
-		  If Me.Anonymous Then
-		    FTPLog("Logging in as anonymous")
-		    Me.User = "anonymous"
-		  End If
-		  Write("USER " + Me.User)
-		  DoVerb("SYST")
-		  DoVerb("FEAT")
-		  DoVerb("OPTS", "UTF8 ON")
-		  DoVerb("PWD")
-		  
-		  RaiseEvent Connected
-		  
 		End Sub
 	#tag EndMethod
 
@@ -259,6 +242,13 @@ Inherits FTPClientSocket
 
 
 	#tag ViewBehavior
+		#tag ViewProperty
+			Name="Address"
+			Visible=true
+			Group="Behavior"
+			Type="String"
+			InheritedFrom="TCPSocket"
+		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Anonymous"
 			Visible=true
@@ -317,14 +307,6 @@ Inherits FTPClientSocket
 			Visible=true
 			Group="Behavior"
 			InitialValue="/"
-			Type="String"
-			EditorType="MultiLineEditor"
-			InheritedFrom="FTPClientSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="ServerAddress"
-			Visible=true
-			Group="Behavior"
 			Type="String"
 			EditorType="MultiLineEditor"
 			InheritedFrom="FTPClientSocket"

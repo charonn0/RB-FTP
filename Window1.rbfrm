@@ -24,7 +24,8 @@ Begin Window Window1
    Title           =   "Untitled"
    Visible         =   True
    Width           =   600
-   Begin FTPClientSocket FTPClient
+   Begin FTPClient Client
+      Address         =   "mc.boredomsoft.org"
       Anonymous       =   False
       Height          =   32
       Index           =   -2147483648
@@ -35,7 +36,6 @@ Begin Window Window1
       Port            =   21
       RemoteDirectory =   "/"
       Scope           =   0
-      ServerAddress   =   "mc.boredomsoft.org"
       TabPanelIndex   =   0
       Top             =   0
       User            =   "ftpstore"
@@ -121,13 +121,34 @@ Begin Window Window1
       Visible         =   True
       Width           =   80
    End
+   Begin ProgressBar ProgressBar1
+      AutoDeactivate  =   True
+      Enabled         =   True
+      Height          =   20
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Left            =   10
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Maximum         =   100
+      Scope           =   0
+      TabPanelIndex   =   0
+      Top             =   360
+      Value           =   0
+      Visible         =   True
+      Width           =   238
+   End
 End
 #tag EndWindow
 
 #tag WindowCode
 #tag EndWindowCode
 
-#tag Events FTPClient
+#tag Events Client
 	#tag Event
 		Sub FTPLog(LogLine As String)
 		  Listbox1.AddRow(LogLine)
@@ -140,9 +161,7 @@ End
 	#tag EndEvent
 	#tag Event
 		Sub Connected()
-		  Listbox1.AddRow("Conected!")
-		  Dim f As FolderItem = GetSaveFolderItem("", "")
-		  'FTPClient.Get("ndisah.sys", f)
+		  Me.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf"), True)
 		End Sub
 	#tag EndEvent
 	#tag Event
@@ -150,11 +169,21 @@ End
 		  Listbox1.AddRow("Send Complete")
 		End Sub
 	#tag EndEvent
+	#tag Event
+		Function SendProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  ProgressBar1.Value = (BytesSent * 100 / (BytesSent + BytesLeft))
+		End Function
+	#tag EndEvent
+	#tag Event
+		Sub FileReceived(DownloadedFile As FolderItem)
+		  DownloadedFile.Launch
+		End Sub
+	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton1
 	#tag Event
 		Sub Action()
-		  FTPClient.Connect
+		  Client.Connect
 		  
 		End Sub
 	#tag EndEvent
