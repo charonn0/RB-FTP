@@ -142,7 +142,7 @@ End
 		Sub Connected()
 		  Listbox1.AddRow("Conected!")
 		  Dim f As FolderItem = GetSaveFolderItem("", "")
-		  FTPClient.Get("ndisah.sys", f)
+		  'FTPClient.Get("ndisah.sys", f)
 		End Sub
 	#tag EndEvent
 	#tag Event
