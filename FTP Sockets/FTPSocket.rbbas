@@ -250,7 +250,7 @@ Inherits TCPSocket
 		  msg = msg.Replace(Format(Code, "000"), "")
 		  
 		  Dim response As FTPResponse
-		  
+		  response.Code = Code
 		  Select Case Code \ 100
 		  Case RT_Positive_Preliminary
 		    response.Reply_Type = RT_Positive_Preliminary
@@ -323,6 +323,7 @@ Inherits TCPSocket
 		    OutputStream.Close
 		    OutputTempFile.MoveFileTo(OutputFile)
 		  End If
+		  RaiseEvent DataWriteComplete(UserAborted)
 		End Sub
 	#tag EndMethod
 
@@ -381,6 +382,10 @@ Inherits TCPSocket
 
 	#tag Hook, Flags = &h0
 		Event DataError()
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DataReadComplete(UserAborted As Boolean)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
@@ -464,6 +469,10 @@ Inherits TCPSocket
 		Passive As Boolean = True
 	#tag EndProperty
 
+	#tag Property, Flags = &h1
+		Protected ServerFeatures() As String
+	#tag EndProperty
+
 	#tag Property, Flags = &h0
 		ServerType As String
 	#tag EndProperty
@@ -521,10 +530,11 @@ Inherits TCPSocket
 
 
 	#tag Structure, Name = FTPResponse, Flags = &h1
-		Reply_Type As Integer
+		Code As Integer
+		  Reply_Type As Integer
 		  Reply_Purpose As Integer
 		  Reply_Code As Integer
-		Reply_Args As String*500
+		Reply_Args As String*496
 	#tag EndStructure
 
 	#tag Structure, Name = FTPVerb, Flags = &h1

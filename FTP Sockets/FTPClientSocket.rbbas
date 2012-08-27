@@ -17,6 +17,18 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
+		Function ControlReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
+		  Return False
+		End Function
+	#tag EndEvent
+
+	#tag Event
+		Sub ControlVerb(Verb As FTPVerb)
+		  Return
+		End Sub
+	#tag EndEvent
+
+	#tag Event
 		Sub DataConnected()
 		  If OutputFile = Nil Then
 		    OutputTempFile = GetTemporaryFolderItem
@@ -34,6 +46,22 @@ Inherits FTPSocket
 	#tag Event
 		Sub DataError()
 		  RaiseEvent Error(Me.DataLastErrorCode)
+		End Sub
+	#tag EndEvent
+
+	#tag Event
+		Sub DataReadComplete(UserAborted As Boolean)
+		  If Not UserAborted Then
+		    RaiseEvent DownloadComplete(OutputFile)
+		  End If
+		End Sub
+	#tag EndEvent
+
+	#tag Event
+		Sub DataWriteComplete(UserAborted As Boolean)
+		  If Not UserAborted Then
+		    RaiseEvent UploadComplete(OutputFile)
+		  End If
 		End Sub
 	#tag EndEvent
 
@@ -304,6 +332,177 @@ Inherits FTPSocket
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub Handle_RT_Neg(response As FTPResponse)
+		  Select Case response.Reply_Type
+		    
+		  Case RT_Negative_Transient
+		    Select Case response.Reply_Purpose
+		      
+		    Case RP_Info  //We asked for info
+		      Dim s As String = Str(Response.Code) + ": " + Response.Reply_Args
+		      FTPLog(s)
+		      
+		    Case RP_Connection  //Connection
+		      Select Case response.Code
+		      Case 000
+		        
+		      Else
+		        Error(500)
+		      End Select
+		    Case RP_File_System
+		      
+		    Case RP_Syntax
+		      
+		    Case RP_Auth
+		      
+		    Case RP_Unspecified
+		    End Select
+		    
+		  Case RT_Negative_Permanent
+		    Select Case response.Reply_Purpose
+		      
+		    Case RP_Info  //We asked for info
+		      Dim s As String = Str(Response.Code) + ": " + Response.Reply_Args
+		      FTPLog(s)
+		      
+		    Case RP_Connection  //Connection
+		      Select Case response.Code
+		      Case 000
+		        
+		      Else
+		        Error(500)
+		      End Select
+		    Case RP_File_System
+		      
+		    Case RP_Syntax
+		      
+		    Case RP_Auth
+		      
+		    Case RP_Unspecified
+		    End Select
+		  Else
+		    Error(500)
+		  End Select
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub Handle_RT_Pos(response As FTPResponse)
+		  Select Case response.Reply_Type
+		    
+		  Case RT_Positive_Complete  //Success!
+		    Select Case response.Reply_Purpose
+		      
+		    Case RP_Info  //We asked for info
+		      Dim s As String = Str(Response.Code) + ": " + Response.Reply_Args
+		      FTPLog(s)
+		      
+		    Case RP_Connection  //Connection
+		      Select Case response.Code
+		      Case 125 //Data connection already open.
+		        If Not DataIsConnected Then
+		          Me.DataSocket.Connect()
+		        End If
+		        
+		      Case 120 //Ready in nn minutes
+		        
+		      Case 220 //Ready for user
+		        
+		      Case 221 //Closing control connection!
+		        Me.Close
+		        RaiseEvent Error(102)  //Error 102 = LostConnection
+		        
+		      Case 225 //Data ready, no work
+		        If Not DataIsConnected Then
+		          DataSocket.Connect()
+		        End If
+		        
+		      Case 226 //Closing data after success
+		        FTPLog("Data connection closed.")
+		        DataSocket.Close
+		        
+		      Case 227 //Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
+		        Dim p1, p2 As Integer
+		        Dim h1, h2, h3, h4 As String
+		        h1 = NthField(NthField(response.Reply_Args, ",", 1), "(", 2)
+		        h2 = NthField(response.Reply_Args, ",", 2)
+		        h3 = NthField(response.Reply_Args, ",", 3)
+		        h4 = NthField(response.Reply_Args, ",", 4)
+		        p1 = Val(NthField(response.Reply_Args, ",", 5))
+		        p2 = Val(NthField(response.Reply_Args, ",", 6))
+		        DataSocket.Port = p1 * 256 + p2
+		        DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
+		        response.Reply_Args = ("Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
+		        DataSocket.Connect()
+		        
+		      Case 228 //Entering long PASV
+		        
+		      Case 229 //Entering extended PASV
+		        
+		      Else
+		        Error(500)
+		      End Select
+		    Case RP_File_System
+		      
+		    Case RP_Syntax
+		      
+		    Case RP_Auth
+		      
+		    Case RP_Unspecified
+		    End Select
+		    
+		  Case RT_Positive_Intermedite
+		    Select Case response.Reply_Purpose
+		      
+		    Case RP_Info  //We asked for info
+		      Dim s As String = Str(Response.Code) + ": " + Response.Reply_Args
+		      FTPLog(s)
+		      
+		    Case RP_Connection  //Connection
+		      Select Case response.Code
+		      Case 000
+		        
+		      Else
+		        Error(500)
+		      End Select
+		    Case RP_File_System
+		      
+		    Case RP_Syntax
+		      
+		    Case RP_Auth
+		      
+		    Case RP_Unspecified
+		    End Select
+		    
+		  Case RT_Positive_Preliminary
+		    Select Case response.Reply_Purpose
+		      
+		    Case RP_Info  //We asked for info
+		      Dim s As String = Str(Response.Code) + ": " + Response.Reply_Args
+		      FTPLog(s)
+		      
+		    Case RP_Connection  //Connection
+		      Select Case response.Code
+		      Case 000
+		        
+		      Else
+		        Error(500)
+		      End Select
+		    Case RP_File_System
+		      
+		    Case RP_Syntax
+		      
+		    Case RP_Auth
+		      
+		    Case RP_Unspecified
+		    End Select
+		  Else
+		    Error(500)
+		  End Select
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
 		Protected Sub HandShake()
 		  If HandShakeStep = 1 Then
@@ -333,6 +532,19 @@ Inherits FTPSocket
 		  ElseIf HandShakeStep = 6 Then 
 		    RaiseEvent Connected()
 		  End If
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub ParseResponse(Response As FTPResponse)
+		  Select Case Response.Reply_Type
+		  Case RT_Positive_Intermedite, RT_Positive_Complete, RT_Positive_Preliminary
+		    Handle_RT_Pos(Response)
+		  Case RT_Negative_Permanent, RT_Negative_Transient, RT_Protected
+		    Handle_RT_Neg(Response)
+		  End Select
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -558,11 +770,19 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
+		Event DownloadComplete(File As FolderItem)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
 		Event Error(Code As Integer)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
 		Event FTPLog(LogLine As String)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event UploadComplete(File As FolderItem)
 	#tag EndHook
 
 
@@ -615,10 +835,6 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h0
 		RemoteDirectory As String = "/"
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private ServerFeatures() As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
