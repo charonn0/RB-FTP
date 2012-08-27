@@ -3,34 +3,54 @@ Protected Class FTPSocket
 Inherits TCPSocket
 	#tag Event
 		Sub Connected()
-		  RaiseEvent Connected(True)
+		  RaiseEvent ControlConnected()
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Sub DataAvailable()
-		  RaiseEvent DataAvailable(True)
+		  Dim s As String = Me.Read
+		  ParseResponse(s)
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Sub Error()
-		  RaiseEvent Error(True)
+		  RaiseEvent ControlError()
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Sub SendComplete(userAborted as Boolean)
-		  RaiseEvent SendComplete(UserAborted, True)
+		  RaiseEvent ControlWriteComplete(UserAborted)
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Function SendProgress(bytesSent as Integer, bytesLeft as Integer) As Boolean
-		  Return RaiseEvent SendProgress(BytesSent, BytesLeft, True)
+		  Return RaiseEvent ControlWriteProgress(BytesSent, BytesLeft)
 		End Function
 	#tag EndEvent
 
+
+	#tag Method, Flags = &h1
+		Protected Sub Close()
+		  If DataSocket <> Nil Then
+		    DataSocket.Close
+		    DataSocket = Nil
+		  End If
+		  OutputFile = Nil
+		  If OutputTempFile <> Nil Then
+		    If OutputTempFile.Exists Then
+		      OutputTempFile.Delete()
+		    End If
+		  End If
+		  If OutputStream <> Nil Then
+		    OutputStream.Close
+		  End If
+		  Super.Close()
+		End Sub
+	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Sub Connect()
@@ -49,7 +69,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub ConnectedHandler(Sender As TCPSocket)
-		  RaiseEvent Connected(False)
+		  RaiseEvent DataConnected()
 		End Sub
 	#tag EndMethod
 
@@ -61,13 +81,20 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
-		  RaiseEvent DataAvailable(False)
+		  Dim s As String = Sender.ReadAll
+		  OutputStream.Write(s)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub Destructor()
+		  Me.Close
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Sub ErrorHandler(Sender As TCPSocket)
-		  RaiseEvent Error(False)
+		  RaiseEvent DataError()
 		End Sub
 	#tag EndMethod
 
@@ -214,8 +241,65 @@ Inherits TCPSocket
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Function Read() As String
+	#tag Method, Flags = &h21
+		Private Sub ParseResponse(Data As String)
+		  Dim Code As Integer
+		  Dim msg As String
+		  
+		  Code = Val(Left(Data, 3))
+		  msg = msg.Replace(Format(Code, "000"), "")
+		  
+		  Dim response As FTPResponse
+		  
+		  Select Case Code \ 100
+		  Case RT_Positive_Preliminary
+		    response.Reply_Type = RT_Positive_Preliminary
+		  Case RT_Positive_Complete
+		    response.Reply_Type = RT_Positive_Complete
+		  Case RT_Positive_Intermedite
+		    response.Reply_Type = RT_Positive_Intermedite
+		  Case RT_Negative_Transient
+		    response.Reply_Type = RT_Negative_Transient
+		  Case RT_Negative_Permanent
+		    response.Reply_Type = RT_Negative_Permanent
+		  Case RT_Protected
+		    response.Reply_Type = RT_Protected
+		  End Select
+		  Select Case (Code - response.Reply_Type * 100) \ 10
+		  Case RP_Auth
+		    response.Reply_Purpose = RP_Auth
+		  Case RP_Connection
+		    response.Reply_Purpose = RP_Connection
+		  Case RP_File_System
+		    response.Reply_Purpose = RP_File_System
+		  Case RP_Info
+		    response.Reply_Purpose = RP_Info
+		  Case RP_Syntax
+		    response.Reply_Purpose = RP_Syntax
+		  Case RP_Unspecified
+		    response.Reply_Purpose = RP_Unspecified
+		  End Select
+		  response.Reply_Code = Code - (100 * response.Reply_Type) - (10 * response.Reply_Purpose)
+		  response.Reply_Args = msg
+		  ControlResponse(response)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub ParseVerb(Data As String)
+		  Dim Verb As FTPVerb
+		  If InStr(Data, " ") > 0 Then
+		    Verb.Verb = NthField(Data, " ", 1)
+		    Verb.Arguments = Data.Replace(Verb.Verb + " ", "")
+		  Else
+		    Verb.Verb = Data
+		  End If
+		  ControlVerb(Verb)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function Read() As String
 		  Dim la As String
 		  
 		  While Me.Lookahead.LenB > 0
@@ -227,33 +311,36 @@ Inherits TCPSocket
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Function ReadData() As String
+	#tag Method, Flags = &h1
+		Protected Function ReadData() As String
 		  Return DataSocket.ReadAll
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
-		  RaiseEvent SendComplete(UserAborted, False)
+		  If Not UserAborted Then
+		    OutputStream.Close
+		    OutputTempFile.MoveFileTo(OutputFile)
+		  End If
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Function SendProgressHandler(Sender As TCPSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
-		  Return RaiseEvent SendProgress(BytesSent, BytesLeft, False)
+		  Return RaiseEvent DataWriteProgress(BytesSent, BytesLeft)
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Sub Write(Command As String)
+	#tag Method, Flags = &h1
+		Protected Sub Write(Command As String)
 		  Super.Write(Command)
 		  Me.Flush
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Sub WriteData(Data As String)
+	#tag Method, Flags = &h1
+		Protected Sub WriteData(Data As String)
 		  DataSocket.Write(Data)
 		  DataSocket.Flush
 		End Sub
@@ -261,32 +348,132 @@ Inherits TCPSocket
 
 
 	#tag Hook, Flags = &h0
-		Event Connected(IsControlSocket As Boolean)
+		Event ControlConnected()
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event DataAvailable(IsControlSocket As Boolean)
+		Event ControlError()
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event Error(IsControlSocket As Boolean)
+		Event ControlReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event FTPLog(LogLine As String)
+		Event ControlResponse(Response As FTPResponse)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event SendComplete(UserAborted As Boolean, IsControlSocket As Boolean)
+		Event ControlVerb(Verb As FTPVerb)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event SendProgress(BytesSent As Integer, BytesLeft As Integer, IsControlSocket As Boolean) As Boolean
+		Event ControlWriteComplete(UserAborted As Boolean)
 	#tag EndHook
 
+	#tag Hook, Flags = &h0
+		Event ControlWriteProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DataConnected()
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DataError()
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DataReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DataWriteComplete(UserAborted As Boolean)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DataWriteProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+	#tag EndHook
+
+
+	#tag Property, Flags = &h0
+		Anonymous As Boolean = False
+	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  If DataSocket <> Nil Then
+			    Return DataSocket.Address
+			  End If
+			End Get
+		#tag EndGetter
+		DataAddress As String
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  If DataSocket <> Nil Then
+			    Return DataSocket.IsConnected
+			  End If
+			End Get
+		#tag EndGetter
+		DataIsConnected As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  If DataSocket <> Nil Then
+			    Return DataSocket.LastErrorCode
+			  End If
+			End Get
+		#tag EndGetter
+		DataLastErrorCode As Integer
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  If DataSocket <> Nil Then
+			    Return DataSocket.Port
+			  End If
+			End Get
+		#tag EndGetter
+		DataPort As Integer
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1
 		Protected DataSocket As TCPSocket
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected OutputFile As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected OutputStream As BinaryStream
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected OutputTempFile As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Passive As Boolean = True
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		ServerType As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected TransferMode As Integer = 1
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected UTFMode As Boolean
 	#tag EndProperty
 
 
@@ -295,6 +482,55 @@ Inherits TCPSocket
 
 	#tag Constant, Name = BinaryMode, Type = Double, Dynamic = False, Default = \"1", Scope = Public
 	#tag EndConstant
+
+	#tag Constant, Name = RP_Auth, Type = Double, Dynamic = False, Default = \"3", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RP_Connection, Type = Double, Dynamic = False, Default = \"2", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RP_File_System, Type = Double, Dynamic = False, Default = \"5", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RP_Info, Type = Double, Dynamic = False, Default = \"1", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RP_Syntax, Type = Double, Dynamic = False, Default = \"0", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RP_Unspecified, Type = Double, Dynamic = False, Default = \"4", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RT_Negative_Permanent, Type = Double, Dynamic = False, Default = \"5", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RT_Negative_Transient, Type = Double, Dynamic = False, Default = \"4", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RT_Positive_Complete, Type = Double, Dynamic = False, Default = \"2", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RT_Positive_Intermedite, Type = Double, Dynamic = False, Default = \"3", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RT_Positive_Preliminary, Type = Double, Dynamic = False, Default = \"1", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = RT_Protected, Type = Double, Dynamic = False, Default = \"6", Scope = Protected
+	#tag EndConstant
+
+
+	#tag Structure, Name = FTPResponse, Flags = &h1
+		Reply_Type As Integer
+		  Reply_Purpose As Integer
+		  Reply_Code As Integer
+		Reply_Args As String*500
+	#tag EndStructure
+
+	#tag Structure, Name = FTPVerb, Flags = &h1
+		Verb As String*64
+		Arguments As String*448
+	#tag EndStructure
 
 
 	#tag ViewBehavior
