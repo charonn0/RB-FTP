@@ -26,7 +26,9 @@ Begin Window Window1
    Width           =   600
    Begin FTPClientSocket Client
       Address         =   "mc.boredomsoft.org"
-      Anonymous       =   False
+      DataIsConnected =   ""
+      DataLastErrorCode=   ""
+      DataPort        =   ""
       Height          =   32
       Index           =   -2147483648
       Left            =   625
@@ -34,7 +36,6 @@ Begin Window Window1
       Passive         =   True
       Password        =   "n9tgXMv9Xu"
       Port            =   21
-      RemoteDirectory =   "/"
       Scope           =   0
       TabPanelIndex   =   0
       Top             =   0
@@ -160,11 +161,6 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Function DataWriteProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
-		  Listbox1.AddRow("Get Complete")
-		End Function
-	#tag EndEvent
-	#tag Event
 		Function DataReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
 		  ProgressBar1.Value = (BytesRead * 100 / (BytesRead + BytesLeft))
 		End Function
@@ -173,6 +169,12 @@ End
 		Sub Connected()
 		  Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
 		  Me.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
+		End Sub
+	#tag EndEvent
+	#tag Event
+		Sub DownloadComplete(File As FolderItem)
+		  Listbox1.AddRow("Get Complete")
+		  File.Parent.Launch
 		End Sub
 	#tag EndEvent
 #tag EndEvents

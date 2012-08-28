@@ -69,6 +69,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub ConnectedHandler(Sender As TCPSocket)
+		  #pragma Unused Sender
 		  RaiseEvent DataConnected()
 		End Sub
 	#tag EndMethod
@@ -82,7 +83,11 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
-		  OutputStream.Write(s)
+		  If LastVerb = "LIST" Or LastVerb = "NLST" Then
+		    DirList(Split(s, EndOfLine.Windows))
+		  Else
+		    OutputStream.Write(s)
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -94,6 +99,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub ErrorHandler(Sender As TCPSocket)
+		  #pragma Unused Sender
 		  RaiseEvent DataError()
 		End Sub
 	#tag EndMethod
@@ -319,6 +325,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
+		  #pragma Unused Sender
 		  If Not UserAborted Then
 		    OutputStream.Close
 		    OutputTempFile.MoveFileTo(OutputFile)
@@ -329,6 +336,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Function SendProgressHandler(Sender As TCPSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  #pragma Unused Sender
 		  Return RaiseEvent DataWriteProgress(BytesSent, BytesLeft)
 		End Function
 	#tag EndMethod
@@ -400,6 +408,10 @@ Inherits TCPSocket
 		Event DataWriteProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
 	#tag EndHook
 
+	#tag Hook, Flags = &h0
+		Event DirList(List() As String)
+	#tag EndHook
+
 
 	#tag Property, Flags = &h0
 		Anonymous As Boolean = False
@@ -454,6 +466,14 @@ Inherits TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
+		Protected LastParams As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected LastVerb As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
 		Protected OutputFile As FolderItem
 	#tag EndProperty
 
@@ -473,8 +493,8 @@ Inherits TCPSocket
 		Protected ServerFeatures() As String
 	#tag EndProperty
 
-	#tag Property, Flags = &h0
-		ServerType As String
+	#tag Property, Flags = &h1
+		Protected ServerType As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -483,6 +503,10 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected UTFMode As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected WorkingDirectory As String = "/"
 	#tag EndProperty
 
 
@@ -552,6 +576,33 @@ Inherits TCPSocket
 			InheritedFrom="TCPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
+			Name="Anonymous"
+			Group="Behavior"
+			InitialValue="False"
+			Type="Boolean"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="DataAddress"
+			Group="Behavior"
+			Type="String"
+			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="DataIsConnected"
+			Group="Behavior"
+			Type="Boolean"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="DataLastErrorCode"
+			Group="Behavior"
+			Type="Integer"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="DataPort"
+			Group="Behavior"
+			Type="Integer"
+		#tag EndViewProperty
+		#tag ViewProperty
 			Name="Index"
 			Visible=true
 			Group="ID"
@@ -570,6 +621,12 @@ Inherits TCPSocket
 			Visible=true
 			Group="ID"
 			InheritedFrom="Object"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Passive"
+			Group="Behavior"
+			InitialValue="True"
+			Type="Boolean"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Port"
