@@ -5,7 +5,6 @@ Inherits FTPSocket
 		Sub ControlConnected()
 		  FTPLog("Connected to " + Me.RemoteAddress + ":" + Str(Me.Port))
 		  CommandDelayTimer.Mode = Timer.ModeMultiple
-		  RaiseEvent Connected()
 		  
 		End Sub
 	#tag EndEvent
@@ -26,12 +25,18 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub ControlResponse(Response As FTPResponse)
-		  Select Case LastVerb
+		  If Response.Reply_Args.Trim <> "" Then
+		    FTPLog(Response.Reply_Args.Trim)
+		  Else
+		    FTPLog(FTPCodeToMessage(Response.Code).Trim)
+		  End If
+		  Select Case LastVerb.Verb
 		  Case "USER"
 		    Select Case Response.Code
 		    Case 230  //Logged in W/O pass
 		      LoginOK = True
 		      FTPLog("Ready")
+		      RaiseEvent Connected()
 		    Case 331, 332  //Need PASS/ACCT
 		      DoVerb("PASS", Me.Password)
 		    End Select
@@ -41,13 +46,16 @@ Inherits FTPSocket
 		    Case 230 //Logged in with pass
 		      LoginOK = True
 		      FTPLog("Ready")
+		      RaiseEvent Connected()
 		    Case 530  //USER not set!
 		      DoVerb("USER", Me.User)
 		    End Select
 		  Case "RETR"
 		    Select Case Response.Code
 		    Case 150 //About to start data transfer
-		      
+		      If OutputStream = Nil Then
+		        OutputStream = BinaryStream.Open(OutputFile)
+		      End If
 		    Case 425, 426 //Data connection not ready
 		      Error(Response.Code)
 		    Case 451, 551 //Disk read error
@@ -69,7 +77,7 @@ Inherits FTPSocket
 		    Case 425  //No data connection!
 		      If Passive Then
 		        DataSocket.Connect
-		        DoVerb(LastVerb, LastParams)
+		        DoVerb(LastVerb.Verb, LastVerb.Arguments)
 		      Else
 		        Error(Response.Code)
 		      End If
@@ -80,25 +88,34 @@ Inherits FTPSocket
 		    End Select
 		    
 		  Case "FEAT"
-		    
+		    ServerFeatures = Split(Response.Reply_Args, EndOfLine.Windows)
 		  Case "SYST"
-		    
+		    ServerType = Response.Reply_Args
 		  Case "CWD"
 		    Select Case Response.Code
 		    Case 250, 200 //OK
-		      WorkingDirectory = LastParams
+		      WorkingDirectory = LastVerb.Arguments
 		    Else
 		      Error(Response.Code)
 		    End Select
 		    
 		  Case "PWD"
 		    If Response.Code = 257 Then //OK
-		      WorkingDirectory = LastParams
+		      WorkingDirectory = LastVerb.Arguments
 		    Else
 		      Error(Response.Code)
 		    End If
 		  Case "LIST"
-		    
+		    Select Case Response.Code
+		    Case 226 //Here comes the directory list
+		      FTPLog("Directory listing...")
+		    Case 425, 426  //no connection or connection lost
+		      Error(Response.Code)
+		    Case 451  //Disk error
+		      Error(Response.Code)
+		    Else
+		      Error(Response.Code)
+		    End Select
 		  Case "CDUP"
 		    If Response.Code = 200 Or Response.Code = 250 Then
 		      DoVerb("PWD")
@@ -124,7 +141,7 @@ Inherits FTPSocket
 		    End If
 		  Case "REST"
 		    If Response.Code = 350 Then
-		      OutputStream.Position = Val(LastParams)
+		      OutputStream.Position = Val(LastVerb.Arguments)
 		    Else
 		      Error(Response.Code)
 		    End If
@@ -137,7 +154,7 @@ Inherits FTPSocket
 		    End If
 		  Case "TYPE"
 		    If Response.Code = 200 Then
-		      Select Case LastParams
+		      Select Case LastVerb.Arguments
 		      Case "A", "A N"
 		        Me.TransferMode = ASCIIMode
 		      Case "I", "L"
@@ -149,6 +166,7 @@ Inherits FTPSocket
 		    
 		  Case "MKD"
 		    If Response.Code = 257 Then //OK
+		      FTPLog("Directory created successfully.")
 		      DoVerb("LIST")
 		    Else
 		      Error(Response.Code)
@@ -156,6 +174,7 @@ Inherits FTPSocket
 		    
 		  Case "RMD"
 		    If Response.Code = 250 Then
+		      FTPLog("Directory deleted successfully.")
 		      DoVerb("LIST")
 		    Else
 		      Error(Response.Code)
@@ -163,14 +182,28 @@ Inherits FTPSocket
 		    
 		  Case "DELE"
 		    If Response.Code = 250 Then
+		      FTPLog("File deleted successfully.")
 		      DoVerb("LIST")
 		    Else
 		      Error(Response.Code)
 		    End If
-		  Case "RNFR", "RNTO"  //TODO
-		    
+		  Case "RNFR"
+		    If Response.Code = 350 Then
+		      DoVerb("RNTO", RNT)
+		    Else
+		      Error(Response.Code)
+		    End If
+		  Case "RNTO"
+		    If Response.Code = 250 Then
+		      DoVerb("RNTO", RNT)
+		      FTPLog(RNF + " renamed to " + RNT + " successfully.")
+		      RNT = ""
+		      RNF = ""
+		    Else
+		      Error(Response.Code)
+		    End If
 		  Else
-		    If Response.Code = 220 Then
+		    If Response.Code = 220 Then  //Server now ready
 		      FTPLog(Response.Reply_Args)
 		      DoVerb("USER", Me.User)
 		    Else
@@ -178,8 +211,8 @@ Inherits FTPSocket
 		    End If
 		  End Select
 		  
-		  LastVerb = ""
-		  LastParams = ""
+		  'LastVerb.Verb = ""
+		  'LastVerb.Arguments = ""
 		  
 		End Sub
 	#tag EndEvent
@@ -194,14 +227,6 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub DataConnected()
-		  If OutputFile = Nil Then
-		    OutputTempFile = GetTemporaryFolderItem
-		  ElseIf OutputFile.Exists Then
-		    OutputTempFile = OutputFile
-		  Else
-		    OutputTempFile = GetTemporaryFolderItem
-		  End If
-		  OutputStream = BinaryStream.Open(OutputTempFile, True)
 		  
 		  
 		End Sub
@@ -230,120 +255,108 @@ Inherits FTPSocket
 	#tag EndEvent
 
 
-	#tag Method, Flags = &h21
-		Private Sub CommandDelayHandler(Sender As Timer)
-		  #pragma Unused Sender
-		  If IsConnected And UBound(PendingCommands) > -1 And LastVerb.Trim = "" Then
-		    Dim s As String = PendingCommands(0)
-		    PendingCommands.Remove(0)
-		    LastVerb = NthField(s, " ", 1).Trim
-		    LastParams = NthField(s, " ", 2).Trim
-		    Write(s + CRLF)
-		  End If
-		  
-		  
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Sub DoVerb(Verb As String, Params As String = "")
+	#tag Method, Flags = &h0
+		Sub DoVerb(Verb As String, Params As String = "")
+		  LastVerb.Verb = Verb.Trim
+		  LastVerb.Arguments = Params.Trim
+		  FTPLog(Verb + " " + Params)
 		  Select Case Verb
 		  Case "ABOR"
 		    'Abort
-		    WriteCommand("ABOR " + Params)
+		    Write("ABOR " + Params + CRLF)
 		  Case "ACCT"
 		    'Account.
-		    QueueCommand("ACCT " + Params)
+		    Write("ACCT " + Params + CRLF)
 		  Case "ADAT"
 		    'Authentication/Security Data.
-		    QueueCommand("ADAT " + Params)
+		    Write("ADAT " + Params + CRLF)
 		  Case "ALLO"
 		    'Allocate.
-		    QueueCommand("ALLO " + Params)
+		    Write("ALLO " + Params + CRLF)
 		  Case "APPE"
 		    'Append.
-		    QueueCommand("APPE " + Params)
+		    Write("APPE " + Params + CRLF)
 		  Case "AUTH"
 		    'Authentication/Security Mechanism.
-		    QueueCommand("AUTH " + Params)
+		    Write("AUTH " + Params + CRLF)
 		  Case "CCC"
 		    'Clear Command Channel.
-		    QueueCommand("CCC " + Params)
+		    Write("CCC " + Params + CRLF)
 		  Case "CDUP"
 		    'Change to parent directory.
-		    QueueCommand("CDUP " + Params)
+		    Write("CDUP " + Params + CRLF)
 		  Case "CONF"
 		    'Confidentiality Protected Command.
-		    QueueCommand("CONF " + Params)
+		    Write("CONF " + Params + CRLF)
 		  Case "CWD"
 		    'Change working directory.
-		    QueueCommand("CWD " + Params)
+		    Write("CWD " + Params + CRLF)
 		  Case "DELE"
 		    'Delete.
-		    QueueCommand("DELE " + Params)
+		    Write("DELE " + Params + CRLF)
 		  Case "ENC"
 		    'Privacy Protected Command.
-		    QueueCommand("ENC " + Params)
+		    Write("ENC " + Params + CRLF)
 		  Case "EPRT"
 		    'Extended Data port.
-		    QueueCommand("EPRT " + Params)
+		    Write("EPRT " + Params + CRLF)
 		  Case "EPSV"
 		    'Extended Passive.
-		    QueueCommand("EPSV " + Params)
+		    Write("EPSV " + Params + CRLF)
 		  Case "FEAT"
 		    'Feature.
-		    QueueCommand("FEAT " + Params)
+		    Write("FEAT " + Params + CRLF)
 		  Case "HELP"
 		    'Help.
-		    QueueCommand("HELP " + Params)
+		    Write("HELP " + Params + CRLF)
 		  Case "LANG"
 		    'Language negotiation.
-		    QueueCommand("LANG " + Params)
+		    Write("LANG " + Params + CRLF)
 		  Case "LIST"
 		    'List.
-		    QueueCommand("LIST " + Params)
+		    Write("LIST " + Params + CRLF)
 		  Case "LPRT"
 		    'Long data port.
-		    QueueCommand("LPRT " + Params)
+		    Write("LPRT " + Params + CRLF)
 		  Case "LPSV"
 		    'Long passive.
-		    QueueCommand("LPSV " + Params)
+		    Write("LPSV " + Params + CRLF)
 		  Case "MDTM"
 		    'File modification time.
-		    QueueCommand("MDTM " + Params)
+		    Write("MDTM " + Params + CRLF)
 		  Case "MIC"
 		    'Integrity Protected Command.
-		    QueueCommand("MIC " + Params)
+		    Write("MIC " + Params + CRLF)
 		  Case "MKD"
 		    'Make directory.
-		    QueueCommand("MKD " + Params)
+		    Write("MKD " + Params + CRLF)
 		  Case "MLSD"
-		    QueueCommand("MLSD " + Params)
+		    Write("MLSD " + Params + CRLF)
 		    
 		  Case "MLST"
-		    QueueCommand("MLST " + Params)
+		    Write("MLST " + Params + CRLF)
 		    
 		  Case "MODE"
 		    'Transfer mode.
-		    QueueCommand("MODE " + Params)
+		    Write("MODE " + Params + CRLF)
 		  Case "NLST"
 		    'Name list.
-		    QueueCommand("NLST " + Params)
+		    Write("NLST " + Params + CRLF)
 		  Case "NOOP"
 		    'No operation.
-		    QueueCommand("NOOP " + Params)
+		    Write("NOOP " + Params + CRLF)
 		  Case "OPTS"
 		    'Options.
-		    QueueCommand("OPTS " + Params)
+		    Write("OPTS " + Params + CRLF)
 		  Case "PASS"
 		    'Password.
-		    WriteCommand("PASS " + Params)
+		    Write("PASS " + Params + CRLF)
 		  Case "PASV"
 		    'Passive mode.
-		    QueueCommand("PASV " + Params)
+		    Write("PASV " + Params + CRLF)
 		  Case "PBSZ"
 		    'Protection Buffer Size.
-		    QueueCommand("PBSZ " + Params)
+		    Write("PBSZ " + Params + CRLF)
 		  Case "PORT"
 		    'Data port.
 		    Dim p1, p2 As Integer
@@ -357,93 +370,93 @@ Inherits FTPSocket
 		    DataSocket.Port = p1 * 256 + p2
 		    DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
 		    params = h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
-		    QueueCommand("PORT " + Params)
+		    Write("PORT " + Params + CRLF)
 		  Case "PROT"
 		    'Data Channel Protection Level.
-		    QueueCommand("PROT " + Params)
+		    Write("PROT " + Params + CRLF)
 		  Case "PWD"
 		    'Print working directory.
-		    QueueCommand("PWD " + Params)
+		    Write("PWD " + Params + CRLF)
 		  Case "QUIT"
 		    'Logout.
-		    QueueCommand("QUIT " + Params)
+		    Write("QUIT " + Params + CRLF)
 		  Case "REIN"
 		    'Reinitialize.
-		    QueueCommand("REIN " + Params)
+		    Write("REIN " + Params + CRLF)
 		  Case "REST"
 		    'Restart of interrupted transfer.
-		    QueueCommand("REST " + Params)
+		    Write("REST " + Params + CRLF)
 		  Case "RETR"
 		    'Retrieve.
-		    QueueCommand("RETR " + Params)
+		    Write("RETR " + Params + CRLF)
 		  Case "RMD"
 		    'Remove directory.
-		    QueueCommand("RMD " + Params)
+		    Write("RMD " + Params + CRLF)
 		  Case "RNFR"
 		    'Rename from.
-		    QueueCommand("RNFR " + Params)
+		    Write("RNFR " + Params + CRLF)
 		  Case "RNTO"
 		    'Rename to.
-		    QueueCommand("RNTO " + Params)
+		    Write("RNTO " + Params + CRLF)
 		  Case "SITE"
 		    'Site parameters.
-		    QueueCommand("SITE " + Params)
+		    Write("SITE " + Params + CRLF)
 		  Case "SIZE"
 		    'File size.
-		    QueueCommand("SIZE " + Params)
+		    Write("SIZE " + Params + CRLF)
 		  Case "SMNT"
 		    'Structure mount.
-		    QueueCommand("SMNT " + Params)
+		    Write("SMNT " + Params + CRLF)
 		  Case "STAT"
 		    'Status.
-		    QueueCommand("STAT " + Params)
+		    Write("STAT " + Params + CRLF)
 		  Case "STOR"
 		    'Store.
-		    QueueCommand("STOR " + Params)
+		    Write("STOR " + Params + CRLF)
 		  Case "STOU"
 		    'Store unique.
-		    QueueCommand("STOU " + Params)
+		    Write("STOU " + Params + CRLF)
 		  Case "STRU"
 		    'File structure.
-		    QueueCommand("STRU " + Params)
+		    Write("STRU " + Params + CRLF)
 		  Case "SYST"
 		    'System.
-		    QueueCommand("SYST " + Params)
+		    Write("SYST " + Params + CRLF)
 		  Case "TYPE"
 		    'Representation type.
-		    QueueCommand("TYPE " + Params)
+		    Write("TYPE " + Params + CRLF)
 		  Case "USER"
 		    'User name.
-		    WriteCommand("USER " + Params)
+		    Write("USER " + Params + CRLF)
 		    HandShakeStep = 1
 		  Case "XCUP"
 		    'Change to the parent of the current working directory.
-		    QueueCommand("XCUP " + Params)
+		    Write("XCUP " + Params + CRLF)
 		  Case "XMKD"
 		    'Make a directory.
-		    QueueCommand("XMKD " + Params)
+		    Write("XMKD " + Params + CRLF)
 		  Case "XPWD"
 		    'Print the current working directory.
-		    QueueCommand("XPWD " + Params)
+		    Write("XPWD " + Params + CRLF)
 		  Case "XRCP"
-		    QueueCommand("XRCP " + Params)
+		    Write("XRCP " + Params + CRLF)
 		    
 		  Case "XRMD"
 		    'Remove the directory.
-		    QueueCommand("XRMD " + Params)
+		    Write("XRMD " + Params + CRLF)
 		  Case "XRSQ"
-		    QueueCommand("XRSQ " + Params)
+		    Write("XRSQ " + Params + CRLF)
 		    
 		  Case "XSEM"
 		    'Send, Mail if cannot.
-		    QueueCommand("XSEM " + Params)
+		    Write("XSEM " + Params + CRLF)
 		  Case "XSEN"
 		    'Send to terminal.
-		    QueueCommand("XSEN " + Params)
+		    Write("XSEN " + Params + CRLF)
 		  Else
 		    'Unknown Verb
-		    LastVerb = ""
-		    LastParams = ""
+		    LastVerb.Verb = ""
+		    LastVerb.Arguments = ""
 		    RaiseEvent Error(500)
 		  End Select
 		  
@@ -453,16 +466,10 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub Get(RemoteFileName As String, SaveTo As FolderItem)
-		  OutputTempFile = GetTemporaryFolderItem()
 		  OutputFile = SaveTo
-		  If Me.Passive Then
-		    DoVerb("PASV")
-		  End If
-		  If TransferMode = BinaryMode Then
-		    DoVerb("TYPE", "I")
-		  End If
 		  
-		  DoVerb("RETR", RemoteFileName)
+		  
+		  DoVerb("RETR", PathEncode(RemoteFileName, WorkingDirectory))
 		End Sub
 	#tag EndMethod
 
@@ -500,6 +507,18 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function Mode() As Integer
+		  Return TransferMode
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Mode(Assigns Mode As Integer)
+		  Me.TransferMode = Mode
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Put(RemoteFileName As String, LocalFile As FolderItem)
 		  If ServerHasFeature("PASV") And Me.Passive Then
 		    DoVerb("PASV")
@@ -520,6 +539,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub ReceiveReply(ReplyNumber As Integer, ReplyMessage As String)
+		  FTPLog(ReplyMessage)
 		  Select Case ReplyNumber
 		  Case 110
 		    //Restart marker reply
@@ -667,7 +687,6 @@ Inherits FTPSocket
 		  Else
 		    'Unknown
 		  End Select
-		  FTPLog(ReplyMessage)
 		End Sub
 	#tag EndMethod
 
@@ -685,13 +704,6 @@ Inherits FTPSocket
 		  '
 		  'Return ServerFeatures.IndexOf(FeatureName) <> -1
 		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
-		Private Sub WriteCommand(Command As String)
-		  PendingCommands.Insert(0, Command.Trim)
-		  
-		End Sub
 	#tag EndMethod
 
 
@@ -722,7 +734,7 @@ Inherits FTPSocket
 			  If mCommandDelayTimer = Nil Then
 			    mCommandDelayTimer = New Timer
 			    mCommandDelayTimer.Period = 250
-			    AddHandler mCommandDelayTimer.Action, AddressOf CommandDelayHandler
+			    'AddHandler mCommandDelayTimer.Action, AddressOf CommandDelayHandler
 			  End If
 			  return mCommandDelayTimer
 			End Get
@@ -753,6 +765,14 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h1
 		Protected PendingCommands() As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private RNF As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private RNT As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h0

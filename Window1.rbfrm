@@ -117,7 +117,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   364
+      Top             =   360
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -143,6 +143,37 @@ Begin Window Window1
       Visible         =   True
       Width           =   238
    End
+   Begin PushButton PushButton2
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "Untitled"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   352
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   2
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   359
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
 End
 #tag EndWindow
 
@@ -152,7 +183,7 @@ End
 #tag Events Client
 	#tag Event
 		Sub FTPLog(LogLine As String)
-		  Listbox1.AddRow(LogLine)
+		  If LogLine.Trim <> "" Then Listbox1.AddRow(LogLine)
 		End Sub
 	#tag EndEvent
 	#tag Event
@@ -166,15 +197,27 @@ End
 		End Function
 	#tag EndEvent
 	#tag Event
-		Sub Connected()
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
-		  Me.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
-		End Sub
-	#tag EndEvent
-	#tag Event
 		Sub DownloadComplete(File As FolderItem)
 		  Listbox1.AddRow("Get Complete")
 		  File.Parent.Launch
+		End Sub
+	#tag EndEvent
+	#tag Event
+		Sub DirList(List() As String)
+		  Break
+		End Sub
+	#tag EndEvent
+	#tag Event
+		Sub Connected()
+		  If Me.Passive Then
+		    Me.DoVerb("PASV")
+		    App.YieldToNextThread()
+		  End If
+		  App.DoEvents()
+		  If Me.Mode = Me.BinaryMode Then
+		    Me.DoVerb("TYPE", "I")
+		    App.YieldToNextThread()
+		  End If
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -183,6 +226,14 @@ End
 		Sub Action()
 		  Client.Connect
 		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton2
+	#tag Event
+		Sub Action()
+		  Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
+		  Client.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
 		End Sub
 	#tag EndEvent
 #tag EndEvents

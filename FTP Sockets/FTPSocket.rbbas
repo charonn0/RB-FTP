@@ -40,11 +40,7 @@ Inherits TCPSocket
 		    DataSocket = Nil
 		  End If
 		  OutputFile = Nil
-		  If OutputTempFile <> Nil Then
-		    If OutputTempFile.Exists Then
-		      OutputTempFile.Delete()
-		    End If
-		  End If
+		  
 		  If OutputStream <> Nil Then
 		    OutputStream.Close
 		  End If
@@ -55,6 +51,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h0
 		Sub Connect()
 		  DataSocket = New TCPSocket
+		  DataSocket.Address = Me.Address
 		  DataSocket.Port = Me.Port + 1
 		  
 		  AddHandler DataSocket.Connected, AddressOf ConnectedHandler
@@ -83,7 +80,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
-		  If LastVerb = "LIST" Or LastVerb = "NLST" Then
+		  If LastVerb.Verb = "LIST" Or LastVerb.Verb = "NLST" Then
 		    DirList(Split(s, EndOfLine.Windows))
 		  Else
 		    OutputStream.Write(s)
@@ -305,6 +302,22 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Shared Function PathDecode(Path As String, NamePrefix As String = "") As String
+		  If Path.Left(1) <> "/" Then Return Path
+		  Path = ReplaceAll(Path, Chr(&o0), Chr(&o12))
+		  Return ReplaceAll(NamePrefix + Path, "//", "/")
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Shared Function PathEncode(Path As String, NamePrefix As String = "") As String
+		  If NamePrefix.Right(1) <> "/" And NamePrefix.Trim <> "" Then NamePrefix = NamePrefix + "/"
+		  Path = ReplaceAll(Path, Chr(&o12), Chr(&o0))
+		  Return NamePrefix + Path
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Function Read() As String
 		  Dim la As String
 		  
@@ -326,10 +339,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused Sender
-		  If Not UserAborted Then
-		    OutputStream.Close
-		    OutputTempFile.MoveFileTo(OutputFile)
-		  End If
+		  OutputStream.Close
 		  RaiseEvent DataWriteComplete(UserAborted)
 		End Sub
 	#tag EndMethod
@@ -466,11 +476,7 @@ Inherits TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected LastParams As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected LastVerb As String
+		Protected LastVerb As FTPVerb
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -479,10 +485,6 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected OutputStream As BinaryStream
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected OutputTempFile As FolderItem
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
