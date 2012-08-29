@@ -2,12 +2,6 @@
 Protected Class FTPSocket
 Inherits TCPSocket
 	#tag Event
-		Sub Connected()
-		  RaiseEvent ControlConnected()
-		End Sub
-	#tag EndEvent
-
-	#tag Event
 		Sub DataAvailable()
 		  Dim s As String = Me.Read
 		  ParseResponse(s)
@@ -16,19 +10,22 @@ Inherits TCPSocket
 
 	#tag Event
 		Sub Error()
-		  RaiseEvent ControlError()
+		  HandleFTPError(Me.LastErrorCode)
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Sub SendComplete(userAborted as Boolean)
-		  RaiseEvent ControlWriteComplete(UserAborted)
+		  #pragma Unused userAborted
+		  Return
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Function SendProgress(bytesSent as Integer, bytesLeft as Integer) As Boolean
-		  Return RaiseEvent ControlWriteProgress(BytesSent, BytesLeft)
+		  #pragma Unused bytesSent
+		  #pragma Unused bytesLeft
+		  Return False
 		End Function
 	#tag EndEvent
 
@@ -244,6 +241,18 @@ Inherits TCPSocket
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Sub FTPLog(LogLine As String)
+		  RaiseEvent FTPLog(LogLine)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub HandleFTPError(Code As Integer)
+		  RaiseEvent FTPLog(FTPCodeToMessage(Code))
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub ParseResponse(Data As String)
 		  Dim Code As Integer
@@ -340,14 +349,14 @@ Inherits TCPSocket
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused Sender
 		  OutputStream.Close
-		  RaiseEvent DataWriteComplete(UserAborted)
+		  RaiseEvent UploadComplete(UserAborted)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Function SendProgressHandler(Sender As TCPSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
 		  #pragma Unused Sender
-		  Return RaiseEvent DataWriteProgress(BytesSent, BytesLeft)
+		  Return RaiseEvent UploadProgress(BytesSent, BytesLeft)
 		End Function
 	#tag EndMethod
 
@@ -367,31 +376,11 @@ Inherits TCPSocket
 
 
 	#tag Hook, Flags = &h0
-		Event ControlConnected()
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ControlError()
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ControlReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
 		Event ControlResponse(Response As FTPResponse)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
 		Event ControlVerb(Verb As FTPVerb)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ControlWriteComplete(UserAborted As Boolean)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ControlWriteProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
@@ -403,23 +392,27 @@ Inherits TCPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event DataReadComplete(UserAborted As Boolean)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event DataReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event DataWriteComplete(UserAborted As Boolean)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event DataWriteProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
 		Event DirList(List() As String)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DownloadComplete(UserAborted As Boolean)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event DownloadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event FTPLog(LogLine As String)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event UploadComplete(UserAborted As Boolean)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event UploadProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
 	#tag EndHook
 
 

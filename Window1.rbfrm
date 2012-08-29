@@ -187,12 +187,7 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Sub Error(Code As Integer)
-		  Listbox1.AddRow(Str(Code))
-		End Sub
-	#tag EndEvent
-	#tag Event
-		Function DataReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
+		Function DownloadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
 		  ProgressBar1.Value = (BytesRead * 100 / (BytesRead + BytesLeft))
 		End Function
 	#tag EndEvent
@@ -200,11 +195,6 @@ End
 		Sub DownloadComplete(File As FolderItem)
 		  Listbox1.AddRow("Get Complete")
 		  File.Parent.Launch
-		End Sub
-	#tag EndEvent
-	#tag Event
-		Sub DirList(List() As String)
-		  Break
 		End Sub
 	#tag EndEvent
 	#tag Event
@@ -220,6 +210,13 @@ End
 		  End If
 		End Sub
 	#tag EndEvent
+	#tag Event
+		Sub DirList(List() As String)
+		  For Each line As String In List
+		    Listbox1.AddRow(line)
+		  Next
+		End Sub
+	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton1
 	#tag Event
@@ -232,8 +229,9 @@ End
 #tag Events PushButton2
 	#tag Event
 		Sub Action()
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
-		  Client.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
+		  'Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
+		  'Client.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
+		  Client.DoVerb("LIST")
 		End Sub
 	#tag EndEvent
 #tag EndEvents

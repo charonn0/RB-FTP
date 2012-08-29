@@ -2,25 +2,11 @@
 Protected Class FTPClientSocket
 Inherits FTPSocket
 	#tag Event
-		Sub ControlConnected()
+		Sub Connected()
 		  FTPLog("Connected to " + Me.RemoteAddress + ":" + Str(Me.Port))
 		  CommandDelayTimer.Mode = Timer.ModeMultiple
 		  
 		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Sub ControlError()
-		  RaiseEvent Error(Me.LastErrorCode)
-		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Function ControlReadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
-		  #pragma Unused BytesRead
-		  #pragma Unused BytesLeft
-		  Return False
-		End Function
 	#tag EndEvent
 
 	#tag Event
@@ -35,7 +21,6 @@ Inherits FTPSocket
 		    Select Case Response.Code
 		    Case 230  //Logged in W/O pass
 		      LoginOK = True
-		      FTPLog("Ready")
 		      RaiseEvent Connected()
 		    Case 331, 332  //Need PASS/ACCT
 		      DoVerb("PASS", Me.Password)
@@ -57,9 +42,9 @@ Inherits FTPSocket
 		        OutputStream = BinaryStream.Open(OutputFile)
 		      End If
 		    Case 425, 426 //Data connection not ready
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    Case 451, 551 //Disk read error
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    Case 226 //Done
 		      DataSocket.Close
 		      DownloadComplete(OutputFile)
@@ -79,12 +64,12 @@ Inherits FTPSocket
 		        DataSocket.Connect
 		        DoVerb(LastVerb.Verb, LastVerb.Arguments)
 		      Else
-		        Error(Response.Code)
+		        HandleFTPError(Response.Code)
 		      End If
 		    Case 426  //Data connection lost
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End Select
 		    
 		  Case "FEAT"
@@ -96,31 +81,31 @@ Inherits FTPSocket
 		    Case 250, 200 //OK
 		      WorkingDirectory = LastVerb.Arguments
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End Select
 		    
 		  Case "PWD"
 		    If Response.Code = 257 Then //OK
 		      WorkingDirectory = LastVerb.Arguments
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Case "LIST"
 		    Select Case Response.Code
 		    Case 226 //Here comes the directory list
 		      FTPLog("Directory listing...")
 		    Case 425, 426  //no connection or connection lost
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    Case 451  //Disk error
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End Select
 		  Case "CDUP"
 		    If Response.Code = 200 Or Response.Code = 250 Then
 		      DoVerb("PWD")
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Case "PASV"
 		    If Response.Code = 227 Then 'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
@@ -137,20 +122,20 @@ Inherits FTPSocket
 		      FTPLog("Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
 		      DataSocket.Connect
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Case "REST"
 		    If Response.Code = 350 Then
 		      OutputStream.Position = Val(LastVerb.Arguments)
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Case "PORT"
 		    If Response.Code = 200 Then
 		      //Active mode OK. Connect to the following port
 		      DataSocket.Listen()
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Case "TYPE"
 		    If Response.Code = 200 Then
@@ -161,7 +146,7 @@ Inherits FTPSocket
 		        Me.TransferMode = BinaryMode
 		      End Select
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		    
 		  Case "MKD"
@@ -169,7 +154,7 @@ Inherits FTPSocket
 		      FTPLog("Directory created successfully.")
 		      DoVerb("LIST")
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		    
 		  Case "RMD"
@@ -177,7 +162,7 @@ Inherits FTPSocket
 		      FTPLog("Directory deleted successfully.")
 		      DoVerb("LIST")
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		    
 		  Case "DELE"
@@ -185,13 +170,13 @@ Inherits FTPSocket
 		      FTPLog("File deleted successfully.")
 		      DoVerb("LIST")
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Case "RNFR"
 		    If Response.Code = 350 Then
 		      DoVerb("RNTO", RNT)
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Case "RNTO"
 		    If Response.Code = 250 Then
@@ -200,7 +185,7 @@ Inherits FTPSocket
 		      RNT = ""
 		      RNF = ""
 		    Else
-		      Error(Response.Code)
+		      HandleFTPError(Response.Code)
 		    End If
 		  Else
 		    If Response.Code = 220 Then  //Server now ready
@@ -234,12 +219,12 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub DataError()
-		  RaiseEvent Error(Me.DataLastErrorCode)
+		  HandleFTPError(Me.DataLastErrorCode)
 		End Sub
 	#tag EndEvent
 
 	#tag Event
-		Sub DataReadComplete(UserAborted As Boolean)
+		Sub DownloadComplete(UserAborted As Boolean)
 		  If Not UserAborted Then
 		    RaiseEvent DownloadComplete(OutputFile)
 		  End If
@@ -247,7 +232,7 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
-		Sub DataWriteComplete(UserAborted As Boolean)
+		Sub UploadComplete(UserAborted As Boolean)
 		  If Not UserAborted Then
 		    RaiseEvent UploadComplete(OutputFile)
 		  End If
@@ -457,7 +442,7 @@ Inherits FTPSocket
 		    'Unknown Verb
 		    LastVerb.Verb = ""
 		    LastVerb.Arguments = ""
-		    RaiseEvent Error(500)
+		    HandleFTPError(500)
 		  End Select
 		  
 		  
@@ -467,8 +452,6 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub Get(RemoteFileName As String, SaveTo As FolderItem)
 		  OutputFile = SaveTo
-		  
-		  
 		  DoVerb("RETR", PathEncode(RemoteFileName, WorkingDirectory))
 		End Sub
 	#tag EndMethod
@@ -716,14 +699,6 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event Error(Code As Integer)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event FTPLog(LogLine As String)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
 		Event UploadComplete(File As FolderItem)
 	#tag EndHook
 
@@ -860,12 +835,6 @@ Inherits FTPSocket
 			Group="Behavior"
 			InitialValue="21"
 			Type="Integer"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="ServerType"
-			Group="Behavior"
-			Type="String"
 			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
