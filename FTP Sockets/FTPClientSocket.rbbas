@@ -46,7 +46,7 @@ Inherits FTPSocket
 		    Case 451, 551 //Disk read error
 		      HandleFTPError(Response.Code)
 		    Case 226 //Done
-		      DataSocket.Close
+		      'DataSocket.Close
 		      DownloadComplete(OutputFile)
 		    End Select
 		  Case "STOR", "APPE"
@@ -87,6 +87,7 @@ Inherits FTPSocket
 		  Case "PWD"
 		    If Response.Code = 257 Then //OK
 		      WorkingDirectory = LastVerb.Arguments
+		      'FTPLog("CWD is " + WorkingDirectory)
 		    Else
 		      HandleFTPError(Response.Code)
 		    End If
@@ -211,31 +212,16 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
-		Sub DataConnected()
-		  
-		  
-		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Sub DataError()
-		  HandleFTPError(Me.DataLastErrorCode)
-		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Sub DownloadComplete(UserAborted As Boolean)
-		  If Not UserAborted Then
-		    RaiseEvent DownloadComplete(OutputFile)
-		  End If
-		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Sub UploadComplete(UserAborted As Boolean)
+		Sub TransferComplete(UserAborted As Boolean)
 		  If Not UserAborted Then
 		    RaiseEvent UploadComplete(OutputFile)
 		  End If
+		End Sub
+	#tag EndEvent
+
+	#tag Event
+		Sub TransferStarting()
+		  FTPLog("Data connection opened.")
 		End Sub
 	#tag EndEvent
 
@@ -732,6 +718,10 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h21
 		Private mCommandDelayTimer As Timer
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected OutputFile As FolderItem
 	#tag EndProperty
 
 	#tag Property, Flags = &h0

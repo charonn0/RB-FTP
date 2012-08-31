@@ -36,7 +36,6 @@ Inherits TCPSocket
 		    DataSocket.Close
 		    DataSocket = Nil
 		  End If
-		  OutputFile = Nil
 		  
 		  If OutputStream <> Nil Then
 		    OutputStream.Close
@@ -56,7 +55,6 @@ Inherits TCPSocket
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
 		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
 		  AddHandler DataSocket.SendProgress, AddressOf SendProgressHandler
-		  
 		  Super.Connect
 		End Sub
 	#tag EndMethod
@@ -64,12 +62,12 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub ConnectedHandler(Sender As TCPSocket)
 		  #pragma Unused Sender
-		  RaiseEvent DataConnected()
+		  RaiseEvent TransferStarting()
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function CRLF() As String
+		Protected Shared Function CRLF() As String
 		  Return Encodings.ASCII.Chr(13) + Encodings.ASCII.Chr(10)
 		End Function
 	#tag EndMethod
@@ -77,11 +75,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
-		  If LastVerb.Verb = "LIST" Or LastVerb.Verb = "NLST" Then
-		    DirList(Split(s, EndOfLine.Windows))
-		  Else
-		    OutputStream.Write(s)
-		  End If
+		  OutputStream.Write(s)
 		End Sub
 	#tag EndMethod
 
@@ -93,8 +87,13 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub ErrorHandler(Sender As TCPSocket)
-		  #pragma Unused Sender
-		  RaiseEvent DataError()
+		  If Sender.LastErrorCode = 102 Then
+		    Sender.Close
+		    If OutputStream <> Nil Then OutputStream.Close
+		    RaiseEvent TransferComplete(False)
+		  Else
+		    HandleFTPError(-1)
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -259,7 +258,7 @@ Inherits TCPSocket
 		  Dim msg As String
 		  
 		  Code = Val(Left(Data, 3))
-		  msg = msg.Replace(Format(Code, "000"), "")
+		  msg = data.Replace(Format(Code, "000"), "")
 		  
 		  Dim response As FTPResponse
 		  response.Code = Code
@@ -349,14 +348,14 @@ Inherits TCPSocket
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused Sender
 		  OutputStream.Close
-		  RaiseEvent UploadComplete(UserAborted)
+		  RaiseEvent TransferComplete(UserAborted)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Function SendProgressHandler(Sender As TCPSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
 		  #pragma Unused Sender
-		  Return RaiseEvent UploadProgress(BytesSent, BytesLeft)
+		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
 		End Function
 	#tag EndMethod
 
@@ -384,35 +383,19 @@ Inherits TCPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event DataConnected()
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event DataError()
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event DirList(List() As String)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event DownloadComplete(UserAborted As Boolean)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event DownloadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
 		Event FTPLog(LogLine As String)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event UploadComplete(UserAborted As Boolean)
+		Event TransferComplete(UserAborted As Boolean)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event UploadProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		Event TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event TransferStarting()
 	#tag EndHook
 
 
@@ -470,10 +453,6 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected LastVerb As FTPVerb
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected OutputFile As FolderItem
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -548,7 +527,7 @@ Inherits TCPSocket
 	#tag EndConstant
 
 
-	#tag Structure, Name = FTPResponse, Flags = &h1
+	#tag Structure, Name = FTPResponse, Flags = &h0
 		Code As Integer
 		  Reply_Type As Integer
 		  Reply_Purpose As Integer
@@ -556,7 +535,7 @@ Inherits TCPSocket
 		Reply_Args As String*496
 	#tag EndStructure
 
-	#tag Structure, Name = FTPVerb, Flags = &h1
+	#tag Structure, Name = FTPVerb, Flags = &h0
 		Verb As String*64
 		Arguments As String*448
 	#tag EndStructure

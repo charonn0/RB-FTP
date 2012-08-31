@@ -7,7 +7,7 @@ Begin Window Window1
    Frame           =   0
    FullScreen      =   False
    HasBackColor    =   False
-   Height          =   400
+   Height          =   4.29e+2
    ImplicitInstance=   True
    LiveResize      =   True
    MacProcID       =   0
@@ -23,7 +23,7 @@ Begin Window Window1
    Resizeable      =   True
    Title           =   "Untitled"
    Visible         =   True
-   Width           =   600
+   Width           =   6.0e+2
    Begin FTPClientSocket Client
       Address         =   "mc.boredomsoft.org"
       DataIsConnected =   ""
@@ -31,14 +31,14 @@ Begin Window Window1
       DataPort        =   ""
       Height          =   32
       Index           =   -2147483648
-      Left            =   625
+      Left            =   6.25e+2
       LockedInPosition=   False
       Passive         =   True
       Password        =   "n9tgXMv9Xu"
       Port            =   21
       Scope           =   0
       TabPanelIndex   =   0
-      Top             =   0
+      Top             =   0.0e+
       User            =   "ftpstore"
       Width           =   32
    End
@@ -96,7 +96,7 @@ Begin Window Window1
       Bold            =   ""
       ButtonStyle     =   0
       Cancel          =   ""
-      Caption         =   "Untitled"
+      Caption         =   "Connect"
       Default         =   ""
       Enabled         =   True
       Height          =   22
@@ -148,7 +148,7 @@ Begin Window Window1
       Bold            =   ""
       ButtonStyle     =   0
       Cancel          =   ""
-      Caption         =   "Untitled"
+      Caption         =   "PWD"
       Default         =   ""
       Enabled         =   True
       Height          =   22
@@ -174,6 +174,130 @@ Begin Window Window1
       Visible         =   True
       Width           =   80
    End
+   Begin PushButton PushButton3
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "LIST"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   444
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   3
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   360
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
+   Begin PushButton PushButton4
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "RETR"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   444
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   4
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   394
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
+   Begin PushButton PushButton5
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "STOR"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   352
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   5
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   394
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
+   Begin PushButton PushButton6
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "DELE"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   260
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   6
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   394
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
 End
 #tag EndWindow
 
@@ -185,11 +309,6 @@ End
 		Sub FTPLog(LogLine As String)
 		  If LogLine.Trim <> "" Then Listbox1.AddRow(LogLine)
 		End Sub
-	#tag EndEvent
-	#tag Event
-		Function DownloadProgress(BytesRead As Integer, BytesLeft As Integer) As Boolean
-		  ProgressBar1.Value = (BytesRead * 100 / (BytesRead + BytesLeft))
-		End Function
 	#tag EndEvent
 	#tag Event
 		Sub DownloadComplete(File As FolderItem)
@@ -211,11 +330,9 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Sub DirList(List() As String)
-		  For Each line As String In List
-		    Listbox1.AddRow(line)
-		  Next
-		End Sub
+		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  ProgressBar1.Value = (BytesSent * 100 / (BytesSent + BytesLeft))
+		End Function
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton1
@@ -229,9 +346,36 @@ End
 #tag Events PushButton2
 	#tag Event
 		Sub Action()
-		  'Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
-		  'Client.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
-		  Client.DoVerb("LIST")
+		  Client.DoVerb(Me.Caption)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton3
+	#tag Event
+		Sub Action()
+		  Client.DoVerb(Me.Caption)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton4
+	#tag Event
+		Sub Action()
+		  Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
+		  Client.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton5
+	#tag Event
+		Sub Action()
+		  Client.DoVerb(Me.Caption)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton6
+	#tag Event
+		Sub Action()
+		  Client.DoVerb(Me.Caption)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
