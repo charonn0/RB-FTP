@@ -4,7 +4,6 @@ Inherits FTPSocket
 	#tag Event
 		Sub Connected()
 		  FTPLog("Connected to " + Me.RemoteAddress + ":" + Str(Me.Port))
-		  CommandDelayTimer.Mode = Timer.ModeMultiple
 		  
 		End Sub
 	#tag EndEvent
@@ -24,6 +23,8 @@ Inherits FTPSocket
 		      RaiseEvent Connected()
 		    Case 331, 332  //Need PASS/ACCT
 		      DoVerb("PASS", Me.Password)
+		    Else
+		      Me.HandleFTPError(Response.Code)
 		    End Select
 		    
 		  Case "PASS"
@@ -34,10 +35,18 @@ Inherits FTPSocket
 		      RaiseEvent Connected()
 		    Case 530  //USER not set!
 		      DoVerb("USER", Me.User)
+		    Else
+		      Me.HandleFTPError(Response.Code)
 		    End Select
 		  Case "RETR"
 		    Select Case Response.Code
 		    Case 150 //About to start data transfer
+		      If OutputFile = Nil Then
+		        OutputFile = GetTemporaryFolderItem()
+		      End If
+		      If Not OutputFile.Exists Then
+		        OutputFile = GetTemporaryFolderItem()
+		      End If
 		      If OutputStream = Nil Then
 		        OutputStream = BinaryStream.Open(OutputFile)
 		      End If
@@ -47,7 +56,9 @@ Inherits FTPSocket
 		      HandleFTPError(Response.Code)
 		    Case 226 //Done
 		      'DataSocket.Close
-		      DownloadComplete(OutputFile)
+		      TransferComplete(OutputFile)
+		    Else
+		      Me.HandleFTPError(Response.Code)
 		    End Select
 		  Case "STOR", "APPE"
 		    Select Case Response.Code
@@ -57,8 +68,9 @@ Inherits FTPSocket
 		      Wend
 		      OutputStream.Position = 0
 		      OutputStream.Close
+		      
 		    Case 226  //Success
-		      UploadComplete(OutputFile)
+		      TransferComplete(OutputFile)
 		    Case 425  //No data connection!
 		      If Passive Then
 		        DataSocket.Connect
@@ -94,7 +106,7 @@ Inherits FTPSocket
 		  Case "LIST"
 		    Select Case Response.Code
 		    Case 226 //Here comes the directory list
-		      FTPLog("Directory listing...")
+		      FTPLog("Directory list OK")
 		    Case 425, 426  //no connection or connection lost
 		      HandleFTPError(Response.Code)
 		    Case 451  //Disk error
@@ -191,6 +203,10 @@ Inherits FTPSocket
 		  Else
 		    If Response.Code = 220 Then  //Server now ready
 		      FTPLog(Response.Reply_Args)
+		      If Me.Anonymous Then
+		        Me.User = "anonymous"
+		        Me.Password = "bsftp@boredomsoft.org"
+		      End If
 		      DoVerb("USER", Me.User)
 		    Else
 		      //Sync error!
@@ -214,8 +230,16 @@ Inherits FTPSocket
 	#tag Event
 		Sub TransferComplete(UserAborted As Boolean)
 		  If Not UserAborted Then
-		    RaiseEvent UploadComplete(OutputFile)
+		    If OutputFile <> Nil Then
+		      RaiseEvent TransferComplete(OutputFile)
+		    ElseIf OutputMB <> Nil Then
+		      RaiseEvent TransferComplete(OutputMB)
+		    End If
 		  End If
+		  
+		  OutputMB = Nil
+		  OutputStream = Nil
+		  OutputFile = Nil
 		End Sub
 	#tag EndEvent
 
@@ -285,6 +309,9 @@ Inherits FTPSocket
 		    Write("LANG " + Params + CRLF)
 		  Case "LIST"
 		    'List.
+		    OutputMB = New MemoryBlock(1024 * 64)
+		    OutputStream = New BinaryStream(OutputMB)
+		    OutputFile = Nil
 		    Write("LIST " + Params + CRLF)
 		  Case "LPRT"
 		    'Long data port.
@@ -430,7 +457,7 @@ Inherits FTPSocket
 		    LastVerb.Arguments = ""
 		    HandleFTPError(500)
 		  End Select
-		  
+		  CommandDelayTimer.Mode = Timer.ModeSingle
 		  
 		End Sub
 	#tag EndMethod
@@ -438,6 +465,7 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub Get(RemoteFileName As String, SaveTo As FolderItem)
 		  OutputFile = SaveTo
+		  OutputStream = BinaryStream.Create(OutputFile, True)
 		  DoVerb("RETR", PathEncode(RemoteFileName, WorkingDirectory))
 		End Sub
 	#tag EndMethod
@@ -506,159 +534,6 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Sub ReceiveReply(ReplyNumber As Integer, ReplyMessage As String)
-		  FTPLog(ReplyMessage)
-		  Select Case ReplyNumber
-		  Case 110
-		    //Restart marker reply
-		  Case 120
-		    'Service ready in nnn minutes.
-		    
-		  Case 125
-		    'Data connection already open; transfer starting.
-		    
-		  Case 150
-		    'File status okay; about to open data connection.
-		    DataSocket.Connect
-		  Case 200
-		    'Command okay.
-		  Case 202
-		    'Command not implemented, superfluous at this site.
-		  Case 211
-		    'System status, or system help reply.
-		    'Break
-		  Case 212
-		    'Directory status.
-		    
-		  Case 213
-		    'File status.
-		    
-		  Case 214
-		    'Help message.
-		    
-		  Case 215
-		    'NAME system type.
-		    Me.ServerType = ReplyMessage
-		  Case 220
-		    'Service ready for new user.
-		    
-		  Case 221
-		    'Service closing control connection.
-		    
-		  Case 225
-		    'Data connection open; no transfer in progress.
-		    
-		  Case 226
-		    'Closing data connection.
-		    DataSocket.Close
-		  Case 227
-		    'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
-		    Dim p1, p2 As Integer
-		    Dim h1, h2, h3, h4 As String
-		    h1 = NthField(NthField(ReplyMessage, ",", 1), "(", 2)
-		    h2 = NthField(ReplyMessage, ",", 2)
-		    h3 = NthField(ReplyMessage, ",", 3)
-		    h4 = NthField(ReplyMessage, ",", 4)
-		    p1 = Val(NthField(ReplyMessage, ",", 5))
-		    p2 = Val(NthField(ReplyMessage, ",", 6))
-		    DataSocket.Port = p1 * 256 + p2
-		    DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
-		    ReplyMessage = ("Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
-		  Case 228
-		    'Entering Long Passive Mode.
-		    
-		  Case 229
-		    'Extended Passive Mode Entered.
-		    
-		  Case 230
-		    'User logged in, proceed.
-		    loginOK = True
-		  Case 250
-		    'Requested file action okay, completed.
-		    
-		  Case 257
-		    '"PATHNAME" created.
-		    FTPLog("Current directory is " + ReplyMessage)
-		    WorkingDirectory = ReplyMessage
-		  Case 331
-		    'User name okay, need password.
-		    DoVerb("PASS", Me.Password)
-		  Case 332
-		    'Need account for login.
-		    DoVerb("PASS", Me.Password)
-		  Case 350
-		    'Requested file action pending further information.
-		    
-		  Case 421
-		    'Service not available, closing control connection.
-		    
-		  Case 425
-		    'Can't open data connection.
-		    
-		  Case 426
-		    'Connection closed; transfer aborted.
-		    
-		  Case 450
-		    'Requested file action not taken.
-		    
-		  Case 451
-		    'Requested action aborted. Local error in processing.
-		    
-		  Case 452
-		    'Requested action not taken.
-		    
-		  Case 500
-		    'Syntax error, command unrecognized.
-		    
-		  Case 501
-		    'Syntax error in parameters or arguments.
-		    
-		  Case 502
-		    'Command not implemented.
-		    
-		  Case 503
-		    'Bad sequence of commands.
-		    
-		  Case 504
-		    'Command not implemented for that parameter.
-		    
-		  Case 521
-		    'Supported address families are <af1, .., afn>
-		    
-		  Case 522
-		    'Protocol not supported.
-		    
-		  Case 530
-		    'Not logged in.
-		    
-		  Case 532
-		    'Need account for storing files.
-		    
-		  Case 550
-		    'Requested action not taken.
-		    
-		  Case 551
-		    'Requested action aborted. Page type unknown.
-		    
-		  Case 552
-		    'Requested file action aborted.
-		    
-		  Case 553
-		    'Requested action not taken.
-		    
-		  Case 554
-		    'Requested action not taken: invalid REST parameter.
-		    
-		  Case 555
-		    'Requested action not taken: type or stru mismatch.
-		    
-		  Else
-		    'Unknown
-		  End Select
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h1
 		Protected Function ServerHasFeature(FeatureName As String) As Boolean
 		  For Each feature As String In ServerFeatures
@@ -681,11 +556,7 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event DownloadComplete(File As FolderItem)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event UploadComplete(File As FolderItem)
+		Event TransferComplete(FolderItemOrMemoryBlock As Variant)
 	#tag EndHook
 
 
@@ -721,6 +592,10 @@ Inherits FTPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
+		Protected mWorkingDirectory As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
 		Protected OutputFile As FolderItem
 	#tag EndProperty
 
@@ -744,6 +619,20 @@ Inherits FTPSocket
 		User As String
 	#tag EndProperty
 
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  return mWorkingDirectory
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  DoVerb("CWD", value)
+			End Set
+		#tag EndSetter
+		WorkingDirectory As String
+	#tag EndComputedProperty
+
 
 	#tag ViewBehavior
 		#tag ViewProperty
@@ -755,6 +644,7 @@ Inherits FTPSocket
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Anonymous"
+			Visible=true
 			Group="Behavior"
 			InitialValue="False"
 			Type="Boolean"
@@ -807,6 +697,7 @@ Inherits FTPSocket
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Passive"
+			Visible=true
 			Group="Behavior"
 			InitialValue="True"
 			Type="Boolean"
@@ -846,6 +737,11 @@ Inherits FTPSocket
 			Group="Behavior"
 			Type="String"
 			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="WorkingDirectory"
+			Group="Behavior"
+			Type="String"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

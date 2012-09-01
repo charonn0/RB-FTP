@@ -10,7 +10,11 @@ Inherits TCPSocket
 
 	#tag Event
 		Sub Error()
-		  HandleFTPError(Me.LastErrorCode)
+		  If Me.LastErrorCode = 102 Then
+		    RaiseEvent Disconnected()
+		  Else
+		    RaiseEvent Error()
+		  End If
 		End Sub
 	#tag EndEvent
 
@@ -347,7 +351,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused Sender
-		  OutputStream.Close
+		  If OutputStream <> Nil Then OutputStream.Close
 		  RaiseEvent TransferComplete(UserAborted)
 		End Sub
 	#tag EndMethod
@@ -380,6 +384,14 @@ Inherits TCPSocket
 
 	#tag Hook, Flags = &h0
 		Event ControlVerb(Verb As FTPVerb)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event Disconnected()
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event Error()
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
@@ -456,6 +468,10 @@ Inherits TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
+		Protected OutputMB As MemoryBlock
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
 		Protected OutputStream As BinaryStream
 	#tag EndProperty
 
@@ -477,10 +493,6 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected UTFMode As Boolean
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected WorkingDirectory As String = "/"
 	#tag EndProperty
 
 
