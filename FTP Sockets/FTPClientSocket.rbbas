@@ -11,9 +11,9 @@ Inherits FTPSocket
 	#tag Event
 		Sub ControlResponse(Response As FTPResponse)
 		  If Response.Reply_Args.Trim <> "" Then
-		    FTPLog(Response.Reply_Args.Trim)
+		    FTPLog(Str(Response.Code) + " " + Response.Reply_Args.Trim)
 		  Else
-		    FTPLog(FTPCodeToMessage(Response.Code).Trim)
+		    FTPLog(Str(Response.Code) + " " + FTPCodeToMessage(Response.Code).Trim)
 		  End If
 		  Select Case LastVerb.Verb
 		  Case "USER"
@@ -136,7 +136,7 @@ Inherits FTPSocket
 		      p2 = Val(NthField(Response.Reply_Args, ",", 6))
 		      DataSocket.Port = p1 * 256 + p2
 		      DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
-		      FTPLog("Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
+		      'FTPLog("Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
 		      DataSocket.Connect
 		    Else
 		      HandleFTPError(Response.Code)
@@ -209,7 +209,7 @@ Inherits FTPSocket
 		    Me.Close
 		  Else
 		    If Response.Code = 220 Then  //Server now ready
-		      FTPLog(Response.Reply_Args)
+		      FTPLog(Str(Response.Code) + " " + Response.Reply_Args)
 		      If Me.Anonymous Then
 		        Me.User = "anonymous"
 		        Me.Password = "bsftp@boredomsoft.org"
@@ -219,9 +219,6 @@ Inherits FTPSocket
 		      //Sync error!
 		    End If
 		  End Select
-		  
-		  'LastVerb.Verb = ""
-		  'LastVerb.Arguments = ""
 		  
 		End Sub
 	#tag EndEvent

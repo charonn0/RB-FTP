@@ -69,10 +69,10 @@ Begin Window Window1
       InitialValue    =   ""
       Italic          =   ""
       Left            =   0
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   ""
+      LockRight       =   True
       LockTop         =   True
       RequiresSelection=   ""
       Scope           =   0
@@ -106,11 +106,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   0
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   1
       TabPanelIndex   =   0
@@ -122,27 +122,6 @@ Begin Window Window1
       Underline       =   ""
       Visible         =   True
       Width           =   80
-   End
-   Begin ProgressBar ProgressBar1
-      AutoDeactivate  =   True
-      Enabled         =   True
-      Height          =   20
-      HelpTag         =   ""
-      Index           =   -2147483648
-      InitialParent   =   ""
-      Left            =   10
-      LockBottom      =   ""
-      LockedInPosition=   False
-      LockLeft        =   True
-      LockRight       =   ""
-      LockTop         =   True
-      Maximum         =   100
-      Scope           =   0
-      TabPanelIndex   =   0
-      Top             =   360
-      Value           =   0
-      Visible         =   True
-      Width           =   155
    End
    Begin PushButton PushButton2
       AutoDeactivate  =   True
@@ -158,11 +137,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   0
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   2
       TabPanelIndex   =   0
@@ -189,11 +168,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   269
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   3
       TabPanelIndex   =   0
@@ -220,11 +199,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   269
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   4
       TabPanelIndex   =   0
@@ -251,11 +230,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   177
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   5
       TabPanelIndex   =   0
@@ -282,11 +261,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   177
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   6
       TabPanelIndex   =   0
@@ -313,11 +292,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   92
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   7
       TabPanelIndex   =   0
@@ -344,11 +323,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   92
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   10
       TabPanelIndex   =   0
@@ -375,11 +354,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   361
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   11
       TabPanelIndex   =   0
@@ -406,11 +385,11 @@ Begin Window Window1
       InitialParent   =   ""
       Italic          =   ""
       Left            =   361
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       TabIndex        =   12
       TabPanelIndex   =   0
@@ -422,6 +401,27 @@ Begin Window Window1
       Underline       =   ""
       Visible         =   True
       Width           =   80
+   End
+   Begin ProgressWheel ProgressWheel1
+      AutoDeactivate  =   True
+      Enabled         =   True
+      Height          =   16
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Left            =   574
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   False
+      Scope           =   0
+      TabIndex        =   13
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Top             =   407
+      Visible         =   True
+      Width           =   16
    End
 End
 #tag EndWindow
@@ -436,11 +436,6 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
-		  ProgressBar1.Value = (BytesSent * 100 / (BytesSent + BytesLeft))
-		End Function
-	#tag EndEvent
-	#tag Event
 		Sub TransferComplete(FolderItemOrMemoryBlock As Variant)
 		  If FolderItemOrMemoryBlock IsA MemoryBlock Then //Non-file data
 		    Dim t() As String = Split(FolderItemOrMemoryBlock.StringValue, EndOfLine)
@@ -448,10 +443,15 @@ End
 		      Listbox1.AddRow(t(i))
 		    Next
 		  ElseIf FolderItemOrMemoryBlock <> Nil Then
-		    Listbox1.AddRow("Get Complete")
 		    FolderItem(FolderItemOrMemoryBlock).Parent.Launch
 		  End If
 		End Sub
+	#tag EndEvent
+	#tag Event
+		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  'Dim i As UInt64 = (BytesSent * 100 / (BytesSent + BytesLeft))
+		  'ProgressBar1.Value = i
+		End Function
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton1
@@ -472,7 +472,6 @@ End
 #tag Events PushButton3
 	#tag Event
 		Sub Action()
-		  'Client.DoVerb("LIST")
 		  Client.List()
 		End Sub
 	#tag EndEvent
@@ -480,8 +479,8 @@ End
 #tag Events PushButton4
 	#tag Event
 		Sub Action()
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child("tinycore-current.iso")
-		  Client.RETR("tinycore-current.iso", f)
+		  Dim f As FolderItem = SpecialFolder.Desktop.Child("world_07.01.2012-1.tar.gz")
+		  Client.RETR("world_07.01.2012-1.tar.gz", f)
 		End Sub
 	#tag EndEvent
 #tag EndEvents

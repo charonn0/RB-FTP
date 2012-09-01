@@ -4,7 +4,11 @@ Inherits TCPSocket
 	#tag Event
 		Sub DataAvailable()
 		  Dim s As String = Me.Read
-		  ParseResponse(s)
+		  If Me IsA FTPClientSocket Then
+		    ParseResponse(s)
+		  ElseIf Me IsA FTPServerSocket Then
+		    ParseVerb(s)
+		  End If
 		End Sub
 	#tag EndEvent
 
@@ -102,7 +106,11 @@ Inherits TCPSocket
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
 		  OutputStream.Write(s)
-		  If RaiseEvent TransferProgress(OutputStream.Position, OutputStream.Length - OutputStream.Position) Then
+		  Dim pos, length As Integer
+		  pos = OutputStream.Position
+		  length = OutputStream.Length
+		  
+		  If RaiseEvent TransferProgress(pos, length - pos) Then
 		    Write("ABOR" + CRLF)
 		  End If
 		End Sub
