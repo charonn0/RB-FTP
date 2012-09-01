@@ -8,6 +8,7 @@ BuildSteps=Build Automation;Build Automation.rbbas;&h52435FFF;&h0;false
 Folder=FTP Sockets;FTP Sockets;&hA646FFF;&h0;false
 Class=FTPClientSocket;FTP Sockets/FTPClientSocket.rbbas;&h59FCEFFF;&hA646FFF;false
 Class=FTPSocket;FTP Sockets/FTPSocket.rbbas;&h7AE48FFF;&hA646FFF;false
+Class=FTPServerSocket;FTP Sockets/FTPServerSocket.rbbas;&h620127FF;&hA646FFF;false
 DefaultWindow=Window1
 AppMenuBar=MenuBar1
 MajorVersion=1

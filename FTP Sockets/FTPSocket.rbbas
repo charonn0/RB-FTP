@@ -35,6 +35,21 @@ Inherits TCPSocket
 
 
 	#tag Method, Flags = &h1
+		Protected Shared Function ChildOfParent(Child As FolderItem, Parent As FolderItem) As Boolean
+		  //A method to determine whether the Child FolderItem is contained within the Parent
+		  //FolderItem or one of its sub-directories.
+		  
+		  If Not Parent.Directory Then Return False
+		  While Child.Parent <> Nil
+		    If Child.Parent.AbsolutePath = Parent.AbsolutePath Then
+		      Return True
+		    End If
+		    Child = Child.Parent
+		  Wend
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Sub Close()
 		  If DataSocket <> Nil Then
 		    DataSocket.Close
@@ -44,21 +59,16 @@ Inherits TCPSocket
 		  If OutputStream <> Nil Then
 		    OutputStream.Close
 		  End If
+		  Me.Disconnect()
 		  Super.Close()
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Sub Connect()
-		  DataSocket = New TCPSocket
+		  CreateDataSocket()
 		  DataSocket.Address = Me.Address
 		  DataSocket.Port = Me.Port + 1
-		  
-		  AddHandler DataSocket.Connected, AddressOf ConnectedHandler
-		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
-		  AddHandler DataSocket.Error, AddressOf ErrorHandler
-		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
-		  AddHandler DataSocket.SendProgress, AddressOf SendProgressHandler
 		  Super.Connect
 		End Sub
 	#tag EndMethod
@@ -67,6 +77,18 @@ Inherits TCPSocket
 		Private Sub ConnectedHandler(Sender As TCPSocket)
 		  #pragma Unused Sender
 		  RaiseEvent TransferStarting()
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub CreateDataSocket()
+		  DataSocket = New TCPSocket
+		  
+		  AddHandler DataSocket.Connected, AddressOf ConnectedHandler
+		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
+		  AddHandler DataSocket.Error, AddressOf ErrorHandler
+		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
+		  AddHandler DataSocket.SendProgress, AddressOf SendProgressHandler
 		End Sub
 	#tag EndMethod
 
@@ -80,6 +102,9 @@ Inherits TCPSocket
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
 		  OutputStream.Write(s)
+		  If RaiseEvent TransferProgress(OutputStream.Position, OutputStream.Length - OutputStream.Position) Then
+		    Write("ABOR" + CRLF)
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -315,7 +340,6 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Shared Function PathDecode(Path As String, NamePrefix As String = "") As String
-		  If Path.Left(1) <> "/" Then Return Path
 		  Path = ReplaceAll(Path, Chr(&o0), Chr(&o12))
 		  Return ReplaceAll(NamePrefix + Path, "//", "/")
 		End Function
@@ -323,7 +347,6 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Shared Function PathEncode(Path As String, NamePrefix As String = "") As String
-		  If NamePrefix.Right(1) <> "/" And NamePrefix.Trim <> "" Then NamePrefix = NamePrefix + "/"
 		  Path = ReplaceAll(Path, Chr(&o12), Chr(&o0))
 		  Return NamePrefix + Path
 		End Function
@@ -468,6 +491,14 @@ Inherits TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
+		Protected LoginOK As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected OutputFile As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
 		Protected OutputMB As MemoryBlock
 	#tag EndProperty
 
@@ -500,6 +531,18 @@ Inherits TCPSocket
 	#tag EndConstant
 
 	#tag Constant, Name = BinaryMode, Type = Double, Dynamic = False, Default = \"1", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = EBCDICMode, Type = Double, Dynamic = False, Default = \"4", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FTPVersion, Type = Double, Dynamic = False, Default = \"0.1", Scope = Protected
+	#tag EndConstant
+
+	#tag Constant, Name = LocalMode, Type = Double, Dynamic = False, Default = \"3", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = PortalMode, Type = Double, Dynamic = False, Default = \"-1", Scope = Public
 	#tag EndConstant
 
 	#tag Constant, Name = RP_Auth, Type = Double, Dynamic = False, Default = \"3", Scope = Protected

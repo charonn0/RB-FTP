@@ -64,7 +64,11 @@ Inherits FTPSocket
 		    Select Case Response.Code
 		    Case 150  //Ready
 		      While Not OutputStream.EOF
-		        WriteData(OutputStream.Read(512))
+		        WriteData(OutputStream.Read(1024))
+		        If RaiseEvent TransferProgress(OutputStream.Position, OutputStream.Length - OutputStream.Position) Then
+		          DoVerb("ABOR")
+		        End If
+		        App.YieldToNextThread
 		      Wend
 		      OutputStream.Position = 0
 		      OutputStream.Close
@@ -91,14 +95,14 @@ Inherits FTPSocket
 		  Case "CWD"
 		    Select Case Response.Code
 		    Case 250, 200 //OK
-		      WorkingDirectory = LastVerb.Arguments
+		      mWorkingDirectory = LastVerb.Arguments
 		    Else
 		      HandleFTPError(Response.Code)
 		    End Select
 		    
 		  Case "PWD"
 		    If Response.Code = 257 Then //OK
-		      WorkingDirectory = LastVerb.Arguments
+		      mWorkingDirectory = LastVerb.Arguments
 		      'FTPLog("CWD is " + WorkingDirectory)
 		    Else
 		      HandleFTPError(Response.Code)
@@ -106,7 +110,7 @@ Inherits FTPSocket
 		  Case "LIST"
 		    Select Case Response.Code
 		    Case 226 //Here comes the directory list
-		      FTPLog("Directory list OK")
+		      'FTPLog("Directory list OK")
 		    Case 425, 426  //no connection or connection lost
 		      HandleFTPError(Response.Code)
 		    Case 451  //Disk error
@@ -200,6 +204,9 @@ Inherits FTPSocket
 		    Else
 		      HandleFTPError(Response.Code)
 		    End If
+		  Case "QUIT"
+		    HandleFTPError(Response.Code)
+		    Me.Close
 		  Else
 		    If Response.Code = 220 Then  //Server now ready
 		      FTPLog(Response.Reply_Args)
@@ -244,6 +251,12 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
+		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
+		End Function
+	#tag EndEvent
+
+	#tag Event
 		Sub TransferStarting()
 		  FTPLog("Data connection opened.")
 		End Sub
@@ -251,11 +264,46 @@ Inherits FTPSocket
 
 
 	#tag Method, Flags = &h0
-		Sub DoVerb(Verb As String, Params As String = "")
+		Sub CWD(NewDirectory As String)
+		  //Change the WorkingDirectory
+		  DoVerb("CWD", NewDirectory)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub DELE(RemoteFileName As String)
+		  //Delete the file named RemoteFileName on the FTP server
+		  DoVerb("DELE", RemoteFileName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub DoVerb(Verb As String, Params As String = "")
+		  //All possible FTP verbs are included in the following Select block (even though we're not using them all yet)
 		  LastVerb.Verb = Verb.Trim
 		  LastVerb.Arguments = Params.Trim
 		  FTPLog(Verb + " " + Params)
 		  Select Case Verb
+		  Case "PORT"
+		    'Data port.
+		    Dim p1, p2 As Integer
+		    Dim h1, h2, h3, h4 As String
+		    h1 = NthField(NthField(Params, ",", 1), "(", 2)
+		    h2 = NthField(Params, ",", 2)
+		    h3 = NthField(Params, ",", 3)
+		    h4 = NthField(Params, ",", 4)
+		    p1 = Val(NthField(Params, ",", 5))
+		    p2 = Val(NthField(Params, ",", 6))
+		    DataSocket.Port = p1 * 256 + p2
+		    DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
+		    params = h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
+		    Write("PORT " + Params + CRLF)
+		  Case "LIST"
+		    'List.
+		    OutputMB = New MemoryBlock(1024 * 64)
+		    OutputStream = New BinaryStream(OutputMB)
+		    OutputFile = Nil
+		    Write("LIST " + Params + CRLF)
 		  Case "ABOR"
 		    'Abort
 		    Write("ABOR " + Params + CRLF)
@@ -307,12 +355,6 @@ Inherits FTPSocket
 		  Case "LANG"
 		    'Language negotiation.
 		    Write("LANG " + Params + CRLF)
-		  Case "LIST"
-		    'List.
-		    OutputMB = New MemoryBlock(1024 * 64)
-		    OutputStream = New BinaryStream(OutputMB)
-		    OutputFile = Nil
-		    Write("LIST " + Params + CRLF)
 		  Case "LPRT"
 		    'Long data port.
 		    Write("LPRT " + Params + CRLF)
@@ -355,20 +397,6 @@ Inherits FTPSocket
 		  Case "PBSZ"
 		    'Protection Buffer Size.
 		    Write("PBSZ " + Params + CRLF)
-		  Case "PORT"
-		    'Data port.
-		    Dim p1, p2 As Integer
-		    Dim h1, h2, h3, h4 As String
-		    h1 = NthField(NthField(Params, ",", 1), "(", 2)
-		    h2 = NthField(Params, ",", 2)
-		    h3 = NthField(Params, ",", 3)
-		    h4 = NthField(Params, ",", 4)
-		    p1 = Val(NthField(Params, ",", 5))
-		    p2 = Val(NthField(Params, ",", 6))
-		    DataSocket.Port = p1 * 256 + p2
-		    DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
-		    params = h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
-		    Write("PORT " + Params + CRLF)
 		  Case "PROT"
 		    'Data Channel Protection Level.
 		    Write("PROT " + Params + CRLF)
@@ -426,7 +454,6 @@ Inherits FTPSocket
 		  Case "USER"
 		    'User name.
 		    Write("USER " + Params + CRLF)
-		    HandShakeStep = 1
 		  Case "XCUP"
 		    'Change to the parent of the current working directory.
 		    Write("XCUP " + Params + CRLF)
@@ -457,97 +484,73 @@ Inherits FTPSocket
 		    LastVerb.Arguments = ""
 		    HandleFTPError(500)
 		  End Select
-		  CommandDelayTimer.Mode = Timer.ModeSingle
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Get(RemoteFileName As String, SaveTo As FolderItem)
+		Sub List(TargetDirectory As String = "")
+		  //Retrieves a directory listing
+		  TargetDirectory = PathEncode(TargetDirectory)
+		  DoVerb("LIST", TargetDirectory)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub PASV()
+		  DoVerb("PASV")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub PORT(PortNumber As Integer)
+		  DoVerb("PORT", Str(PortNumber))
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub PWD()
+		  DoVerb("PWD")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Quit()
+		  DoVerb("QUIT")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RETR(RemoteFileName As String, SaveTo As FolderItem)
 		  OutputFile = SaveTo
 		  OutputStream = BinaryStream.Create(OutputFile, True)
 		  DoVerb("RETR", PathEncode(RemoteFileName, WorkingDirectory))
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub HandShake()
-		  If HandShakeStep = 1 Then
-		    If Password.Trim <> "" Then
-		      DoVerb("PASS", Me.Password)
-		    End If
-		    HandShakeStep = 2
-		    Return
-		  ElseIf HandShakeStep = 2 Then
-		    DoVerb("SYST")
-		    HandShakeStep = 3
-		    Return
-		  ElseIf HandShakeStep = 3 Then
-		    DoVerb("FEAT")
-		    HandShakeStep = 4
-		    Return
-		  ElseIf HandShakeStep = 4 Then
-		    If ServerHasFeature("UTF8") Then
-		      DoVerb("OPTS", "UTF8 ON")
-		    End If
-		    HandShakeStep = 5
-		    Return
-		  ElseIf HandShakeStep = 5 Then
-		    DoVerb("PWD")
-		    HandShakeStep = 6
-		    Return
-		  ElseIf HandShakeStep = 6 Then
-		    RaiseEvent Connected()
-		  End If
-		  
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h0
-		Function Mode() As Integer
-		  Return TransferMode
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub Mode(Assigns Mode As Integer)
-		  Me.TransferMode = Mode
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub Put(RemoteFileName As String, LocalFile As FolderItem)
-		  If ServerHasFeature("PASV") And Me.Passive Then
-		    DoVerb("PASV")
-		  End If
-		  If TransferMode = BinaryMode Then
-		    DoVerb("TYPE", "I")
-		  End If
+		Sub STOR(RemoteFileName As String, LocalFile As FolderItem)
 		  OutputFile = LocalFile
-		  DoVerb("STOR", WorkingDirectory + "/" + RemoteFileName)
+		  OutputStream = BinaryStream.Open(OutputFile)
+		  DoVerb("STOR", RemoteFileName)
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Sub QueueCommand(Command As String)
-		  PendingCommands.Append(Command.Trim)
+	#tag Method, Flags = &h0
+		Sub TYPE(Assigns TransferType As Integer)
+		  Select Case TransferType
+		  Case ASCIIMode
+		    DoVerb("TYPE", "A")
+		  Case LocalMode
+		    DoVerb("TYPE", "L 8")
+		  Case BinaryMode
+		    DoVerb("TYPE", "I")
+		  Case PortalMode
+		    DoVerb("TYPE", "V")
+		  Case EBCDICMode
+		    DoVerb("TYPE", "E")
+		  End Select
 		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Function ServerHasFeature(FeatureName As String) As Boolean
-		  For Each feature As String In ServerFeatures
-		    If feature = FeatureName Then
-		      Return True
-		    End If
-		  Next
-		  '
-		  '
-		  '
-		  '
-		  '
-		  'Return ServerFeatures.IndexOf(FeatureName) <> -1
-		End Function
 	#tag EndMethod
 
 
@@ -559,52 +562,17 @@ Inherits FTPSocket
 		Event TransferComplete(FolderItemOrMemoryBlock As Variant)
 	#tag EndHook
 
+	#tag Hook, Flags = &h0
+		Event TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+	#tag EndHook
 
-	#tag ComputedProperty, Flags = &h21
-		#tag Getter
-			Get
-			  If mCommandDelayTimer = Nil Then
-			    mCommandDelayTimer = New Timer
-			    mCommandDelayTimer.Period = 250
-			    'AddHandler mCommandDelayTimer.Action, AddressOf CommandDelayHandler
-			  End If
-			  return mCommandDelayTimer
-			End Get
-		#tag EndGetter
-		#tag Setter
-			Set
-			  mCommandDelayTimer = value
-			End Set
-		#tag EndSetter
-		Private CommandDelayTimer As Timer
-	#tag EndComputedProperty
 
 	#tag Property, Flags = &h21
-		Private HandShakeStep As Integer
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected LoginOK As Boolean
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private mCommandDelayTimer As Timer
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected mWorkingDirectory As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected OutputFile As FolderItem
+		Private mWorkingDirectory As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
 		Password As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected PendingCommands() As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -625,11 +593,6 @@ Inherits FTPSocket
 			  return mWorkingDirectory
 			End Get
 		#tag EndGetter
-		#tag Setter
-			Set
-			  DoVerb("CWD", value)
-			End Set
-		#tag EndSetter
 		WorkingDirectory As String
 	#tag EndComputedProperty
 

@@ -26,7 +26,7 @@ Begin Window Window1
    Width           =   6.0e+2
    Begin FTPClientSocket Client
       Address         =   "mc.boredomsoft.org"
-      Anonymous       =   True
+      Anonymous       =   False
       DataIsConnected =   ""
       DataLastErrorCode=   ""
       DataPort        =   ""
@@ -105,7 +105,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   260
+      Left            =   0
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -118,7 +118,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   360
+      Top             =   407
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -142,7 +142,7 @@ Begin Window Window1
       Top             =   360
       Value           =   0
       Visible         =   True
-      Width           =   238
+      Width           =   155
    End
    Begin PushButton PushButton2
       AutoDeactivate  =   True
@@ -157,7 +157,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   352
+      Left            =   0
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -170,7 +170,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   359
+      Top             =   385
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -188,7 +188,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   444
+      Left            =   269
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -201,7 +201,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   360
+      Top             =   385
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -219,7 +219,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   444
+      Left            =   269
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -232,7 +232,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   394
+      Top             =   407
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -250,7 +250,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   352
+      Left            =   177
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -263,7 +263,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   394
+      Top             =   385
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -281,7 +281,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   260
+      Left            =   177
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -294,7 +294,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   394
+      Top             =   407
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -312,7 +312,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   527
+      Left            =   92
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -325,7 +325,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   359
+      Top             =   407
       Underline       =   ""
       Visible         =   True
       Width           =   73
@@ -343,7 +343,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   527
+      Left            =   92
       LockBottom      =   ""
       LockedInPosition=   False
       LockLeft        =   True
@@ -356,10 +356,72 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   394
+      Top             =   385
       Underline       =   ""
       Visible         =   True
       Width           =   73
+   End
+   Begin PushButton PushButton11
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "CWD"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   361
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   11
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   385
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
+   Begin PushButton PushButton12
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "QUIT"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   361
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   12
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   407
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
    End
 End
 #tag EndWindow
@@ -385,7 +447,7 @@ End
 		    For i As Integer = 0 To UBound(t)
 		      Listbox1.AddRow(t(i))
 		    Next
-		  Else
+		  ElseIf FolderItemOrMemoryBlock <> Nil Then
 		    Listbox1.AddRow("Get Complete")
 		    FolderItem(FolderItemOrMemoryBlock).Parent.Launch
 		  End If
@@ -403,50 +465,68 @@ End
 #tag Events PushButton2
 	#tag Event
 		Sub Action()
-		  Client.DoVerb(Me.Caption)
+		  Client.PWD
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton3
 	#tag Event
 		Sub Action()
-		  Client.DoVerb("LIST")
+		  'Client.DoVerb("LIST")
+		  Client.List()
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton4
 	#tag Event
 		Sub Action()
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf")
-		  Client.Get("Prolexic_Threat_Advisory_Dirt_Jumper_v3.pdf", f)
+		  Dim f As FolderItem = SpecialFolder.Desktop.Child("tinycore-current.iso")
+		  Client.RETR("tinycore-current.iso", f)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton5
 	#tag Event
 		Sub Action()
-		  Client.DoVerb(Me.Caption)
+		  Dim f As FolderItem = GetOpenFolderItem("")
+		  If f <> Nil Then
+		    Client.STOR(f.Name, f)
+		  End If
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton6
 	#tag Event
 		Sub Action()
-		  Client.DoVerb(Me.Caption)
+		  Client.DELE("dtfgsrfthgdr.bat")
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton7
 	#tag Event
 		Sub Action()
-		  Client.DoVerb(Me.Caption)
+		  Client.PASV
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton10
 	#tag Event
 		Sub Action()
-		  Client.DoVerb("TYPE", "I")
+		  Client.TYPE = Client.BinaryMode
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton11
+	#tag Event
+		Sub Action()
+		  Client.CWD("ResKit/y2kfix/x86/")
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton12
+	#tag Event
+		Sub Action()
+		  Client.Quit
 		End Sub
 	#tag EndEvent
 #tag EndEvents
