@@ -106,11 +106,8 @@ Inherits TCPSocket
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
 		  OutputStream.Write(s)
-		  Dim pos, length As Integer
-		  pos = OutputStream.Position
-		  length = OutputStream.Length
 		  
-		  If RaiseEvent TransferProgress(pos, length - pos) Then
+		  If RaiseEvent TransferProgress(OutputStream.Position, OutputLength - OutputStream.Position) Then
 		    Write("ABOR" + CRLF)
 		  End If
 		End Sub
@@ -279,13 +276,14 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub FTPLog(LogLine As String)
+		  //This method allows any subclass of the FTPSocket to raise its own FTPLog event.
 		  RaiseEvent FTPLog(LogLine)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub HandleFTPError(Code As Integer)
-		  RaiseEvent FTPLog(FTPCodeToMessage(Code))
+		  RaiseEvent FTPLog(Str(code) + " " + FTPCodeToMessage(Code))
 		End Sub
 	#tag EndMethod
 
@@ -504,6 +502,10 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected OutputFile As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected OutputLength As UInt64
 	#tag EndProperty
 
 	#tag Property, Flags = &h1

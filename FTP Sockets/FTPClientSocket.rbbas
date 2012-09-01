@@ -41,6 +41,9 @@ Inherits FTPSocket
 		  Case "RETR"
 		    Select Case Response.Code
 		    Case 150 //About to start data transfer
+		      Dim size As String = NthField(Response.Reply_Args, "(", 2)
+		      size = NthField(size, ")", 1)
+		      OutputLength = Val(size)
 		      If OutputFile = Nil Then
 		        OutputFile = GetTemporaryFolderItem()
 		      End If

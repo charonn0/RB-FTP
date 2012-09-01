@@ -423,6 +423,27 @@ Begin Window Window1
       Visible         =   True
       Width           =   16
    End
+   Begin ProgressBar ProgressBar1
+      AutoDeactivate  =   True
+      Enabled         =   True
+      Height          =   20
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Left            =   0
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Maximum         =   100
+      Scope           =   0
+      TabPanelIndex   =   0
+      Top             =   353
+      Value           =   0
+      Visible         =   True
+      Width           =   600
+   End
 End
 #tag EndWindow
 
@@ -449,8 +470,8 @@ End
 	#tag EndEvent
 	#tag Event
 		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
-		  'Dim i As UInt64 = (BytesSent * 100 / (BytesSent + BytesLeft))
-		  'ProgressBar1.Value = i
+		  Dim percent As UInt64 = BytesSent * 100 / (BytesLeft + BytesSent)
+		  ProgressBar1.Value = percent
 		End Function
 	#tag EndEvent
 #tag EndEvents
