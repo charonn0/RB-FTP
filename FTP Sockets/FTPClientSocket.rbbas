@@ -10,6 +10,9 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub ControlResponse(Response As FTPResponse)
+		  //This event is raised by FTPSocket.DataAvailable
+		  //Response is a FTPSocket.FTPResponse stucture
+		  
 		  If Response.Reply_Args.Trim <> "" Then
 		    FTPLog(Str(Response.Code) + " " + Response.Reply_Args.Trim)
 		  Else
@@ -226,9 +229,11 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub ControlVerb(Verb As FTPVerb)
+		  //FTP clients do not receive FTPVerb messages.
 		  #pragma Unused Verb
-		  //Clients do not accept Verbs
-		  Return
+		  FTPLog("Error: the remote server appears to be another client!")
+		  Me.Disconnect()
+		  Me.Close()
 		End Sub
 	#tag EndEvent
 

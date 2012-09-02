@@ -501,7 +501,7 @@ Begin Window Window1
       Port            =   21
       Scope           =   0
       TabPanelIndex   =   0
-      TimeOutPeriod   =   600000
+      TimeOutPeriod   =   10000
       Top             =   1.5e+2
       Width           =   32
    End

@@ -3,7 +3,8 @@ Protected Class FTPServerSocket
 Inherits FTPSocket
 	#tag Event
 		Sub Connected()
-		  InactivityTimer.Mode = Timer.ModeSingle
+		  FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
+		  InactivityTimer.Mode = Timer.ModeMultiple
 		  DoResponse(221, Banner)
 		End Sub
 	#tag EndEvent
@@ -12,11 +13,18 @@ Inherits FTPSocket
 		Sub ControlResponse(Response As FTPResponse)
 		  //FTP servers do not receive FTPresponse messages.
 		  #pragma Unused Response
+		  FTPLog("Error: the remote client appears to be another server!")
+		  DoResponse(421, "This is a server host.")
+		  Me.Disconnect()
+		  Me.Close()
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Sub ControlVerb(Verb As FTPVerb)
+		  //This event is raised by FTPSocket.DataAvailable
+		  //Verb is a FTPSocket.FTPVerb stucture
+		  
 		  FTPLog(Verb.Verb + " " + Verb.Arguments)
 		  InactivityTimer.Reset()
 		  Select Case Verb.Verb.Trim
@@ -31,6 +39,9 @@ Inherits FTPSocket
 		  Case "PASS"
 		    If Username.Trim = "" Then
 		      DoResponse(530)  //USER not set!
+		    ElseIf Me.Anonymous And Username = "anonymous" Then
+		      DoResponse(230) //Logged in with pass
+		      LoginOK = True
 		    Else
 		      Password = RaiseEvent UserLogon(Username)
 		      If Verb.Arguments.Trim = Password.Trim Then
@@ -181,12 +192,13 @@ Inherits FTPSocket
 		      Select Case Verb.Arguments
 		      Case "A", "A N"
 		        Me.TransferMode = ASCIIMode
+		        DoResponse(200)
 		      Case "I", "L"
 		        Me.TransferMode = BinaryMode
+		        DoResponse(200)
 		      Else
 		        DoResponse(504) //Command not implemented for param
 		      End Select
-		      DoResponse(200)
 		    Else
 		      DoResponse(530)  //not logged in
 		    End If
@@ -238,6 +250,7 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub Disconnected()
+		  FTPLog("Remote host closed the connection.")
 		  Me.Close
 		End Sub
 	#tag EndEvent
@@ -258,6 +271,7 @@ Inherits FTPSocket
 		  If Params.Trim = "" Then Params = FTPCodeToMessage(Code)
 		  params = Trim(Str(Code) + " " + Params)
 		  Me.Write(params + CRLF)
+		  FTPLog(params)
 		End Sub
 	#tag EndMethod
 
