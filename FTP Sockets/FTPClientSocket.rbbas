@@ -6,7 +6,7 @@ Inherits FTPSocket
 		  FTPLog("Connected to " + Me.RemoteAddress + ":" + Str(Me.Port))
 		  VerbDispatchTimer = New Timer
 		  VerbDispatchTimer.Period = 100
-		  AddHandler VerbDispatchTimer.Action, AddressOf VerbDispatcher
+		  AddHandler VerbDispatchTimer.Action, AddressOf VerbDispatchHandler
 		End Sub
 	#tag EndEvent
 
@@ -15,6 +15,12 @@ Inherits FTPSocket
 		  Dim s As String = Me.Read
 		  ParseResponse(s)
 		  
+		End Sub
+	#tag EndEvent
+
+	#tag Event
+		Sub Disconnected()
+		  Me.Close()
 		End Sub
 	#tag EndEvent
 
@@ -450,7 +456,7 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub VerbDispatcher(Sender As Timer)
+		Private Sub VerbDispatchHandler(Sender As Timer)
 		  If Not TransferInProgress And UBound(PendingVerbs) > -1 Then
 		    Dim nextverb As FTPVerb = PendingVerbs(0)
 		    PendingVerbs.Remove(0)

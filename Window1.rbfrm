@@ -681,14 +681,14 @@ Begin Window Window1
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
-         Left            =   3.97e+2
+         Left            =   397
          LockedInPosition=   False
          Passive         =   True
          Password        =   "n9tgXMv9Xu"
          Port            =   21
          Scope           =   0
          TabPanelIndex   =   1
-         Top             =   3.53e+2
+         Top             =   353
          Username        =   "ftpstore"
          Width           =   32
       End

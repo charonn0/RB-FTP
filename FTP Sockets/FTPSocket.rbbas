@@ -6,7 +6,8 @@ Inherits TCPSocket
 		  If Me.LastErrorCode = 102 Then
 		    RaiseEvent Disconnected()
 		  Else
-		    RaiseEvent Error()
+		    Me.Close
+		    RaiseEvent FTPLog(SocketErrorMessage(Me))
 		  End If
 		End Sub
 	#tag EndEvent
@@ -136,7 +137,8 @@ Inherits TCPSocket
 		    TransferInProgress = False
 		    TransferComplete(True)
 		  Else
-		    RaiseEvent Error()
+		    Sender.Close
+		    RaiseEvent FTPLog(SocketErrorMessage(Sender))
 		  End If
 		End Sub
 	#tag EndMethod
@@ -477,6 +479,32 @@ Inherits TCPSocket
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Shared Function SocketErrorMessage(Sender As SocketCore) As String
+		  Dim err As String = "Socket error " + Str(Sender.LastErrorCode)
+		  Select Case Sender.LastErrorCode
+		  Case 102
+		    err = err + ": Disconnected."
+		  Case 100
+		    err = err + ": Could not create a socket!"
+		  Case 103
+		    err = err + ": The specified server address is invalid."
+		  Case 105
+		    err = err + ": That port number is already in use."
+		  Case 106
+		    err = err + ": You can't do that right now."
+		  Case 107
+		    err = err + ": Could not bind to port."
+		  Case 108
+		    err = err + ": Out of memory."
+		  Else
+		    err = err + ": System error code."
+		  End Select
+		  
+		  Return err
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
 		Protected Sub Write(Command As String)
 		  Super.Write(Command)
@@ -494,10 +522,6 @@ Inherits TCPSocket
 
 	#tag Hook, Flags = &h0
 		Event Disconnected()
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event Error()
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
@@ -521,8 +545,8 @@ Inherits TCPSocket
 		servers are also dealt with in FTPSocket.
 		
 		This class is not intended to be used except as the superclass of another TCPSocket 
-		that handles protocol layer stuff via the ControlVerb event (for servers) or the 
-		ControlRespose event (for clients) and Write and WriteData for both clients and servers.
+		that handles protocol layer stuff via the DataAvailable event and Write, WriteData,
+		Read, and ReadData methods.
 	#tag EndNote
 
 
