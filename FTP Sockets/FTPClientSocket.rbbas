@@ -73,16 +73,11 @@ Inherits FTPSocket
 		  Case "STOR", "APPE"
 		    Select Case Response.Code
 		    Case 150  //Ready
-		      While Not OutputStream.EOF
-		        WriteData(OutputStream.Read(1024))
-		        If RaiseEvent TransferProgress(OutputStream.Position, OutputStream.Length - OutputStream.Position) Then
-		          DoVerb("ABOR")
-		        End If
-		        App.YieldToNextThread
-		      Wend
-		      OutputStream.Position = 0
-		      OutputStream.Close
-		      
+		      UploadDispatcher = New Timer
+		      AddHandler UploadDispatcher.Action, AddressOf UploadHandler
+		      UploadDispatcher.Period = 1
+		      UploadDispatcher.Mode = Timer.ModeMultiple
+		      TransferInProgress = True
 		    Case 226  //Success
 		      TransferComplete(OutputFile)
 		    Case 425  //No data connection!
@@ -252,6 +247,8 @@ Inherits FTPSocket
 		  OutputMB = Nil
 		  OutputStream = Nil
 		  OutputFile = Nil
+		  DataSocket.Disconnect
+		  VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
 	#tag EndEvent
 
@@ -355,6 +352,12 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub REST(StartPosition As UInt64 = 0)
+		  DoVerb("REST", Str(StartPosition))
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub RETR(RemoteFileName As String, SaveTo As FolderItem)
 		  OutputFile = SaveTo
 		  OutputStream = BinaryStream.Create(OutputFile, True)
@@ -384,6 +387,26 @@ Inherits FTPSocket
 		  Case EBCDICMode
 		    DoVerb("TYPE", "E")
 		  End Select
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub UploadHandler(Sender As Timer)
+		  If OutputStream <> Nil Then
+		    If Not OutputStream.EOF Then
+		      WriteData(OutputStream.Read(1024 * 64))
+		      If OutputStream <> Nil Then
+		        If RaiseEvent TransferProgress(OutputStream.Position, OutputStream.Length - OutputStream.Position) Then
+		          DoVerb("ABOR")
+		        End If
+		      End If
+		    End If
+		  Else
+		    Sender.Mode = Timer.ModeOff
+		  End If
+		  
+		Exception NilObjectException
+		  Sender.Mode = Timer.ModeOff
 		End Sub
 	#tag EndMethod
 
@@ -429,6 +452,10 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h21
 		Private RNT As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private UploadDispatcher As Timer
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

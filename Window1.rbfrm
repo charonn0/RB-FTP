@@ -556,7 +556,7 @@ End
 		      Listbox1.AddRow(t(i))
 		    Next
 		  ElseIf FolderItemOrMemoryBlock <> Nil Then
-		    FolderItem(FolderItemOrMemoryBlock).Parent.Launch
+		    Listbox1.AddRow("Transfer complete.")
 		  End If
 		End Sub
 	#tag EndEvent

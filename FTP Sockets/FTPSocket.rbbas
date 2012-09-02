@@ -122,7 +122,7 @@ Inherits TCPSocket
 		Private Sub ErrorHandler(Sender As TCPSocket)
 		  If Sender.LastErrorCode = 102 Then
 		    Sender.Close
-		    If OutputStream <> Nil Then OutputStream.Close
+		    'If OutputStream <> Nil Then OutputStream.Close
 		    TransferInProgress = False
 		    RaiseEvent TransferComplete(False)
 		  Else
@@ -483,7 +483,8 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused Sender
-		  If OutputStream <> Nil Then OutputStream.Close
+		  'If OutputStream <> Nil Then OutputStream.Close
+		  If OutputStream.Position < OutputStream.Length Then Return
 		  TransferInProgress = False
 		  RaiseEvent TransferComplete(UserAborted)
 		End Sub

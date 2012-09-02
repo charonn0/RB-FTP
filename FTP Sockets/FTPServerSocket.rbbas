@@ -41,6 +41,7 @@ Inherits FTPSocket
 		    If Username.Trim = "" Then
 		      DoResponse(530)  //USER not set!
 		    ElseIf Me.Anonymous And Username = "anonymous" Then
+		      Call UserLogon(Username, Password)  //anon users passwords don't matter
 		      DoResponse(230) //Logged in with pass
 		      LoginOK = True
 		    Else
@@ -59,7 +60,7 @@ Inherits FTPSocket
 		          OutputStream = BinaryStream.Open(OutputFile)
 		          DoResponse(150)
 		          While Not OutputStream.EOF
-		            WriteData(OutputStream.Read(1024))
+		            WriteData(OutputStream.Read(1024 * 64))
 		            App.YieldToNextThread
 		          Wend
 		          DoResponse(226)
