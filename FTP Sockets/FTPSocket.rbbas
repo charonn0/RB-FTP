@@ -113,10 +113,12 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
-		  DataStream.Write(s)
-		  TransferInProgress = True
-		  If RaiseEvent TransferProgress(DataStream.Position, DataLength - DataStream.Position) Then
+		  If RaiseEvent TransferProgress(DataStream.Position + s.LenB, DataLength) Then
 		    Write("ABOR" + CRLF)
+		    TransferInProgress = False
+		  Else
+		    DataStream.Write(s)
+		    TransferInProgress = True
 		  End If
 		End Sub
 	#tag EndMethod
@@ -417,7 +419,7 @@ Inherits TCPSocket
 		  p1 = Val(NthField(PASVParams, ",", 5))
 		  p2 = Val(NthField(PASVParams, ",", 6))
 		  
-		  Return h1 + "." + h2 + "." + h3 + "." + h4 + ":" + Format(p1 * 256 + p2, "######")
+		  Return h1 + "." + h2 + "." + h3 + "." + h4 + ":" + Format(p1 * 256 + p2, "#####0")
 		  
 		End Function
 	#tag EndMethod
@@ -507,7 +509,7 @@ Inherits TCPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
+		Event TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
 	#tag EndHook
 
 
@@ -551,7 +553,7 @@ Inherits TCPSocket
 			  mDataLength = value
 			End Set
 		#tag EndSetter
-		Protected DataLength As UInt64
+		Protected DataLength As Int64
 	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1
@@ -567,7 +569,7 @@ Inherits TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private mDataLength As UInt64
+		Private mDataLength As Int64
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -626,7 +628,7 @@ Inherits TCPSocket
 		  OwnerPerms As Integer
 		  GroupPerms As Integer
 		  WorldPerms As Integer
-		  FileSize As UInt64
+		  FileSize As Int64
 		Timestamp As String*64
 	#tag EndStructure
 

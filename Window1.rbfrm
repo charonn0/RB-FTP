@@ -681,14 +681,14 @@ Begin Window Window1
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
-         Left            =   305
+         Left            =   3.97e+2
          LockedInPosition=   False
          Passive         =   True
          Password        =   "n9tgXMv9Xu"
          Port            =   21
          Scope           =   0
          TabPanelIndex   =   1
-         Top             =   374
+         Top             =   3.53e+2
          Username        =   "ftpstore"
          Width           =   32
       End
@@ -807,6 +807,99 @@ Begin Window Window1
          Underline       =   ""
          Visible         =   True
          Width           =   56
+      End
+      Begin PushButton PushButton21
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "STAT"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   326
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   20
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   357
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton22
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "MDTM"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   326
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   21
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   380
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton20
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "NOOP"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   326
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   22
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   403
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
       End
    End
    Begin ProgressWheel GUIIndicator
@@ -992,8 +1085,8 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Function TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
-		  Dim percent As UInt64 = BytesSent * 100 / (BytesLeft + BytesSent)
+		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
+		  Dim percent As Int64 = BytesSent * 100 / (BytesLeft + BytesSent)
 		  ProgressBar1.Value = percent
 		End Function
 	#tag EndEvent
@@ -1005,8 +1098,8 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Function TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
-		  Dim percent As UInt64 = BytesSent * 100 / (BytesLeft + BytesSent)
+		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
+		  Dim percent As Int64 = BytesSent * 100 / (BytesLeft + BytesSent)
 		  ProgressBar1.Value = percent
 		End Function
 	#tag EndEvent
@@ -1022,6 +1115,27 @@ End
 	#tag Event
 		Sub Action()
 		  FTPServerSocket1.Listen()
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton21
+	#tag Event
+		Sub Action()
+		  Client.STAT(TextField1.Text)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton22
+	#tag Event
+		Sub Action()
+		  Client.MDTM(TextField1.Text)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton20
+	#tag Event
+		Sub Action()
+		  Client.NOOP
 		End Sub
 	#tag EndEvent
 #tag EndEvents

@@ -28,7 +28,7 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
-		Function TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
+		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
 		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
 		End Function
 	#tag EndEvent
@@ -74,36 +74,10 @@ Inherits FTPSocket
 	#tag Method, Flags = &h1
 		Protected Sub DoVerb(Verb As String, Params As String = "")
 		  Dim nextverb As FTPVerb
-		  Select Case Verb
-		  Case "PORT"
-		    'Data port.
-		    Dim p1, p2 As Integer
-		    Dim h1, h2, h3, h4 As String
-		    h1 = NthField(NthField(Params, ",", 1), "(", 2)
-		    h2 = NthField(Params, ",", 2)
-		    h3 = NthField(Params, ",", 3)
-		    h4 = NthField(Params, ",", 4)
-		    p1 = Val(NthField(Params, ",", 5))
-		    p2 = Val(NthField(Params, ",", 6))
-		    DataSocket.Port = p1 * 256 + p2
-		    DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
-		    params = h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
-		    nextverb.Verb = "PORT"
-		    nextverb.Arguments = Params
-		  Case "LIST"
-		    'List.
-		    CreateDataStream()
-		    nextverb.Verb = "LIST"
-		    nextverb.Arguments = Params
-		  Else
-		    nextverb.Verb = Uppercase(Verb)
-		    nextverb.Arguments = Trim(Params)
-		  End Select
-		  
+		  nextverb.Verb = Uppercase(Verb)
+		  nextverb.Arguments = Trim(Params)
 		  PendingVerbs.Append(nextverb)
-		  If VerbDispatchTimer <> Nil Then
-		    VerbDispatchTimer.Mode = Timer.ModeMultiple
-		  End If
+		  If VerbDispatchTimer <> Nil Then VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
 	#tag EndMethod
 
@@ -122,6 +96,7 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
+		  CreateDataStream()
 		  DoVerb("LIST", TargetDirectory)
 		End Sub
 	#tag EndMethod
@@ -213,8 +188,8 @@ Inherits FTPSocket
 		    Select Case Response.Code
 		    Case 150  'Ready
 		      UploadDispatchTimer = New Timer
-		      AddHandler UploadDispatchTimer.Action, AddressOf UploadHandler
-		      UploadDispatchTimer.Period = 1
+		      AddHandler UploadDispatchTimer.Action, AddressOf UploadDispatchHandler
+		      UploadDispatchTimer.Period = 50
 		      UploadDispatchTimer.Mode = Timer.ModeMultiple
 		      TransferInProgress = True
 		    Case 226  'Success
@@ -231,6 +206,16 @@ Inherits FTPSocket
 		      DoVerb(lv, la)
 		    Case 426  'Data connection lost
 		    End Select
+		  Case "STAT"
+		    If response.Code = 200 Then
+		      Dim Stats() As String = Split(Response.Reply_Args, EndOfLine.Windows)
+		      Stats.Remove(Stats.Ubound)
+		      Stats.Remove(0)
+		      For Each Stat As String In Stats
+		        Stat = Stat.Trim
+		        FTPLog("   " + Stat)
+		      Next
+		    End If
 		    
 		  Case "FEAT"
 		    ServerFeatures = Split(Response.Reply_Args, EndOfLine.Windows)
@@ -346,7 +331,8 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub PORT(PortNumber As Integer)
 		  'You must call either PASV or PORT before transferring anything over the DataSocket
-		  DoVerb("PORT", Str(PortNumber))
+		  'Data port.
+		  DoVerb("PORT", IPv4_to_PASV(Me.Address, PortNumber))
 		End Sub
 	#tag EndMethod
 
@@ -371,7 +357,7 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub REST(StartPosition As UInt64 = 0)
+		Sub REST(StartPosition As Int64 = 0)
 		  DoVerb("REST", Str(StartPosition))
 		End Sub
 	#tag EndMethod
@@ -402,8 +388,14 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub STAT(RemoteFileName As String = "")
+		  DoVerb("STAT", RemoteFileName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub STOR(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
-		  DataFile = LocalFile
+		  CreateDataStream(LocalFile)
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
@@ -438,7 +430,7 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub UploadHandler(Sender As Timer)
+		Private Sub UploadDispatchHandler(Sender As Timer)
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
 		      WriteData(DataStream.Read(1024 * 64))
@@ -481,7 +473,7 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
+		Event TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
 	#tag EndHook
 
 
