@@ -3,6 +3,7 @@ Protected Class FTPServerSocket
 Inherits FTPSocket
 	#tag Event
 		Sub Connected()
+		  InactivityTimer.Mode = Timer.ModeSingle
 		  DoResponse(221, Banner)
 		End Sub
 	#tag EndEvent
@@ -17,21 +18,21 @@ Inherits FTPSocket
 	#tag Event
 		Sub ControlVerb(Verb As FTPVerb)
 		  FTPLog(Verb.Verb + " " + Verb.Arguments)
-		  
+		  InactivityTimer.Reset()
 		  Select Case Verb.Verb
 		  Case "USER"
-		    RemoteUser = Verb.Arguments
+		    Username = Verb.Arguments
 		    If Me.Anonymous Then
 		      DoResponse(331, "Anonymous login OK, send e-mail address as password.")
-		    Else 
+		    Else
 		      DoResponse(331) //Need PASS
 		    End If
 		    
 		  Case "PASS"
-		    If RemoteUser.Trim = "" Then
+		    If Username.Trim = "" Then
 		      DoResponse(530)  //USER not set!
 		    Else
-		      Password = RaiseEvent UserLogon(RemoteUser)
+		      Password = RaiseEvent UserLogon(Username)
 		      If Verb.Arguments.Trim = Password.Trim Then
 		        DoResponse(230) //Logged in with pass
 		        LoginOK = True
@@ -114,7 +115,7 @@ Inherits FTPSocket
 		    End If
 		  Case "LIST"
 		    If LoginOK Then
-		      DoResponse(202)  //Not implemented FIXME
+		      DoResponse(502)  //Not implemented FIXME
 		      ' 226 //Here comes the directory list
 		      ' 425, 426  //no connection or connection lost
 		      ' 451  //Disk error
@@ -123,7 +124,7 @@ Inherits FTPSocket
 		    End If
 		  Case "CDUP"
 		    If LoginOK Then
-		      DoResponse(202)  //Not implemented FIXME
+		      DoResponse(502)  //Not implemented FIXME
 		      ' 200  //OK
 		    Else
 		      DoResponse(530)  //not logged in
@@ -192,7 +193,7 @@ Inherits FTPSocket
 		    
 		  Case "MKD"
 		    If LoginOK Then
-		      DoResponse(202)  //Not implemented FIXME
+		      DoResponse(502)  //Not implemented FIXME
 		      ' 257
 		    Else
 		      DoResponse(530)  //not logged in
@@ -200,7 +201,7 @@ Inherits FTPSocket
 		    
 		  Case "RMD"
 		    If LoginOK Then
-		      DoResponse(202)  //Not implemented FIXME
+		      DoResponse(502)  //Not implemented FIXME
 		      
 		    Else
 		      DoResponse(530)  //not logged in
@@ -208,19 +209,19 @@ Inherits FTPSocket
 		    
 		  Case "DELE"
 		    If LoginOK Then
-		      DoResponse(202)  //Not implemented FIXME
+		      DoResponse(502)  //Not implemented FIXME
 		    Else
 		      DoResponse(530)  //not logged in
 		    End If
 		  Case "RNFR"
 		    If LoginOK Then
-		      DoResponse(202)  //Not implemented FIXME
+		      DoResponse(502)  //Not implemented FIXME
 		    Else
 		      DoResponse(530)  //not logged in
 		    End If
 		  Case "RNTO"
 		    If LoginOK Then
-		      DoResponse(202)  //Not implemented FIXME
+		      DoResponse(502)  //Not implemented FIXME
 		    Else
 		      DoResponse(530)  //not logged in
 		    End If
@@ -228,13 +229,23 @@ Inherits FTPSocket
 		    DoResponse(221, "Bye.")
 		    Me.Close
 		  Else
-		    DoResponse(503)  //sync error!
+		    DoResponse(500)  //syntax error or unknown verb
 		  End Select
 		  
 		  
 		End Sub
 	#tag EndEvent
 
+
+	#tag Method, Flags = &h1001
+		Protected Sub Constructor()
+		  Super.Constructor
+		  InactivityTimer = New Timer
+		  InactivityTimer.Period = TimeOutPeriod
+		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
+		  
+		End Sub
+	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub DoResponse(Code As Integer, Params As String = "")
@@ -248,6 +259,14 @@ Inherits FTPSocket
 		Protected Function FindFile(Name As String) As FolderItem
 		  If RootDirectory.Child(Name).Exists Then Return RootDirectory.Child(Name)
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub InactivityHandler(Sender As Timer)
+		  Sender.Mode = Timer.ModeOff
+		  DoResponse(421, "Inactivity timeout.")
+		  Me.Close
+		End Sub
 	#tag EndMethod
 
 
@@ -264,16 +283,19 @@ Inherits FTPSocket
 		Banner As String = "Welcome to BSFTPd!"
 	#tag EndProperty
 
-	#tag Property, Flags = &h1
-		Protected Password As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected RemoteUser As String
+	#tag Property, Flags = &h21
+		Private InactivityTimer As Timer
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
 		RootDirectory As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		#tag Note
+			600000ms = 10 minutes
+		#tag EndNote
+		TimeOutPeriod As Integer = 600000
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -284,14 +306,16 @@ Inherits FTPSocket
 	#tag ViewBehavior
 		#tag ViewProperty
 			Name="Address"
-			Visible=true
 			Group="Behavior"
 			Type="String"
+			EditorType="MultiLineEditor"
 			InheritedFrom="TCPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="AllowWrite"
+			Visible=true
 			Group="Behavior"
+			InitialValue="True"
 			Type="Boolean"
 		#tag EndViewProperty
 		#tag ViewProperty
@@ -303,9 +327,11 @@ Inherits FTPSocket
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Banner"
+			Visible=true
 			Group="Behavior"
 			InitialValue="Welcome to BSFTPd!"
 			Type="String"
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="DataAddress"
@@ -337,6 +363,7 @@ Inherits FTPSocket
 			Visible=true
 			Group="ID"
 			InitialValue="-2147483648"
+			Type="Integer"
 			InheritedFrom="Object"
 		#tag EndViewProperty
 		#tag ViewProperty
@@ -360,6 +387,13 @@ Inherits FTPSocket
 			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
+			Name="Password"
+			Group="Behavior"
+			Type="String"
+			EditorType="MultiLineEditor"
+			InheritedFrom="FTPSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
 			Name="Port"
 			Visible=true
 			Group="Behavior"
@@ -374,11 +408,25 @@ Inherits FTPSocket
 			InheritedFrom="Object"
 		#tag EndViewProperty
 		#tag ViewProperty
+			Name="TimeOutPeriod"
+			Visible=true
+			Group="Behavior"
+			InitialValue="600000"
+			Type="Integer"
+		#tag EndViewProperty
+		#tag ViewProperty
 			Name="Top"
 			Visible=true
 			Group="Position"
 			InitialValue="0"
 			InheritedFrom="Object"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Username"
+			Group="Behavior"
+			Type="String"
+			EditorType="MultiLineEditor"
+			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

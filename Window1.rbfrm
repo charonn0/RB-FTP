@@ -7,29 +7,29 @@ Begin Window Window1
    Frame           =   0
    FullScreen      =   False
    HasBackColor    =   False
-   Height          =   4.29e+2
+   Height          =   429
    ImplicitInstance=   True
    LiveResize      =   True
    MacProcID       =   0
    MaxHeight       =   32000
-   MaximizeButton  =   False
+   MaximizeButton  =   True
    MaxWidth        =   32000
-   MenuBar         =   1231673343
+   MenuBar         =   ""
    MenuBarVisible  =   True
    MinHeight       =   64
    MinimizeButton  =   True
    MinWidth        =   64
-   Placement       =   0
+   Placement       =   2
    Resizeable      =   True
-   Title           =   "Untitled"
+   Title           =   "BS FTP Prototype"
    Visible         =   True
-   Width           =   6.0e+2
+   Width           =   600
    Begin FTPClientSocket Client
       Address         =   "mc.boredomsoft.org"
       Anonymous       =   False
       DataIsConnected =   ""
-      DataLastErrorCode=   ""
-      DataPort        =   ""
+      DataLastErrorCode=   0
+      DataPort        =   0
       Height          =   32
       Index           =   -2147483648
       Left            =   625
@@ -40,7 +40,7 @@ Begin Window Window1
       Scope           =   0
       TabPanelIndex   =   0
       Top             =   0
-      User            =   "ftpstore"
+      Username        =   "ftpstore"
       Width           =   32
    End
    Begin Listbox Listbox1
@@ -431,11 +431,11 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Left            =   0
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   ""
-      LockTop         =   True
+      LockRight       =   True
+      LockTop         =   False
       Maximum         =   100
       Scope           =   0
       TabPanelIndex   =   0
@@ -443,6 +443,48 @@ Begin Window Window1
       Value           =   0
       Visible         =   True
       Width           =   600
+   End
+   Begin TextField TextField1
+      AcceptTabs      =   ""
+      Alignment       =   0
+      AutoDeactivate  =   True
+      AutomaticallyCheckSpelling=   False
+      BackColor       =   16777215
+      Bold            =   ""
+      Border          =   True
+      CueText         =   ""
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Format          =   ""
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      Italic          =   ""
+      Left            =   471
+      LimitText       =   0
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   False
+      Mask            =   ""
+      Password        =   ""
+      ReadOnly        =   ""
+      Scope           =   0
+      TabIndex        =   14
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   ""
+      TextColor       =   0
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   373
+      Underline       =   ""
+      UseFocusRing    =   True
+      Visible         =   True
+      Width           =   129
    End
 End
 #tag EndWindow
@@ -469,7 +511,7 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		Function TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
 		  Dim percent As UInt64 = BytesSent * 100 / (BytesLeft + BytesSent)
 		  ProgressBar1.Value = percent
 		End Function
@@ -500,8 +542,8 @@ End
 #tag Events PushButton4
 	#tag Event
 		Sub Action()
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child("world_07.01.2012-1.tar.gz")
-		  Client.RETR("world_07.01.2012-1.tar.gz", f)
+		  Dim f As FolderItem = SpecialFolder.Desktop.Child(TextField1.Text)
+		  Client.RETR(TextField1.Text, f)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -518,7 +560,7 @@ End
 #tag Events PushButton6
 	#tag Event
 		Sub Action()
-		  Client.DELE("dtfgsrfthgdr.bat")
+		  Client.DELE(TextField1.Text)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -539,7 +581,7 @@ End
 #tag Events PushButton11
 	#tag Event
 		Sub Action()
-		  Client.CWD("ResKit/y2kfix/x86/")
+		  Client.CWD(TextField1.Text)
 		End Sub
 	#tag EndEvent
 #tag EndEvents

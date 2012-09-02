@@ -15,6 +15,8 @@ Inherits FTPSocket
 		  Else
 		    FTPLog(Str(Response.Code) + " " + FTPCodeToMessage(Response.Code).Trim)
 		  End If
+		  
+		  
 		  Select Case LastVerb.Verb
 		  Case "USER"
 		    Select Case Response.Code
@@ -34,7 +36,7 @@ Inherits FTPSocket
 		      FTPLog("Ready")
 		      RaiseEvent Connected()
 		    Case 530  //USER not set!
-		      DoVerb("USER", Me.User)
+		      DoVerb("USER", Me.Username)
 		    Else
 		      Me.HandleFTPError(Response.Code)
 		    End Select
@@ -171,24 +173,21 @@ Inherits FTPSocket
 		    
 		  Case "MKD"
 		    If Response.Code = 257 Then //OK
-		      FTPLog("Directory created successfully.")
-		      DoVerb("LIST")
+		      LIST()
 		    Else
 		      HandleFTPError(Response.Code)
 		    End If
 		    
 		  Case "RMD"
 		    If Response.Code = 250 Then
-		      FTPLog("Directory deleted successfully.")
-		      DoVerb("LIST")
+		      LIST()
 		    Else
 		      HandleFTPError(Response.Code)
 		    End If
 		    
 		  Case "DELE"
 		    If Response.Code = 250 Then
-		      FTPLog("File deleted successfully.")
-		      DoVerb("LIST")
+		      LIST()
 		    Else
 		      HandleFTPError(Response.Code)
 		    End If
@@ -212,12 +211,11 @@ Inherits FTPSocket
 		    Me.Close
 		  Else
 		    If Response.Code = 220 Then  //Server now ready
-		      FTPLog(Str(Response.Code) + " " + Response.Reply_Args)
 		      If Me.Anonymous Then
-		        Me.User = "anonymous"
+		        Me.Username = "anonymous"
 		        Me.Password = "bsftp@boredomsoft.org"
 		      End If
-		      DoVerb("USER", Me.User)
+		      DoVerb("USER", Me.Username)
 		    Else
 		      //Sync error!
 		    End If
@@ -251,14 +249,14 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
-		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		Function TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
 		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
 		End Function
 	#tag EndEvent
 
 	#tag Event
 		Sub TransferStarting()
-		  FTPLog("Data connection opened.")
+		  'FTPLog("Data connection opened.")
 		End Sub
 	#tag EndEvent
 
@@ -405,6 +403,8 @@ Inherits FTPSocket
 		    Write("PWD " + Params + CRLF)
 		  Case "QUIT"
 		    'Logout.
+		    LastVerb.Verb = ""
+		    LastVerb.Arguments = ""
 		    Write("QUIT " + Params + CRLF)
 		  Case "REIN"
 		    'Reinitialize.
@@ -498,12 +498,14 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub PASV()
+		  //You must call either PASV or PORT before transferring anything over the DataSocket
 		  DoVerb("PASV")
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Sub PORT(PortNumber As Integer)
+		  //You must call either PASV or PORT before transferring anything over the DataSocket
 		  DoVerb("PORT", Str(PortNumber))
 		End Sub
 	#tag EndMethod
@@ -563,16 +565,12 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		Event TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
 	#tag EndHook
 
 
 	#tag Property, Flags = &h21
 		Private mWorkingDirectory As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h0
-		Password As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -581,10 +579,6 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h21
 		Private RNT As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h0
-		User As String
 	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0
@@ -672,6 +666,7 @@ Inherits FTPSocket
 			Group="Behavior"
 			Type="String"
 			EditorType="MultiLineEditor"
+			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Port"
@@ -695,16 +690,18 @@ Inherits FTPSocket
 			InheritedFrom="Object"
 		#tag EndViewProperty
 		#tag ViewProperty
-			Name="User"
+			Name="Username"
 			Visible=true
 			Group="Behavior"
 			Type="String"
 			EditorType="MultiLineEditor"
+			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="WorkingDirectory"
 			Group="Behavior"
 			Type="String"
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

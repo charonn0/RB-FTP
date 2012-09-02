@@ -287,6 +287,109 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Shared Function ParseList(ListData As String) As FTPListEntry()
+		  Const ReadPerm = 4
+		  Const WritePerm = 2
+		  Const ExPerm = 1
+		  
+		  Const TypeFile = 0
+		  Const TypeDir = 1
+		  Const TypeLink = 2
+		  
+		  Dim list() As FTPListEntry
+		  Dim lines() As String = Split(ListData, CRLF)
+		  
+		  
+		  For Each Line As String In lines
+		    Dim mode, linkcount, owner, group, filesize, modDate, filename As String
+		    mode = NthField(line, " ", 1)
+		    Line = Replace(Line, mode, "").Trim
+		    
+		    linkcount = NthField(line, " ", 1)
+		    Line = Replace(line, linkcount, "").Trim
+		    
+		    owner = NthField(line, " ", 1)
+		    Line = Replace(Line, owner, "").Trim
+		    
+		    group = NthField(line, " ", 1)
+		    Line = Replace(Line, group, "").Trim
+		    
+		    filesize = NthField(line, " ", 1)
+		    Line = Replace(Line, filesize, "").Trim
+		    
+		    modDate = NthField(line, " ", 1) + " " + modDate + NthField(line, " ", 2) + " " + modDate + NthField(line, " ", 3)
+		    Line = Replace(Line, modDate, "").Trim
+		    
+		    filename = line.Trim
+		    
+		    Dim ListEntry As FTPListEntry
+		    Select Case Mid(mode, 1, 1)
+		    Case "-"
+		      ListEntry.EntryType = TypeFile
+		    Case "D"
+		      ListEntry.EntryType = TypeDir
+		    Case "L"
+		      ListEntry.EntryType = TypeLink
+		    End Select
+		    
+		    Dim tmp As Integer = 0
+		    If Mid(mode, 2, 1) = "r" Then
+		      tmp = tmp + 4
+		    End If
+		    
+		    If Mid(mode, 3, 1) = "w" Then
+		      tmp = tmp + 2
+		    End If
+		    
+		    If Mid(mode, 4, 1) = "x" Then
+		      tmp = tmp + 1
+		    End If
+		    
+		    ListEntry.OwnerPerms = tmp
+		    tmp = 0
+		    
+		    If Mid(mode, 5, 1) = "r" Then
+		      tmp = tmp + 4
+		    End If
+		    
+		    If Mid(mode, 6, 1) = "w" Then
+		      tmp = tmp + 2
+		    End If
+		    
+		    If Mid(mode, 7, 1) = "x" Then
+		      tmp = tmp + 1
+		    End If
+		    
+		    ListEntry.GroupPerms = tmp
+		    tmp = 0
+		    
+		    If Mid(mode, 8, 1) = "r" Then
+		      tmp = tmp + 4
+		    End If
+		    
+		    If Mid(mode, 9, 1) = "w" Then
+		      tmp = tmp + 2
+		    End If
+		    
+		    If Mid(mode, 10, 1) = "x" Then
+		      tmp = tmp + 1
+		    End If
+		    
+		    ListEntry.WorldPerms = tmp
+		    
+		    ListEntry.FileName = filename
+		    ListEntry.FileSize = Val(filesize)
+		    ListEntry.Owner = owner
+		    ListEntry.Group = group
+		    ListEntry.Timestamp = modDate
+		    list.Append(ListEntry)
+		  Next
+		  
+		  Return list
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub ParseResponse(Data As String)
 		  Dim Code As Integer
@@ -432,7 +535,7 @@ Inherits TCPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		Event TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
@@ -520,6 +623,10 @@ Inherits TCPSocket
 		Passive As Boolean = True
 	#tag EndProperty
 
+	#tag Property, Flags = &h0
+		Password As String
+	#tag EndProperty
+
 	#tag Property, Flags = &h1
 		Protected ServerFeatures() As String
 	#tag EndProperty
@@ -530,6 +637,10 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected TransferMode As Integer = 1
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Username As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -592,7 +703,19 @@ Inherits TCPSocket
 	#tag EndConstant
 
 
-	#tag Structure, Name = FTPResponse, Flags = &h0
+	#tag Structure, Name = FTPListEntry, Flags = &h1
+		FileName As String*256
+		  Owner As String*64
+		  Group As String*64
+		  EntryType As Integer
+		  OwnerPerms As Integer
+		  GroupPerms As Integer
+		  WorldPerms As Integer
+		  FileSize As UInt64
+		Timestamp As String*64
+	#tag EndStructure
+
+	#tag Structure, Name = FTPResponse, Flags = &h1
 		Code As Integer
 		  Reply_Type As Integer
 		  Reply_Purpose As Integer
@@ -600,7 +723,7 @@ Inherits TCPSocket
 		Reply_Args As String*496
 	#tag EndStructure
 
-	#tag Structure, Name = FTPVerb, Flags = &h0
+	#tag Structure, Name = FTPVerb, Flags = &h1
 		Verb As String*64
 		Arguments As String*448
 	#tag EndStructure
@@ -668,6 +791,13 @@ Inherits TCPSocket
 			Type="Boolean"
 		#tag EndViewProperty
 		#tag ViewProperty
+			Name="Password"
+			Visible=true
+			Group="Behavior"
+			Type="String"
+			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
 			Name="Port"
 			Visible=true
 			Group="Behavior"
@@ -687,6 +817,13 @@ Inherits TCPSocket
 			Group="Position"
 			InitialValue="0"
 			InheritedFrom="Object"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Username"
+			Visible=true
+			Group="Behavior"
+			Type="String"
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class
