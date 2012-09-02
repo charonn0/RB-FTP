@@ -20,17 +20,8 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub TransferComplete(UserAborted As Boolean)
-		  'If Not UserAborted Then
-		  'If OutputFile <> Nil Then
-		  'RaiseEvent TransferComplete(OutputFile)
-		  'ElseIf OutputMB <> Nil Then
-		  'RaiseEvent TransferComplete(OutputMB)
-		  'End If
-		  'End If
-		  
-		  'OutputMB = Nil
+		  #pragma Unused UserAborted
 		  OutputStream.Close
-		  'OutputFile = Nil
 		  DataSocket.Disconnect
 		  VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
@@ -40,12 +31,6 @@ Inherits FTPSocket
 		Function TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
 		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
 		End Function
-	#tag EndEvent
-
-	#tag Event
-		Sub TransferStarting()
-		  'FTPLog("Data connection opened.")
-		End Sub
 	#tag EndEvent
 
 
@@ -58,6 +43,8 @@ Inherits FTPSocket
 	#tag Method, Flags = &h1
 		Protected Sub Close()
 		  mWorkingDirectory = ""
+		  LastVerb.Verb = ""
+		  LastVerb.Arguments = ""
 		  Super.Close
 		End Sub
 	#tag EndMethod
@@ -97,9 +84,7 @@ Inherits FTPSocket
 		    nextverb.Arguments = Params
 		  Case "LIST"
 		    'List.
-		    OutputMB = New MemoryBlock(1024 * 64)
-		    OutputStream = New BinaryStream(OutputMB)
-		    OutputFile = Nil
+		    CreateOutputStream()
 		    nextverb.Verb = "LIST"
 		    nextverb.Arguments = Params
 		  Else
@@ -108,7 +93,7 @@ Inherits FTPSocket
 		  End Select
 		  
 		  PendingVerbs.Append(nextverb)
-		  If VerbDispatchTimer <> Nil Then 
+		  If VerbDispatchTimer <> Nil Then
 		    VerbDispatchTimer.Mode = Timer.ModeMultiple
 		  End If
 		End Sub
@@ -186,15 +171,7 @@ Inherits FTPSocket
 		      Dim size As String = NthField(Response.Reply_Args, "(", 2)
 		      size = NthField(size, ")", 1)
 		      OutputLength = Val(size)
-		      If OutputFile = Nil Then
-		        OutputFile = GetTemporaryFolderItem()
-		      End If
-		      If Not OutputFile.Exists Then
-		        OutputFile = GetTemporaryFolderItem()
-		      End If
-		      If OutputStream = Nil Then
-		        OutputStream = BinaryStream.Open(OutputFile)
-		      End If
+		      CreateOutputStream(OutputFile)
 		    Case 425, 426 'Data connection not ready
 		      //HandleFTPError(Response.Code)
 		    Case 451, 551 'Disk read error
@@ -206,10 +183,10 @@ Inherits FTPSocket
 		  Case "STOR", "APPE"
 		    Select Case Response.Code
 		    Case 150  'Ready
-		      UploadDispatcher = New Timer
-		      AddHandler UploadDispatcher.Action, AddressOf UploadHandler
-		      UploadDispatcher.Period = 1
-		      UploadDispatcher.Mode = Timer.ModeMultiple
+		      UploadDispatchTimer = New Timer
+		      AddHandler UploadDispatchTimer.Action, AddressOf UploadHandler
+		      UploadDispatchTimer.Period = 1
+		      UploadDispatchTimer.Mode = Timer.ModeMultiple
 		      TransferInProgress = True
 		    Case 226  'Success
 		      TransferComplete(OutputFile)
@@ -411,7 +388,6 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub RETR(RemoteFileName As String, SaveTo As FolderItem, Mode As Integer = 1)
 		  OutputFile = SaveTo
-		  OutputStream = BinaryStream.Create(OutputFile, True)
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
@@ -431,7 +407,6 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub STOR(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
 		  OutputFile = LocalFile
-		  OutputStream = BinaryStream.Open(OutputFile)
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
@@ -520,10 +495,13 @@ Inherits FTPSocket
 		initiate the FTP handshake. Once the handshake is completed, the Connected event is
 		raised and commands may be sent to the server.
 		
-		Commands 
-		
+		Commands
 	#tag EndNote
 
+
+	#tag Property, Flags = &h1
+		Protected LastVerb As FTPVerb
+	#tag EndProperty
 
 	#tag Property, Flags = &h21
 		Private mWorkingDirectory As String
@@ -542,7 +520,7 @@ Inherits FTPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private UploadDispatcher As Timer
+		Private UploadDispatchTimer As Timer
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -557,6 +535,12 @@ Inherits FTPSocket
 		#tag EndGetter
 		WorkingDirectory As String
 	#tag EndComputedProperty
+
+
+	#tag Structure, Name = FTPResponse, Flags = &h1
+		Code As Integer
+		Reply_Args As String*496
+	#tag EndStructure
 
 
 	#tag ViewBehavior

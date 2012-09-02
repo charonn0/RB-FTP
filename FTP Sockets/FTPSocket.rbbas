@@ -13,6 +13,7 @@ Inherits TCPSocket
 
 	#tag Event
 		Sub SendComplete(userAborted as Boolean)
+		  //We're not interested in the control connection's progress
 		  #pragma Unused userAborted
 		  Return
 		End Sub
@@ -20,6 +21,7 @@ Inherits TCPSocket
 
 	#tag Event
 		Function SendProgress(bytesSent as Integer, bytesLeft as Integer) As Boolean
+		  //We're not interested in the control connection's progress
 		  #pragma Unused bytesSent
 		  #pragma Unused bytesLeft
 		  Return False
@@ -45,13 +47,10 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Sub Close()
 		  LoginOK = False
-		  LastVerb.Verb = ""
-		  LastVerb.Arguments = ""
 		  ReDim ServerFeatures(-1)
 		  ServerType = ""
 		  TransferInProgress = False
 		  TransferMode = 0
-		  UTFMode = False
 		  
 		  If DataSocket <> Nil Then
 		    DataSocket.Close
@@ -78,7 +77,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub ConnectedHandler(Sender As TCPSocket)
 		  #pragma Unused Sender
-		  RaiseEvent TransferStarting()
+		  'RaiseEvent ReadyToTransfer()
 		End Sub
 	#tag EndMethod
 
@@ -90,6 +89,24 @@ Inherits TCPSocket
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
 		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
 		  AddHandler DataSocket.SendProgress, AddressOf SendProgressHandler
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub CreateOutputStream(BackingFile As FolderItem = Nil)
+		  If BackingFile <> Nil Then
+		    OutputFile = BackingFile
+		    If Not OutputFile.Exists Then
+		      OutputStream = BinaryStream.Create(BackingFile, True)
+		    Else
+		      OutputStream = BinaryStream.Open(BackingFile, False)
+		    End If
+		    OutputMB = Nil
+		  Else
+		    OutputMB = New MemoryBlock(1024 * 64)
+		    OutputStream = New BinaryStream(OutputMB)
+		    OutputFile = Nil
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -467,10 +484,6 @@ Inherits TCPSocket
 		Event TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
 	#tag EndHook
 
-	#tag Hook, Flags = &h0
-		Event TransferStarting()
-	#tag EndHook
-
 
 	#tag Note, Name = FTPSocket Notes
 		This class provides both the control and data connections for a given FTP session.
@@ -489,56 +502,8 @@ Inherits TCPSocket
 		Anonymous As Boolean = False
 	#tag EndProperty
 
-	#tag ComputedProperty, Flags = &h0
-		#tag Getter
-			Get
-			  If DataSocket <> Nil Then
-			    Return DataSocket.Address
-			  End If
-			End Get
-		#tag EndGetter
-		DataAddress As String
-	#tag EndComputedProperty
-
-	#tag ComputedProperty, Flags = &h0
-		#tag Getter
-			Get
-			  If DataSocket <> Nil Then
-			    Return DataSocket.IsConnected
-			  End If
-			End Get
-		#tag EndGetter
-		DataIsConnected As Boolean
-	#tag EndComputedProperty
-
-	#tag ComputedProperty, Flags = &h0
-		#tag Getter
-			Get
-			  If DataSocket <> Nil Then
-			    Return DataSocket.LastErrorCode
-			  End If
-			End Get
-		#tag EndGetter
-		DataLastErrorCode As Integer
-	#tag EndComputedProperty
-
-	#tag ComputedProperty, Flags = &h0
-		#tag Getter
-			Get
-			  If DataSocket <> Nil Then
-			    Return DataSocket.Port
-			  End If
-			End Get
-		#tag EndGetter
-		DataPort As Integer
-	#tag EndComputedProperty
-
 	#tag Property, Flags = &h1
 		Protected DataSocket As TCPSocket
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected LastVerb As FTPVerb
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -589,10 +554,6 @@ Inherits TCPSocket
 		Username As String
 	#tag EndProperty
 
-	#tag Property, Flags = &h1
-		Protected UTFMode As Boolean
-	#tag EndProperty
-
 
 	#tag Constant, Name = ASCIIMode, Type = Double, Dynamic = False, Default = \"2", Scope = Public
 	#tag EndConstant
@@ -612,42 +573,6 @@ Inherits TCPSocket
 	#tag Constant, Name = PortalMode, Type = Double, Dynamic = False, Default = \"-1", Scope = Public
 	#tag EndConstant
 
-	#tag Constant, Name = RP_Auth, Type = Double, Dynamic = False, Default = \"3", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RP_Connection, Type = Double, Dynamic = False, Default = \"2", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RP_File_System, Type = Double, Dynamic = False, Default = \"5", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RP_Info, Type = Double, Dynamic = False, Default = \"1", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RP_Syntax, Type = Double, Dynamic = False, Default = \"0", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RP_Unspecified, Type = Double, Dynamic = False, Default = \"4", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RT_Negative_Permanent, Type = Double, Dynamic = False, Default = \"5", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RT_Negative_Transient, Type = Double, Dynamic = False, Default = \"4", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RT_Positive_Complete, Type = Double, Dynamic = False, Default = \"2", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RT_Positive_Intermedite, Type = Double, Dynamic = False, Default = \"3", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RT_Positive_Preliminary, Type = Double, Dynamic = False, Default = \"1", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = RT_Protected, Type = Double, Dynamic = False, Default = \"6", Scope = Protected
-	#tag EndConstant
-
 
 	#tag Structure, Name = FTPListEntry, Flags = &h0
 		FileName As String*256
@@ -659,11 +584,6 @@ Inherits TCPSocket
 		  WorldPerms As Integer
 		  FileSize As UInt64
 		Timestamp As String*64
-	#tag EndStructure
-
-	#tag Structure, Name = FTPResponse, Flags = &h1
-		Code As Integer
-		Reply_Args As String*496
 	#tag EndStructure
 
 	#tag Structure, Name = FTPVerb, Flags = &h1

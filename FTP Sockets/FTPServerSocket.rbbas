@@ -57,6 +57,13 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub Listen()
+		  Super.Listen
+		  FTPLog("Now listening on port " + Str(Me.Port))
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub ParseVerb(Data As String)
 		  Dim Verb As FTPVerb
@@ -66,10 +73,6 @@ Inherits FTPSocket
 		  Else
 		    Verb.Verb = Data
 		  End If
-		  
-		  
-		  'This event is raised by FTPSocket.DataAvailable
-		  'Verb is a FTPSocket.FTPVerb stucture
 		  
 		  FTPLog(Verb.Verb + " " + Verb.Arguments)
 		  InactivityTimer.Reset()
@@ -103,7 +106,7 @@ Inherits FTPSocket
 		      OutputFile = GetFolderItem(RootDirectory.AbsolutePath + WorkingDirectory + Verb.Arguments)
 		      If OutputFile <> Nil Then
 		        If OutputFile.Exists And Not OutputFile.Directory Then
-		          OutputStream = BinaryStream.Open(OutputFile)
+		          CreateOutputStream(OutputFile)
 		          DoResponse(150)
 		          While Not OutputStream.EOF
 		            WriteData(OutputStream.Read(1024 * 64))
@@ -127,7 +130,7 @@ Inherits FTPSocket
 		        DoResponse(450, "Filename taken.")
 		      Else
 		        OutputFile = SpecialFolder.Temporary.Child(Verb.Arguments)
-		        OutputStream = OutputStream.Create(OutputFile, True)
+		        CreateOutputStream(OutputFile)
 		      End If
 		      DoResponse(150) 'Ready
 		    Else

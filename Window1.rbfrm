@@ -684,14 +684,14 @@ Begin Window Window1
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
-         Left            =   3.05e+2
+         Left            =   305
          LockedInPosition=   False
          Passive         =   True
          Password        =   "n9tgXMv9Xu"
          Port            =   21
          Scope           =   0
          TabPanelIndex   =   1
-         Top             =   3.74e+2
+         Top             =   374
          Username        =   "ftpstore"
          Width           =   32
       End
@@ -853,6 +853,8 @@ End
 #tag Events Listbox1
 	#tag Event
 		Function ConstructContextualMenu(base as MenuItem, x as Integer, y as Integer) As Boolean
+		  #pragma Unused X
+		  #pragma Unused Y
 		  base.Append(New MenuItem("Copy"))
 		End Function
 	#tag EndEvent
