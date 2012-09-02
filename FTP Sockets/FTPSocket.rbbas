@@ -105,7 +105,7 @@ Inherits TCPSocket
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
 		  OutputStream.Write(s)
-		  
+		  TransferInProgress = True
 		  If RaiseEvent TransferProgress(OutputStream.Position, OutputLength - OutputStream.Position) Then
 		    Write("ABOR" + CRLF)
 		  End If
@@ -123,6 +123,7 @@ Inherits TCPSocket
 		  If Sender.LastErrorCode = 102 Then
 		    Sender.Close
 		    If OutputStream <> Nil Then OutputStream.Close
+		    TransferInProgress = False
 		    RaiseEvent TransferComplete(False)
 		  Else
 		    HandleFTPError(-1)
@@ -483,6 +484,7 @@ Inherits TCPSocket
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused Sender
 		  If OutputStream <> Nil Then OutputStream.Close
+		  TransferInProgress = False
 		  RaiseEvent TransferComplete(UserAborted)
 		End Sub
 	#tag EndMethod
@@ -554,7 +556,7 @@ Inherits TCPSocket
 		that handles protocol layer stuff via the ControlVerb event (for servers) or the 
 		ControlRespose event (for clients) and Write and WriteData for both clients and servers.
 		
-		If you override the Connect method then you MUST call Super.Connect() 
+		If you override the Connect method then you MUST call Super.Connect()
 	#tag EndNote
 
 
@@ -648,6 +650,10 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected ServerType As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected TransferInProgress As Boolean
 	#tag EndProperty
 
 	#tag Property, Flags = &h1

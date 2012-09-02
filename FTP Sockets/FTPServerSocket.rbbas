@@ -37,21 +37,20 @@ Inherits FTPSocket
 		    End If
 		    
 		  Case "PASS"
+		    Password = Verb.Arguments.Trim
 		    If Username.Trim = "" Then
 		      DoResponse(530)  //USER not set!
 		    ElseIf Me.Anonymous And Username = "anonymous" Then
 		      DoResponse(230) //Logged in with pass
 		      LoginOK = True
 		    Else
-		      Password = RaiseEvent UserLogon(Username)
-		      If Verb.Arguments.Trim = Password.Trim Then
+		      If UserLogon(Username, Password) Then
 		        DoResponse(230) //Logged in with pass
 		        LoginOK = True
 		      Else
 		        DoResponse(530) //Bad password!
 		      End If
 		    End If
-		    Password = ""
 		  Case "RETR"
 		    If LoginOK Then
 		      OutputFile = GetFolderItem(RootDirectory.AbsolutePath + WorkingDirectory + Verb.Arguments)
@@ -291,7 +290,7 @@ Inherits FTPSocket
 
 
 	#tag Hook, Flags = &h0
-		Event UserLogon(UserName As String) As String
+		Event UserLogon(UserName As String, Password As String) As Boolean
 	#tag EndHook
 
 

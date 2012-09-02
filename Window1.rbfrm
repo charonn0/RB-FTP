@@ -495,14 +495,14 @@ Begin Window Window1
       DataPort        =   ""
       Height          =   32
       Index           =   -2147483648
-      Left            =   7.82e+2
+      Left            =   782
       LockedInPosition=   False
       Passive         =   True
       Port            =   21
       Scope           =   0
       TabPanelIndex   =   0
       TimeOutPeriod   =   10000
-      Top             =   1.5e+2
+      Top             =   150
       Width           =   32
    End
    Begin PushButton PushButton13
@@ -565,6 +565,15 @@ End
 		  Dim percent As UInt64 = BytesSent * 100 / (BytesLeft + BytesSent)
 		  ProgressBar1.Value = percent
 		End Function
+	#tag EndEvent
+	#tag Event
+		Sub Connected()
+		  'Client.PWD
+		  'Client.PASV
+		  'Client.List
+		  
+		  
+		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton1
@@ -655,9 +664,9 @@ End
 		End Function
 	#tag EndEvent
 	#tag Event
-		Function UserLogon(UserName As String) As String
-		  If UserName = "andrew" Then
-		    Return "andrew@boredomsoft.org"
+		Function UserLogon(UserName As String, Password As String) As Boolean
+		  If UserName = "andrew" And Password = "andrew@boredomsoft.org" Then
+		    Return True
 		  End If
 		End Function
 	#tag EndEvent

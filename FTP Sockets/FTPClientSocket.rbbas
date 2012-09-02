@@ -4,7 +4,9 @@ Inherits FTPSocket
 	#tag Event
 		Sub Connected()
 		  FTPLog("Connected to " + Me.RemoteAddress + ":" + Str(Me.Port))
-		  
+		  VerbDispatchTimer = New Timer
+		  VerbDispatchTimer.Period = 100
+		  AddHandler VerbDispatchTimer.Action, AddressOf VerbDispatcher
 		End Sub
 	#tag EndEvent
 
@@ -223,7 +225,7 @@ Inherits FTPSocket
 		      //Sync error!
 		    End If
 		  End Select
-		  
+		  VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
 	#tag EndEvent
 
@@ -282,10 +284,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub DoVerb(Verb As String, Params As String = "")
-		  //All possible FTP verbs are included in the following Select block (even though we're not using them all yet)
-		  LastVerb.Verb = Verb.Trim
-		  LastVerb.Arguments = Params.Trim
-		  FTPLog(Verb + " " + Params)
+		  Dim nextverb As FTPVerb
 		  Select Case Verb
 		  Case "PORT"
 		    'Data port.
@@ -300,196 +299,24 @@ Inherits FTPSocket
 		    DataSocket.Port = p1 * 256 + p2
 		    DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
 		    params = h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
-		    Write("PORT " + Params + CRLF)
+		    nextverb.Verb = "PORT"
+		    nextverb.Arguments = Params
 		  Case "LIST"
 		    'List.
 		    OutputMB = New MemoryBlock(1024 * 64)
 		    OutputStream = New BinaryStream(OutputMB)
 		    OutputFile = Nil
-		    Write("LIST " + Params + CRLF)
-		  Case "ABOR"
-		    'Abort
-		    Write("ABOR " + Params + CRLF)
-		  Case "ACCT"
-		    'Account.
-		    Write("ACCT " + Params + CRLF)
-		  Case "ADAT"
-		    'Authentication/Security Data.
-		    Write("ADAT " + Params + CRLF)
-		  Case "ALLO"
-		    'Allocate.
-		    Write("ALLO " + Params + CRLF)
-		  Case "APPE"
-		    'Append.
-		    Write("APPE " + Params + CRLF)
-		  Case "AUTH"
-		    'Authentication/Security Mechanism.
-		    Write("AUTH " + Params + CRLF)
-		  Case "CCC"
-		    'Clear Command Channel.
-		    Write("CCC " + Params + CRLF)
-		  Case "CDUP"
-		    'Change to parent directory.
-		    Write("CDUP " + Params + CRLF)
-		  Case "CONF"
-		    'Confidentiality Protected Command.
-		    Write("CONF " + Params + CRLF)
-		  Case "CWD"
-		    'Change working directory.
-		    Write("CWD " + Params + CRLF)
-		  Case "DELE"
-		    'Delete.
-		    Write("DELE " + Params + CRLF)
-		  Case "ENC"
-		    'Privacy Protected Command.
-		    Write("ENC " + Params + CRLF)
-		  Case "EPRT"
-		    'Extended Data port.
-		    Write("EPRT " + Params + CRLF)
-		  Case "EPSV"
-		    'Extended Passive.
-		    Write("EPSV " + Params + CRLF)
-		  Case "FEAT"
-		    'Feature.
-		    Write("FEAT " + Params + CRLF)
-		  Case "HELP"
-		    'Help.
-		    Write("HELP " + Params + CRLF)
-		  Case "LANG"
-		    'Language negotiation.
-		    Write("LANG " + Params + CRLF)
-		  Case "LPRT"
-		    'Long data port.
-		    Write("LPRT " + Params + CRLF)
-		  Case "LPSV"
-		    'Long passive.
-		    Write("LPSV " + Params + CRLF)
-		  Case "MDTM"
-		    'File modification time.
-		    Write("MDTM " + Params + CRLF)
-		  Case "MIC"
-		    'Integrity Protected Command.
-		    Write("MIC " + Params + CRLF)
-		  Case "MKD"
-		    'Make directory.
-		    Write("MKD " + Params + CRLF)
-		  Case "MLSD"
-		    Write("MLSD " + Params + CRLF)
-		    
-		  Case "MLST"
-		    Write("MLST " + Params + CRLF)
-		    
-		  Case "MODE"
-		    'Transfer mode.
-		    Write("MODE " + Params + CRLF)
-		  Case "NLST"
-		    'Name list.
-		    Write("NLST " + Params + CRLF)
-		  Case "NOOP"
-		    'No operation.
-		    Write("NOOP " + Params + CRLF)
-		  Case "OPTS"
-		    'Options.
-		    Write("OPTS " + Params + CRLF)
-		  Case "PASS"
-		    'Password.
-		    Write("PASS " + Params + CRLF)
-		  Case "PASV"
-		    'Passive mode.
-		    Write("PASV " + Params + CRLF)
-		  Case "PBSZ"
-		    'Protection Buffer Size.
-		    Write("PBSZ " + Params + CRLF)
-		  Case "PROT"
-		    'Data Channel Protection Level.
-		    Write("PROT " + Params + CRLF)
-		  Case "PWD"
-		    'Print working directory.
-		    Write("PWD " + Params + CRLF)
-		  Case "QUIT"
-		    'Logout.
-		    LastVerb.Verb = ""
-		    LastVerb.Arguments = ""
-		    Write("QUIT " + Params + CRLF)
-		  Case "REIN"
-		    'Reinitialize.
-		    Write("REIN " + Params + CRLF)
-		  Case "REST"
-		    'Restart of interrupted transfer.
-		    Write("REST " + Params + CRLF)
-		  Case "RETR"
-		    'Retrieve.
-		    Write("RETR " + Params + CRLF)
-		  Case "RMD"
-		    'Remove directory.
-		    Write("RMD " + Params + CRLF)
-		  Case "RNFR"
-		    'Rename from.
-		    Write("RNFR " + Params + CRLF)
-		  Case "RNTO"
-		    'Rename to.
-		    Write("RNTO " + Params + CRLF)
-		  Case "SITE"
-		    'Site parameters.
-		    Write("SITE " + Params + CRLF)
-		  Case "SIZE"
-		    'File size.
-		    Write("SIZE " + Params + CRLF)
-		  Case "SMNT"
-		    'Structure mount.
-		    Write("SMNT " + Params + CRLF)
-		  Case "STAT"
-		    'Status.
-		    Write("STAT " + Params + CRLF)
-		  Case "STOR"
-		    'Store.
-		    Write("STOR " + Params + CRLF)
-		  Case "STOU"
-		    'Store unique.
-		    Write("STOU " + Params + CRLF)
-		  Case "STRU"
-		    'File structure.
-		    Write("STRU " + Params + CRLF)
-		  Case "SYST"
-		    'System.
-		    Write("SYST " + Params + CRLF)
-		  Case "TYPE"
-		    'Representation type.
-		    Write("TYPE " + Params + CRLF)
-		  Case "USER"
-		    'User name.
-		    Write("USER " + Params + CRLF)
-		  Case "XCUP"
-		    'Change to the parent of the current working directory.
-		    Write("XCUP " + Params + CRLF)
-		  Case "XMKD"
-		    'Make a directory.
-		    Write("XMKD " + Params + CRLF)
-		  Case "XPWD"
-		    'Print the current working directory.
-		    Write("XPWD " + Params + CRLF)
-		  Case "XRCP"
-		    Write("XRCP " + Params + CRLF)
-		    
-		  Case "XRMD"
-		    'Remove the directory.
-		    Write("XRMD " + Params + CRLF)
-		  Case "XRSQ"
-		    Write("XRSQ " + Params + CRLF)
-		    
-		  Case "XSEM"
-		    'Send, Mail if cannot.
-		    Write("XSEM " + Params + CRLF)
-		  Case "XSEN"
-		    'Send to terminal.
-		    Write("XSEN " + Params + CRLF)
+		    nextverb.Verb = "LIST"
+		    nextverb.Arguments = Params
 		  Else
-		    'Unknown Verb
-		    LastVerb.Verb = ""
-		    LastVerb.Arguments = ""
-		    HandleFTPError(500)
+		    nextverb.Verb = Uppercase(Verb)
+		    nextverb.Arguments = Trim(Params)
 		  End Select
 		  
+		  PendingVerbs.Append(nextverb)
+		  If VerbDispatchTimer <> Nil Then 
+		    VerbDispatchTimer.Mode = Timer.ModeMultiple
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -560,6 +387,20 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub VerbDispatcher(Sender As Timer)
+		  If Not TransferInProgress And UBound(PendingVerbs) > -1 Then
+		    Dim nextverb As FTPVerb = PendingVerbs(0)
+		    PendingVerbs.Remove(0)
+		    FTPLog(nextverb.Verb + " " + nextverb.Arguments)
+		    Me.Write(nextverb.Verb + " " + nextverb.Arguments + CRLF)
+		    LastVerb = nextverb
+		    Sender.Mode = Timer.ModeOff
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
 
 	#tag Hook, Flags = &h0
 		Event Connected()
@@ -579,11 +420,19 @@ Inherits FTPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private PendingVerbs() As FTPVerb
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private RNF As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
 		Private RNT As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private VerbDispatchTimer As Timer
 	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0
