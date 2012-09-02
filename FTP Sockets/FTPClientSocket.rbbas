@@ -207,7 +207,6 @@ Inherits FTPSocket
 		      HandleFTPError(Response.Code)
 		    End If
 		  Case "QUIT"
-		    HandleFTPError(Response.Code)
 		    Me.Close
 		  Else
 		    If Response.Code = 220 Then  //Server now ready
@@ -265,6 +264,13 @@ Inherits FTPSocket
 	#tag EndEvent
 
 
+	#tag Method, Flags = &h1
+		Protected Sub Close()
+		  mWorkingDirectory = ""
+		  Super.Close
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Sub CWD(NewDirectory As String)
 		  //Change the WorkingDirectory
@@ -318,9 +324,20 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub FEAT()
+		  DoVerb("FEAT")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub List(TargetDirectory As String = "")
 		  //Retrieves a directory listing
 		  TargetDirectory = PathEncode(TargetDirectory)
+		  If Me.Passive Then
+		    PASV()
+		  Else
+		    PORT(Me.Port + 1)
+		  End If
 		  DoVerb("LIST", TargetDirectory)
 		End Sub
 	#tag EndMethod
@@ -358,18 +375,36 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RETR(RemoteFileName As String, SaveTo As FolderItem)
+		Sub RETR(RemoteFileName As String, SaveTo As FolderItem, Mode As Integer = 1)
 		  OutputFile = SaveTo
 		  OutputStream = BinaryStream.Create(OutputFile, True)
+		  TYPE = Mode
+		  If Me.Passive Then
+		    PASV()
+		  Else
+		    PORT(Me.Port + 1)
+		  End If
 		  DoVerb("RETR", PathEncode(RemoteFileName, WorkingDirectory))
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub STOR(RemoteFileName As String, LocalFile As FolderItem)
+		Sub STOR(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
 		  OutputFile = LocalFile
 		  OutputStream = BinaryStream.Open(OutputFile)
+		  TYPE = Mode
+		  If Me.Passive Then
+		    PASV()
+		  Else
+		    PORT(Me.Port + 1)
+		  End If
 		  DoVerb("STOR", RemoteFileName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub SYST()
+		  DoVerb("SYST")
 		End Sub
 	#tag EndMethod
 
@@ -436,6 +471,18 @@ Inherits FTPSocket
 	#tag Hook, Flags = &h0
 		Event TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
 	#tag EndHook
+
+
+	#tag Note, Name = FTPClientSocket Notes
+		This class subclasses FTPSocket and provides a client socket.
+		
+		When an FTP control connnection is established, the client waits for the server to
+		initiate the FTP handshake. Once the handshake is completed, the Connected event is
+		raised and commands may be sent to the server.
+		
+		Commands 
+		
+	#tag EndNote
 
 
 	#tag Property, Flags = &h21

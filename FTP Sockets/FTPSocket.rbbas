@@ -55,6 +55,15 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub Close()
+		  LoginOK = False
+		  LastVerb.Verb = ""
+		  LastVerb.Arguments = ""
+		  ReDim ServerFeatures(-1)
+		  ServerType = ""
+		  TransferInProgress = False
+		  TransferMode = 0
+		  UTFMode = False
+		  
 		  If DataSocket <> Nil Then
 		    DataSocket.Close
 		    DataSocket = Nil
@@ -63,7 +72,7 @@ Inherits TCPSocket
 		  If OutputStream <> Nil Then
 		    OutputStream.Close
 		  End If
-		  Me.Disconnect()
+		  
 		  Super.Close()
 		End Sub
 	#tag EndMethod
@@ -287,8 +296,8 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Shared Function ParseList(ListData As String) As FTPListEntry()
+	#tag Method, Flags = &h0
+		 Shared Function ParseList(ListData As String) As FTPListEntry()
 		  Const ReadPerm = 4
 		  Const WritePerm = 2
 		  Const ExPerm = 1
@@ -545,19 +554,17 @@ Inherits TCPSocket
 	#tag EndHook
 
 
-	#tag Note, Name = FTPSocket Class Notes
+	#tag Note, Name = FTPSocket Notes
 		This class provides both the control and data connections for a given FTP session.
 		FTPClientSocket and FTPServerSocket are subclassed from FTPSocket. FTPSocket should 
 		only know about the connections themselves without needing to know whether it's a 
 		client or server flavor (with the exception of the DataAvailable event. fixme?)
 		Other non-socket data which is used in both clients and servers are also dealt with 
-		in this class.
+		in FTPSocket.
 		
 		This class is not intended to be used except as the superclass of another TCPSocket 
 		that handles protocol layer stuff via the ControlVerb event (for servers) or the 
 		ControlRespose event (for clients) and Write and WriteData for both clients and servers.
-		
-		If you override the Connect method then you MUST call Super.Connect()
 	#tag EndNote
 
 
@@ -725,7 +732,7 @@ Inherits TCPSocket
 	#tag EndConstant
 
 
-	#tag Structure, Name = FTPListEntry, Flags = &h1
+	#tag Structure, Name = FTPListEntry, Flags = &h0
 		FileName As String*256
 		  Owner As String*64
 		  Group As String*64

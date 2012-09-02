@@ -7,7 +7,7 @@ Begin Window Window1
    Frame           =   0
    FullScreen      =   False
    HasBackColor    =   False
-   Height          =   429
+   Height          =   4.3e+2
    ImplicitInstance=   True
    LiveResize      =   True
    MacProcID       =   0
@@ -23,7 +23,7 @@ Begin Window Window1
    Resizeable      =   True
    Title           =   "BS FTP Prototype"
    Visible         =   True
-   Width           =   600
+   Width           =   6.0e+2
    Begin FTPClientSocket Client
       Address         =   "mc.boredomsoft.org"
       Anonymous       =   False
@@ -48,7 +48,7 @@ Begin Window Window1
       AutoHideScrollbars=   True
       Bold            =   ""
       Border          =   True
-      ColumnCount     =   1
+      ColumnCount     =   3
       ColumnsResizable=   ""
       ColumnWidths    =   ""
       DataField       =   ""
@@ -61,7 +61,7 @@ Begin Window Window1
       GridLinesVertical=   0
       HasHeading      =   ""
       HeadingIndex    =   -1
-      Height          =   352
+      Height          =   322
       HelpTag         =   ""
       Hierarchical    =   ""
       Index           =   -2147483648
@@ -118,7 +118,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   407
+      Top             =   408
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -149,7 +149,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   385
+      Top             =   386
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -180,7 +180,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   385
+      Top             =   386
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -211,7 +211,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   407
+      Top             =   408
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -242,7 +242,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   385
+      Top             =   386
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -273,7 +273,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   407
+      Top             =   408
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -291,7 +291,7 @@ Begin Window Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Italic          =   ""
-      Left            =   92
+      Left            =   7
       LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
@@ -304,7 +304,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   407
+      Top             =   471
       Underline       =   ""
       Visible         =   True
       Width           =   73
@@ -335,7 +335,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   385
+      Top             =   408
       Underline       =   ""
       Visible         =   True
       Width           =   73
@@ -366,7 +366,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   385
+      Top             =   386
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -397,7 +397,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   407
+      Top             =   408
       Underline       =   ""
       Visible         =   True
       Width           =   80
@@ -419,7 +419,7 @@ Begin Window Window1
       TabIndex        =   13
       TabPanelIndex   =   0
       TabStop         =   True
-      Top             =   407
+      Top             =   408
       Visible         =   True
       Width           =   16
    End
@@ -439,7 +439,7 @@ Begin Window Window1
       Maximum         =   100
       Scope           =   0
       TabPanelIndex   =   0
-      Top             =   353
+      Top             =   327
       Value           =   0
       Visible         =   True
       Width           =   600
@@ -480,7 +480,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   373
+      Top             =   374
       Underline       =   ""
       UseFocusRing    =   True
       Visible         =   True
@@ -531,32 +531,102 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   404
+      Top             =   405
       Underline       =   ""
       Visible         =   True
       Width           =   80
+   End
+   Begin PushButton PushButton14
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "FEAT"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   88
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   False
+      Scope           =   0
+      TabIndex        =   16
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   471
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
+   Begin PushButton PushButton15
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "SYST"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   92
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   False
+      Scope           =   0
+      TabIndex        =   17
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   384
+      Underline       =   ""
+      Visible         =   True
+      Width           =   73
    End
 End
 #tag EndWindow
 
 #tag WindowCode
+	#tag Method, Flags = &h0
+		Sub Loggit(Paramarray lines() As String)
+		  Listbox1.AddRow(lines)
+		  Listbox1.ScrollPosition = Listbox1.LastIndex * Listbox1.RowHeight
+		End Sub
+	#tag EndMethod
+
+
 #tag EndWindowCode
 
 #tag Events Client
 	#tag Event
 		Sub FTPLog(LogLine As String)
-		  If LogLine.Trim <> "" Then Listbox1.AddRow(LogLine)
+		  If LogLine.Trim <> "" Then loggit(LogLine)
 		End Sub
 	#tag EndEvent
 	#tag Event
 		Sub TransferComplete(FolderItemOrMemoryBlock As Variant)
 		  If FolderItemOrMemoryBlock IsA MemoryBlock Then //Non-file data
-		    Dim t() As String = Split(FolderItemOrMemoryBlock.StringValue, EndOfLine)
-		    For i As Integer = 0 To UBound(t)
-		      Listbox1.AddRow(t(i))
+		    Dim listing() As FTPSocket.FTPListEntry = FTPSocket.ParseList(FolderItemOrMemoryBlock.StringValue)
+		    For i As Integer = 0 To UBound(listing)
+		      loggit(listing(i).FileName, Str(listing(i).FileSize), Str(listing(i).OwnerPerms) + Str(listing(i).GroupPerms) + Str(listing(i).WorldPerms))
 		    Next
 		  ElseIf FolderItemOrMemoryBlock <> Nil Then
-		    Listbox1.AddRow("Transfer complete.")
+		    loggit("Transfer complete.")
 		  End If
 		End Sub
 	#tag EndEvent
@@ -654,7 +724,7 @@ End
 #tag Events FTPServerSocket1
 	#tag Event
 		Sub FTPLog(LogLine As String)
-		  If LogLine.Trim <> "" Then Listbox1.AddRow(LogLine)
+		  If LogLine.Trim <> "" Then loggit(LogLine)
 		End Sub
 	#tag EndEvent
 	#tag Event
@@ -675,6 +745,20 @@ End
 	#tag Event
 		Sub Action()
 		  FTPServerSocket1.Listen()
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton14
+	#tag Event
+		Sub Action()
+		  Client.FEAT
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton15
+	#tag Event
+		Sub Action()
+		  Client.SYST
 		End Sub
 	#tag EndEvent
 #tag EndEvents
