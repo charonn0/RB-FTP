@@ -699,9 +699,6 @@ Begin Window Window1
          AllowWrite      =   True
          Anonymous       =   False
          Banner          =   "Welcome to BSFTPd!"
-         DataIsConnected =   ""
-         DataLastErrorCode=   ""
-         DataPort        =   ""
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"

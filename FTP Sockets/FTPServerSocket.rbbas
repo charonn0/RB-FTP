@@ -193,15 +193,7 @@ Inherits FTPSocket
 		    If LoginOK Then
 		      CreateDataSocket()
 		      DataSocket.Listen
-		      Dim p1, p2 As Integer
-		      Dim h1, h2, h3, h4 As String
-		      h1 = NthField(NthField(DataSocket.Address, ".", 1), "(", 2)
-		      h2 = NthField(DataSocket.Address, ".", 2)
-		      h3 = NthField(DataSocket.Address, ".", 3)
-		      h4 = NthField(DataSocket.Address, ".", 4)
-		      p1 = DataSocket.port Mod 256
-		      p2 = DataSocket.port - p1
-		      DoResponse(227, "Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
+		      DoResponse(227, "Entering Passive Mode (" + IPv4_to_PASV(DataSocket.Address, DataSocket.Port) + ").")
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -218,18 +210,8 @@ Inherits FTPSocket
 		      If DataSocket.IsConnected Then
 		        DoResponse(125)
 		      Else
-		        Dim p1, p2 As Integer
-		        Dim h1, h2, h3, h4 As String
-		        h1 = NthField(NthField(Verb.Arguments, ",", 1), "(", 2)
-		        h2 = NthField(Verb.Arguments, ",", 2)
-		        h3 = NthField(Verb.Arguments, ",", 3)
-		        h4 = NthField(Verb.Arguments, ",", 4)
-		        p1 = Val(NthField(Verb.Arguments, ",", 5))
-		        p2 = Val(NthField(Verb.Arguments, ",", 6))
-		        CreateDataSocket()
-		        DataSocket.Port = p1 * 256 + p2
-		        DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
-		        DoResponse(200, "Entering Active Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
+		        CreateDataSocket(Verb.Arguments)
+		        DoResponse(200, Verb.Arguments)
 		        DataSocket.Connect
 		      End If
 		    Else
@@ -361,31 +343,6 @@ Inherits FTPSocket
 			InitialValue="Welcome to BSFTPd!"
 			Type="String"
 			EditorType="MultiLineEditor"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataAddress"
-			Group="Behavior"
-			Type="String"
-			EditorType="MultiLineEditor"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataIsConnected"
-			Group="Behavior"
-			Type="Boolean"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataLastErrorCode"
-			Group="Behavior"
-			Type="Integer"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataPort"
-			Group="Behavior"
-			Type="Integer"
-			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"

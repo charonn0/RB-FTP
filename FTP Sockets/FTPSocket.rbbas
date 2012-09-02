@@ -65,30 +65,22 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Sub Connect()
-		  CreateDataSocket()
-		  DataSocket.Address = Me.Address
-		  DataSocket.Port = Me.Port + 1
-		  Super.Connect
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
-		Private Sub ConnectedHandler(Sender As TCPSocket)
-		  #pragma Unused Sender
-		  'RaiseEvent ReadyToTransfer()
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h1
-		Protected Sub CreateDataSocket()
+		Protected Sub CreateDataSocket(PASVParams As String = "")
 		  DataSocket = New TCPSocket
-		  AddHandler DataSocket.Connected, AddressOf ConnectedHandler
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
 		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
 		  AddHandler DataSocket.SendProgress, AddressOf SendProgressHandler
+		  
+		  If PASVParams.Trim <> "" Then
+		    Dim ipv4 As String
+		    Dim dport As Integer
+		    ipv4 = NthField(PASVParams, ":", 1)
+		    dport = Val(NthField(PASVParams, ":", 2))
+		    DataSocket.Address = ipv4
+		    DataSocket.Port = dport
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -137,9 +129,8 @@ Inherits TCPSocket
 		Private Sub ErrorHandler(Sender As TCPSocket)
 		  If Sender.LastErrorCode = 102 Then
 		    Sender.Close
-		    'If OutputStream <> Nil Then OutputStream.Close
 		    TransferInProgress = False
-		    RaiseEvent TransferComplete(False)
+		    TransferComplete(True)
 		  Else
 		    RaiseEvent Error()
 		  End If
@@ -296,6 +287,20 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Shared Function IPv4_to_PASV(IPv4 As String, Port As Integer) As String
+		  Dim p1, p2 As Integer
+		  Dim h1, h2, h3, h4 As String
+		  h1 = NthField(NthField(IPv4, ".", 1), "(", 2)
+		  h2 = NthField(IPv4, ".", 2)
+		  h3 = NthField(IPv4, ".", 3)
+		  h4 = NthField(IPv4, ".", 4)
+		  p1 = port Mod 256
+		  p2 = port - p1
+		  Return h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		 Shared Function ParseList(ListData As String) As FTPListEntry()
 		  Const ReadPerm = 4
@@ -400,6 +405,22 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Shared Function PASV_to_IPv4(PASVParams As String) As String
+		  Dim p1, p2 As Integer
+		  Dim h1, h2, h3, h4 As String
+		  h1 = NthField(NthField(PASVParams, ",", 1), "(", 2)
+		  h2 = NthField(PASVParams, ",", 2)
+		  h3 = NthField(PASVParams, ",", 3)
+		  h4 = NthField(PASVParams, ",", 4)
+		  p1 = Val(NthField(PASVParams, ",", 5))
+		  p2 = Val(NthField(PASVParams, ",", 6))
+		  
+		  Return h1 + "." + h2 + "." + h3 + "." + h4 + ":" + Format(p1 * 256 + p2, "######")
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Shared Function PathDecode(Path As String, NamePrefix As String = "") As String
 		  Path = ReplaceAll(Path, Chr(&o0), Chr(&o12))
 		  Return ReplaceAll(NamePrefix + Path, "//", "/")
@@ -416,19 +437,22 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Function Read() As String
 		  Dim la As String
-		  
 		  While Me.Lookahead.LenB > 0
 		    la = la + Me.ReadAll
 		    App.YieldToNextThread
 		  Wend
-		  
 		  Return la
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Function ReadData() As String
-		  Return DataSocket.ReadAll
+		  Dim la As String
+		  While Me.Lookahead.LenB > 0
+		    la = la + DataSocket.ReadAll
+		    App.YieldToNextThread
+		  Wend
+		  Return la
 		End Function
 	#tag EndMethod
 
@@ -605,27 +629,6 @@ Inherits TCPSocket
 			Group="Behavior"
 			InitialValue="False"
 			Type="Boolean"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataAddress"
-			Group="Behavior"
-			Type="String"
-			EditorType="MultiLineEditor"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataIsConnected"
-			Group="Behavior"
-			Type="Boolean"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataLastErrorCode"
-			Group="Behavior"
-			Type="Integer"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataPort"
-			Group="Behavior"
-			Type="Integer"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"
