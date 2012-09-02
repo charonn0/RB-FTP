@@ -2,17 +2,6 @@
 Protected Class FTPSocket
 Inherits TCPSocket
 	#tag Event
-		Sub DataAvailable()
-		  Dim s As String = Me.Read
-		  If Me IsA FTPClientSocket Then
-		    ParseResponse(s)
-		  ElseIf Me IsA FTPServerSocket Then
-		    ParseVerb(s)
-		  End If
-		End Sub
-	#tag EndEvent
-
-	#tag Event
 		Sub Error()
 		  If Me.LastErrorCode = 102 Then
 		    RaiseEvent Disconnected()
@@ -40,8 +29,8 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Shared Function ChildOfParent(Child As FolderItem, Parent As FolderItem) As Boolean
-		  //A method to determine whether the Child FolderItem is contained within the Parent
-		  //FolderItem or one of its sub-directories.
+		  'A method to determine whether the Child FolderItem is contained within the Parent
+		  'FolderItem or one of its sub-directories.
 		  
 		  If Not Parent.Directory Then Return False
 		  While Child.Parent <> Nil
@@ -135,7 +124,7 @@ Inherits TCPSocket
 		    TransferInProgress = False
 		    RaiseEvent TransferComplete(False)
 		  Else
-		    HandleFTPError(-1)
+		    RaiseEvent Error()
 		  End If
 		End Sub
 	#tag EndMethod
@@ -285,14 +274,8 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub FTPLog(LogLine As String)
-		  //This method allows any subclass of the FTPSocket to raise its own FTPLog event.
+		  'This method allows any subclass of the FTPSocket to raise its own FTPLog event.
 		  RaiseEvent FTPLog(LogLine)
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Sub HandleFTPError(Code As Integer)
-		  RaiseEvent FTPLog(Str(code) + " " + FTPCodeToMessage(Code))
 		End Sub
 	#tag EndMethod
 
@@ -399,63 +382,6 @@ Inherits TCPSocket
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Sub ParseResponse(Data As String)
-		  Dim Code As Integer
-		  Dim msg As String
-		  
-		  Code = Val(Left(Data, 3))
-		  msg = data.Replace(Format(Code, "000"), "")
-		  
-		  Dim response As FTPResponse
-		  response.Code = Code
-		  Select Case Code \ 100
-		  Case RT_Positive_Preliminary
-		    response.Reply_Type = RT_Positive_Preliminary
-		  Case RT_Positive_Complete
-		    response.Reply_Type = RT_Positive_Complete
-		  Case RT_Positive_Intermedite
-		    response.Reply_Type = RT_Positive_Intermedite
-		  Case RT_Negative_Transient
-		    response.Reply_Type = RT_Negative_Transient
-		  Case RT_Negative_Permanent
-		    response.Reply_Type = RT_Negative_Permanent
-		  Case RT_Protected
-		    response.Reply_Type = RT_Protected
-		  End Select
-		  Select Case (Code - response.Reply_Type * 100) \ 10
-		  Case RP_Auth
-		    response.Reply_Purpose = RP_Auth
-		  Case RP_Connection
-		    response.Reply_Purpose = RP_Connection
-		  Case RP_File_System
-		    response.Reply_Purpose = RP_File_System
-		  Case RP_Info
-		    response.Reply_Purpose = RP_Info
-		  Case RP_Syntax
-		    response.Reply_Purpose = RP_Syntax
-		  Case RP_Unspecified
-		    response.Reply_Purpose = RP_Unspecified
-		  End Select
-		  response.Reply_Code = Code - (100 * response.Reply_Type) - (10 * response.Reply_Purpose)
-		  response.Reply_Args = msg
-		  ControlResponse(response)
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
-		Private Sub ParseVerb(Data As String)
-		  Dim Verb As FTPVerb
-		  If InStr(Data, " ") > 0 Then
-		    Verb.Verb = NthField(Data, " ", 1)
-		    Verb.Arguments = Data.Replace(Verb.Verb + " ", "")
-		  Else
-		    Verb.Verb = Data
-		  End If
-		  ControlVerb(Verb)
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h1
 		Protected Shared Function PathDecode(Path As String, NamePrefix As String = "") As String
 		  Path = ReplaceAll(Path, Chr(&o0), Chr(&o12))
@@ -522,14 +448,6 @@ Inherits TCPSocket
 
 
 	#tag Hook, Flags = &h0
-		Event ControlResponse(Response As FTPResponse)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ControlVerb(Verb As FTPVerb)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
 		Event Disconnected()
 	#tag EndHook
 
@@ -558,9 +476,8 @@ Inherits TCPSocket
 		This class provides both the control and data connections for a given FTP session.
 		FTPClientSocket and FTPServerSocket are subclassed from FTPSocket. FTPSocket should 
 		only know about the connections themselves without needing to know whether it's a 
-		client or server flavor (with the exception of the DataAvailable event. fixme?)
-		Other non-socket data which is used in both clients and servers are also dealt with 
-		in FTPSocket.
+		client or server flavor. Other non-socket data which is used in both clients and 
+		servers are also dealt with in FTPSocket.
 		
 		This class is not intended to be used except as the superclass of another TCPSocket 
 		that handles protocol layer stuff via the ControlVerb event (for servers) or the 
@@ -746,9 +663,6 @@ Inherits TCPSocket
 
 	#tag Structure, Name = FTPResponse, Flags = &h1
 		Code As Integer
-		  Reply_Type As Integer
-		  Reply_Purpose As Integer
-		  Reply_Code As Integer
 		Reply_Args As String*496
 	#tag EndStructure
 

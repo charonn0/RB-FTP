@@ -11,231 +11,10 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
-		Sub ControlResponse(Response As FTPResponse)
-		  //This event is raised by FTPSocket.DataAvailable
-		  //Response is a FTPSocket.FTPResponse stucture
+		Sub DataAvailable()
+		  Dim s As String = Me.Read
+		  ParseResponse(s)
 		  
-		  If Response.Reply_Args.Trim <> "" Then
-		    FTPLog(Str(Response.Code) + " " + Response.Reply_Args.Trim)
-		  Else
-		    FTPLog(Str(Response.Code) + " " + FTPCodeToMessage(Response.Code).Trim)
-		  End If
-		  
-		  
-		  Select Case LastVerb.Verb
-		  Case "USER"
-		    Select Case Response.Code
-		    Case 230  //Logged in W/O pass
-		      LoginOK = True
-		      RaiseEvent Connected()
-		    Case 331, 332  //Need PASS/ACCT
-		      DoVerb("PASS", Me.Password)
-		    Else
-		      Me.HandleFTPError(Response.Code)
-		    End Select
-		    
-		  Case "PASS"
-		    Select Case Response.Code
-		    Case 230 //Logged in with pass
-		      LoginOK = True
-		      FTPLog("Ready")
-		      RaiseEvent Connected()
-		    Case 530  //USER not set!
-		      DoVerb("USER", Me.Username)
-		    Else
-		      Me.HandleFTPError(Response.Code)
-		    End Select
-		  Case "RETR"
-		    Select Case Response.Code
-		    Case 150 //About to start data transfer
-		      Dim size As String = NthField(Response.Reply_Args, "(", 2)
-		      size = NthField(size, ")", 1)
-		      OutputLength = Val(size)
-		      If OutputFile = Nil Then
-		        OutputFile = GetTemporaryFolderItem()
-		      End If
-		      If Not OutputFile.Exists Then
-		        OutputFile = GetTemporaryFolderItem()
-		      End If
-		      If OutputStream = Nil Then
-		        OutputStream = BinaryStream.Open(OutputFile)
-		      End If
-		    Case 425, 426 //Data connection not ready
-		      HandleFTPError(Response.Code)
-		    Case 451, 551 //Disk read error
-		      HandleFTPError(Response.Code)
-		    Case 226 //Done
-		      'DataSocket.Close
-		      TransferComplete(OutputFile)
-		    Else
-		      Me.HandleFTPError(Response.Code)
-		    End Select
-		  Case "STOR", "APPE"
-		    Select Case Response.Code
-		    Case 150  //Ready
-		      UploadDispatcher = New Timer
-		      AddHandler UploadDispatcher.Action, AddressOf UploadHandler
-		      UploadDispatcher.Period = 1
-		      UploadDispatcher.Mode = Timer.ModeMultiple
-		      TransferInProgress = True
-		    Case 226  //Success
-		      TransferComplete(OutputFile)
-		    Case 425  //No data connection!
-		      If Passive Then
-		        DataSocket.Connect
-		        DoVerb(LastVerb.Verb, LastVerb.Arguments)
-		      Else
-		        HandleFTPError(Response.Code)
-		      End If
-		    Case 426  //Data connection lost
-		      HandleFTPError(Response.Code)
-		    Else
-		      HandleFTPError(Response.Code)
-		    End Select
-		    
-		  Case "FEAT"
-		    ServerFeatures = Split(Response.Reply_Args, EndOfLine.Windows)
-		    ServerFeatures.Remove(ServerFeatures.Ubound)
-		    ServerFeatures.Remove(0)
-		    For Each Feature As String In ServerFeatures
-		      Feature = Feature.Trim
-		      FTPLog("   " + Feature)
-		    Next
-		  Case "SYST"
-		    ServerType = Response.Reply_Args
-		  Case "CWD"
-		    Select Case Response.Code
-		    Case 250, 200 //OK
-		      mWorkingDirectory = LastVerb.Arguments
-		    Else
-		      HandleFTPError(Response.Code)
-		    End Select
-		    
-		  Case "PWD"
-		    If Response.Code = 257 Then //OK
-		      mWorkingDirectory = LastVerb.Arguments
-		      'FTPLog("CWD is " + WorkingDirectory)
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "LIST"
-		    Select Case Response.Code
-		    Case 226 //Here comes the directory list
-		      RaiseEvent TransferComplete(OutPutMB)
-		    Case 425, 426  //no connection or connection lost
-		      HandleFTPError(Response.Code)
-		    Case 451  //Disk error
-		      HandleFTPError(Response.Code)
-		    Else
-		      HandleFTPError(Response.Code)
-		    End Select
-		  Case "CDUP"
-		    If Response.Code = 200 Or Response.Code = 250 Then
-		      DoVerb("PWD")
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "PASV"
-		    If Response.Code = 227 Then 'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
-		      Dim p1, p2 As Integer
-		      Dim h1, h2, h3, h4 As String
-		      h1 = NthField(NthField(Response.Reply_Args, ",", 1), "(", 2)
-		      h2 = NthField(Response.Reply_Args, ",", 2)
-		      h3 = NthField(Response.Reply_Args, ",", 3)
-		      h4 = NthField(Response.Reply_Args, ",", 4)
-		      p1 = Val(NthField(Response.Reply_Args, ",", 5))
-		      p2 = Val(NthField(Response.Reply_Args, ",", 6))
-		      DataSocket.Port = p1 * 256 + p2
-		      DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
-		      'FTPLog("Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
-		      DataSocket.Connect
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "REST"
-		    If Response.Code = 350 Then
-		      OutputStream.Position = Val(LastVerb.Arguments)
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "PORT"
-		    If Response.Code = 200 Then
-		      //Active mode OK. Connect to the following port
-		      DataSocket.Listen()
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "TYPE"
-		    If Response.Code = 200 Then
-		      Select Case LastVerb.Arguments
-		      Case "A", "A N"
-		        Me.TransferMode = ASCIIMode
-		      Case "I", "L"
-		        Me.TransferMode = BinaryMode
-		      End Select
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		    
-		  Case "MKD"
-		    If Response.Code = 257 Then //OK
-		      'LIST()
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		    
-		  Case "RMD"
-		    If Response.Code = 250 Then
-		      LIST()
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		    
-		  Case "DELE"
-		    If Response.Code = 250 Then
-		      'LIST()
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "RNFR"
-		    If Response.Code = 350 Then
-		      DoVerb("RNTO", RNT)
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "RNTO"
-		    If Response.Code = 250 Then
-		      'DoVerb("RNTO", RNT)
-		      FTPLog(RNF + " renamed to " + RNT + " successfully.")
-		      RNT = ""
-		      RNF = ""
-		    Else
-		      HandleFTPError(Response.Code)
-		    End If
-		  Case "QUIT"
-		    Me.Close
-		  Else
-		    If Response.Code = 220 Then  //Server now ready
-		      If Me.Anonymous Then
-		        Me.Username = "anonymous"
-		        Me.Password = "bsftp@boredomsoft.org"
-		      End If
-		      DoVerb("USER", Me.Username)
-		    Else
-		      //Sync error!
-		    End If
-		  End Select
-		  VerbDispatchTimer.Mode = Timer.ModeMultiple
-		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Sub ControlVerb(Verb As FTPVerb)
-		  //FTP clients do not receive FTPVerb messages.
-		  #pragma Unused Verb
-		  FTPLog("Error: the remote server appears to be another client!")
-		  Me.Disconnect()
-		  Me.Close()
 		End Sub
 	#tag EndEvent
 
@@ -285,14 +64,14 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub CWD(NewDirectory As String)
-		  //Change the WorkingDirectory
+		  'Change the WorkingDirectory
 		  DoVerb("CWD", NewDirectory)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Sub DELE(RemoteFileName As String)
-		  //Delete the file named RemoteFileName on the FTP server
+		  'Delete the file named RemoteFileName on the FTP server
 		  DoVerb("DELE", RemoteFileName)
 		End Sub
 	#tag EndMethod
@@ -343,7 +122,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub List(TargetDirectory As String = "")
-		  //Retrieves a directory listing
+		  'Retrieves a directory listing
 		  TargetDirectory = PathEncode(TargetDirectory)
 		  If Me.Passive Then
 		    PASV()
@@ -360,16 +139,245 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub ParseResponse(Data As String)
+		  Dim Code As Integer
+		  Dim msg As String
+		  
+		  Code = Val(Left(Data, 3))
+		  msg = data.Replace(Format(Code, "000"), "")
+		  
+		  Dim response As FTPResponse
+		  response.Code = Code
+		  response.Reply_Args = msg
+		  
+		  'This event is raised by FTPSocket.DataAvailable
+		  'Response is a FTPSocket.FTPResponse stucture
+		  
+		  If Response.Reply_Args.Trim <> "" Then
+		    FTPLog(Str(Response.Code) + " " + Response.Reply_Args.Trim)
+		  Else
+		    FTPLog(Str(Response.Code) + " " + FTPCodeToMessage(Response.Code).Trim)
+		  End If
+		  
+		  
+		  Select Case LastVerb.Verb
+		  Case "USER"
+		    Select Case Response.Code
+		    Case 230  'Logged in W/O pass
+		      LoginOK = True
+		      RaiseEvent Connected()
+		    Case 331, 332  'Need PASS/ACCT
+		      DoVerb("PASS", Me.Password)
+		    End Select
+		    
+		  Case "PASS"
+		    Select Case Response.Code
+		    Case 230 'Logged in with pass
+		      LoginOK = True
+		      FTPLog("Ready")
+		      RaiseEvent Connected()
+		    Case 530  'USER not set!
+		      DoVerb("USER", Me.Username)
+		    End Select
+		  Case "RETR"
+		    Select Case Response.Code
+		    Case 150 'About to start data transfer
+		      Dim size As String = NthField(Response.Reply_Args, "(", 2)
+		      size = NthField(size, ")", 1)
+		      OutputLength = Val(size)
+		      If OutputFile = Nil Then
+		        OutputFile = GetTemporaryFolderItem()
+		      End If
+		      If Not OutputFile.Exists Then
+		        OutputFile = GetTemporaryFolderItem()
+		      End If
+		      If OutputStream = Nil Then
+		        OutputStream = BinaryStream.Open(OutputFile)
+		      End If
+		    Case 425, 426 'Data connection not ready
+		      //HandleFTPError(Response.Code)
+		    Case 451, 551 'Disk read error
+		      //HandleFTPError(Response.Code)
+		    Case 226 'Done
+		      //DataSocket.Close
+		      TransferComplete(OutputFile)
+		    End Select
+		  Case "STOR", "APPE"
+		    Select Case Response.Code
+		    Case 150  'Ready
+		      UploadDispatcher = New Timer
+		      AddHandler UploadDispatcher.Action, AddressOf UploadHandler
+		      UploadDispatcher.Period = 1
+		      UploadDispatcher.Mode = Timer.ModeMultiple
+		      TransferInProgress = True
+		    Case 226  'Success
+		      TransferComplete(OutputFile)
+		    Case 425  'No data connection!
+		      If Passive Then
+		        DataSocket.Connect
+		        DoVerb(LastVerb.Verb, LastVerb.Arguments)
+		      Else
+		        //HandleFTPError(Response.Code)
+		      End If
+		    Case 426  'Data connection lost
+		      //HandleFTPError(Response.Code)
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End Select
+		    
+		  Case "FEAT"
+		    ServerFeatures = Split(Response.Reply_Args, EndOfLine.Windows)
+		    ServerFeatures.Remove(ServerFeatures.Ubound)
+		    ServerFeatures.Remove(0)
+		    For Each Feature As String In ServerFeatures
+		      Feature = Feature.Trim
+		      FTPLog("   " + Feature)
+		    Next
+		  Case "SYST"
+		    ServerType = Response.Reply_Args
+		  Case "CWD"
+		    Select Case Response.Code
+		    Case 250, 200 'OK
+		      mWorkingDirectory = LastVerb.Arguments
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End Select
+		    
+		  Case "PWD"
+		    If Response.Code = 257 Then 'OK
+		      mWorkingDirectory = LastVerb.Arguments
+		      'FTPLog("CWD is " + WorkingDirectory)
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "LIST"
+		    Select Case Response.Code
+		    Case 226 'Here comes the directory list
+		      RaiseEvent TransferComplete(OutPutMB)
+		    Case 425, 426  'no connection or connection lost
+		      //HandleFTPError(Response.Code)
+		    Case 451  'Disk error
+		      //HandleFTPError(Response.Code)
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End Select
+		  Case "CDUP"
+		    If Response.Code = 200 Or Response.Code = 250 Then
+		      DoVerb("PWD")
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "PASV"
+		    If Response.Code = 227 Then 'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
+		      Dim p1, p2 As Integer
+		      Dim h1, h2, h3, h4 As String
+		      h1 = NthField(NthField(Response.Reply_Args, ",", 1), "(", 2)
+		      h2 = NthField(Response.Reply_Args, ",", 2)
+		      h3 = NthField(Response.Reply_Args, ",", 3)
+		      h4 = NthField(Response.Reply_Args, ",", 4)
+		      p1 = Val(NthField(Response.Reply_Args, ",", 5))
+		      p2 = Val(NthField(Response.Reply_Args, ",", 6))
+		      DataSocket.Port = p1 * 256 + p2
+		      DataSocket.Address = h1 + "." + h2 + "." + h3 + "." + h4
+		      'FTPLog("Entering Passive Mode (" + h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2))
+		      DataSocket.Connect
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "REST"
+		    If Response.Code = 350 Then
+		      OutputStream.Position = Val(LastVerb.Arguments)
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "PORT"
+		    If Response.Code = 200 Then
+		      'Active mode OK. Connect to the following port
+		      DataSocket.Listen()
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "TYPE"
+		    If Response.Code = 200 Then
+		      Select Case LastVerb.Arguments
+		      Case "A", "A N"
+		        Me.TransferMode = ASCIIMode
+		      Case "I", "L"
+		        Me.TransferMode = BinaryMode
+		      End Select
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		    
+		  Case "MKD"
+		    If Response.Code = 257 Then 'OK
+		      'LIST()
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		    
+		  Case "RMD"
+		    If Response.Code = 250 Then
+		      LIST()
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		    
+		  Case "DELE"
+		    If Response.Code = 250 Then
+		      'LIST()
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "RNFR"
+		    If Response.Code = 350 Then
+		      DoVerb("RNTO", RNT)
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "RNTO"
+		    If Response.Code = 250 Then
+		      'DoVerb("RNTO", RNT)
+		      FTPLog(RNF + " renamed to " + RNT + " successfully.")
+		      RNT = ""
+		      RNF = ""
+		    Else
+		      //HandleFTPError(Response.Code)
+		    End If
+		  Case "QUIT"
+		    Me.Close
+		    
+		  Else
+		    If Response.Code = 220 Then  'Server now ready
+		      'The server is now ready to begin the login handshake
+		      If Me.Anonymous Then
+		        Me.Username = "anonymous"
+		        Me.Password = "bsftp@boredomsoft.org"
+		      End If
+		      DoVerb("USER", Me.Username)
+		      
+		    ElseIf Response.Code = 421 Then  'Timeout
+		      Me.Close
+		      
+		    Else
+		      'Sync error!
+		    End If
+		  End Select
+		  VerbDispatchTimer.Mode = Timer.ModeMultiple
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Sub PASV()
-		  //You must call either PASV or PORT before transferring anything over the DataSocket
+		  'You must call either PASV or PORT before transferring anything over the DataSocket
 		  DoVerb("PASV")
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Sub PORT(PortNumber As Integer)
-		  //You must call either PASV or PORT before transferring anything over the DataSocket
+		  'You must call either PASV or PORT before transferring anything over the DataSocket
 		  DoVerb("PORT", Str(PortNumber))
 		End Sub
 	#tag EndMethod
