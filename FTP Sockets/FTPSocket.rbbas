@@ -87,7 +87,6 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Sub CreateDataSocket()
 		  DataSocket = New TCPSocket
-		  
 		  AddHandler DataSocket.Connected, AddressOf ConnectedHandler
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
@@ -541,6 +540,22 @@ Inherits TCPSocket
 	#tag Hook, Flags = &h0
 		Event TransferStarting()
 	#tag EndHook
+
+
+	#tag Note, Name = FTPSocket Class Notes
+		This class provides both the control and data connections for a given FTP session.
+		FTPClientSocket and FTPServerSocket are subclassed from FTPSocket. FTPSocket should 
+		only know about the connections themselves without needing to know whether it's a 
+		client or server flavor (with the exception of the DataAvailable event. fixme?)
+		Other non-socket data which is used in both clients and servers are also dealt with 
+		in this class.
+		
+		This class is not intended to be used except as the superclass of another TCPSocket 
+		that handles protocol layer stuff via the ControlVerb event (for servers) or the 
+		ControlRespose event (for clients) and Write and WriteData for both clients and servers.
+		
+		If you override the Connect method then you MUST call Super.Connect() 
+	#tag EndNote
 
 
 	#tag Property, Flags = &h0

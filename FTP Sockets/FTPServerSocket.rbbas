@@ -19,10 +19,10 @@ Inherits FTPSocket
 		Sub ControlVerb(Verb As FTPVerb)
 		  FTPLog(Verb.Verb + " " + Verb.Arguments)
 		  InactivityTimer.Reset()
-		  Select Case Verb.Verb
+		  Select Case Verb.Verb.Trim
 		  Case "USER"
-		    Username = Verb.Arguments
-		    If Me.Anonymous Then
+		    Username = Verb.Arguments.Trim
+		    If Me.Anonymous And Username = "anonymous" Then
 		      DoResponse(331, "Anonymous login OK, send e-mail address as password.")
 		    Else
 		      DoResponse(331) //Need PASS
@@ -236,6 +236,12 @@ Inherits FTPSocket
 		End Sub
 	#tag EndEvent
 
+	#tag Event
+		Sub Disconnected()
+		  Me.Close
+		End Sub
+	#tag EndEvent
+
 
 	#tag Method, Flags = &h1001
 		Protected Sub Constructor()
@@ -299,7 +305,7 @@ Inherits FTPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected WorkingDirectory As String
+		Protected WorkingDirectory As String = "/"
 	#tag EndProperty
 
 
@@ -320,6 +326,7 @@ Inherits FTPSocket
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Anonymous"
+			Visible=true
 			Group="Behavior"
 			InitialValue="False"
 			Type="Boolean"

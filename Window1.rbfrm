@@ -486,6 +486,56 @@ Begin Window Window1
       Visible         =   True
       Width           =   129
    End
+   Begin FTPServerSocket FTPServerSocket1
+      AllowWrite      =   True
+      Anonymous       =   False
+      Banner          =   "Welcome to BSFTPd!"
+      DataIsConnected =   ""
+      DataLastErrorCode=   ""
+      DataPort        =   ""
+      Height          =   32
+      Index           =   -2147483648
+      Left            =   7.82e+2
+      LockedInPosition=   False
+      Passive         =   True
+      Port            =   21
+      Scope           =   0
+      TabPanelIndex   =   0
+      TimeOutPeriod   =   600000
+      Top             =   1.5e+2
+      Width           =   32
+   End
+   Begin PushButton PushButton13
+      AutoDeactivate  =   True
+      Bold            =   ""
+      ButtonStyle     =   0
+      Cancel          =   ""
+      Caption         =   "Listen"
+      Default         =   ""
+      Enabled         =   True
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   464
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   False
+      Scope           =   0
+      TabIndex        =   15
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   404
+      Underline       =   ""
+      Visible         =   True
+      Width           =   80
+   End
 End
 #tag EndWindow
 
@@ -589,6 +639,33 @@ End
 	#tag Event
 		Sub Action()
 		  Client.Quit
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events FTPServerSocket1
+	#tag Event
+		Sub FTPLog(LogLine As String)
+		  If LogLine.Trim <> "" Then Listbox1.AddRow(LogLine)
+		End Sub
+	#tag EndEvent
+	#tag Event
+		Function TransferProgress(BytesSent As UInt64, BytesLeft As UInt64) As Boolean
+		  Dim percent As UInt64 = BytesSent * 100 / (BytesLeft + BytesSent)
+		  ProgressBar1.Value = percent
+		End Function
+	#tag EndEvent
+	#tag Event
+		Function UserLogon(UserName As String) As String
+		  If UserName = "andrew" Then
+		    Return "andrew@boredomsoft.org"
+		  End If
+		End Function
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton13
+	#tag Event
+		Sub Action()
+		  FTPServerSocket1.Listen()
 		End Sub
 	#tag EndEvent
 #tag EndEvents
