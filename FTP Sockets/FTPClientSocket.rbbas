@@ -35,6 +35,14 @@ Inherits FTPSocket
 
 
 	#tag Method, Flags = &h0
+		Sub ABOR()
+		  If TransferInProgress Then
+		    Me.Write("ABOR" + CRLF)
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub CDUP()
 		  DoVerb("CDUP")
 		End Sub
@@ -119,8 +127,33 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub MDTM(RemoteFileName As String)
+		  DoVerb("MDTM", RemoteFileName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub MKD(NewDirectoryName As String)
 		  DoVerb("MKD", NewDirectoryName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub NLST(TargetDirectory As String = "")
+		  'Retrieves a directory listing
+		  TargetDirectory = PathEncode(TargetDirectory)
+		  If Me.Passive Then
+		    PASV()
+		  Else
+		    PORT(Me.Port + 1)
+		  End If
+		  DoVerb("NLST", TargetDirectory)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub NOOP()
+		  DoVerb("NOOP")
 		End Sub
 	#tag EndMethod
 
@@ -219,7 +252,7 @@ Inherits FTPSocket
 		    If Response.Code = 257 Then 'OK
 		      mWorkingDirectory = LastVerb.Arguments
 		    End If
-		  Case "LIST"
+		  Case "LIST", "NLST"
 		    Select Case Response.Code
 		    Case 226 'Here comes the directory list
 		      RaiseEvent TransferComplete(DataBuffer)
@@ -250,6 +283,7 @@ Inherits FTPSocket
 		      DataSocket.Listen()
 		    End If
 		    
+		  Case "SIZE"
 		  Case "TYPE"
 		    If Response.Code = 200 Then
 		      Select Case LastVerb.Arguments
@@ -358,6 +392,12 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub RMD(RemovedDirectoryName As String)
 		  DoVerb("RMD", RemovedDirectoryName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub SIZE(RemoteFileName As String)
+		  DoVerb("SIZE", RemoteFileName)
 		End Sub
 	#tag EndMethod
 
