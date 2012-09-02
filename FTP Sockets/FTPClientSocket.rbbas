@@ -95,6 +95,12 @@ Inherits FTPSocket
 		    
 		  Case "FEAT"
 		    ServerFeatures = Split(Response.Reply_Args, EndOfLine.Windows)
+		    ServerFeatures.Remove(ServerFeatures.Ubound)
+		    ServerFeatures.Remove(0)
+		    For Each Feature As String In ServerFeatures
+		      Feature = Feature.Trim
+		      FTPLog("   " + Feature)
+		    Next
 		  Case "SYST"
 		    ServerType = Response.Reply_Args
 		  Case "CWD"
@@ -115,7 +121,7 @@ Inherits FTPSocket
 		  Case "LIST"
 		    Select Case Response.Code
 		    Case 226 //Here comes the directory list
-		      'FTPLog("Directory list OK")
+		      RaiseEvent TransferComplete(OutPutMB)
 		    Case 425, 426  //no connection or connection lost
 		      HandleFTPError(Response.Code)
 		    Case 451  //Disk error
@@ -173,7 +179,7 @@ Inherits FTPSocket
 		    
 		  Case "MKD"
 		    If Response.Code = 257 Then //OK
-		      LIST()
+		      'LIST()
 		    Else
 		      HandleFTPError(Response.Code)
 		    End If
@@ -187,7 +193,7 @@ Inherits FTPSocket
 		    
 		  Case "DELE"
 		    If Response.Code = 250 Then
-		      LIST()
+		      'LIST()
 		    Else
 		      HandleFTPError(Response.Code)
 		    End If
@@ -199,7 +205,7 @@ Inherits FTPSocket
 		    End If
 		  Case "RNTO"
 		    If Response.Code = 250 Then
-		      DoVerb("RNTO", RNT)
+		      'DoVerb("RNTO", RNT)
 		      FTPLog(RNF + " renamed to " + RNT + " successfully.")
 		      RNT = ""
 		      RNF = ""
@@ -235,17 +241,17 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub TransferComplete(UserAborted As Boolean)
-		  If Not UserAborted Then
-		    If OutputFile <> Nil Then
-		      RaiseEvent TransferComplete(OutputFile)
-		    ElseIf OutputMB <> Nil Then
-		      RaiseEvent TransferComplete(OutputMB)
-		    End If
-		  End If
+		  'If Not UserAborted Then
+		  'If OutputFile <> Nil Then
+		  'RaiseEvent TransferComplete(OutputFile)
+		  'ElseIf OutputMB <> Nil Then
+		  'RaiseEvent TransferComplete(OutputMB)
+		  'End If
+		  'End If
 		  
-		  OutputMB = Nil
-		  OutputStream = Nil
-		  OutputFile = Nil
+		  'OutputMB = Nil
+		  OutputStream.Close
+		  'OutputFile = Nil
 		  DataSocket.Disconnect
 		  VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
@@ -263,6 +269,12 @@ Inherits FTPSocket
 		End Sub
 	#tag EndEvent
 
+
+	#tag Method, Flags = &h0
+		Sub CDUP()
+		  DoVerb("CDUP")
+		End Sub
+	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub Close()
@@ -343,6 +355,12 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub MKD(NewDirectoryName As String)
+		  DoVerb("MKD", NewDirectoryName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub PASV()
 		  //You must call either PASV or PORT before transferring anything over the DataSocket
 		  DoVerb("PASV")
@@ -369,6 +387,14 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Rename(OriginalName As String, NewName As String)
+		  RNF = OriginalName
+		  RNT = NewName
+		  DoVerb("RNFR", RNF)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub REST(StartPosition As UInt64 = 0)
 		  DoVerb("REST", Str(StartPosition))
 		End Sub
@@ -385,6 +411,12 @@ Inherits FTPSocket
 		    PORT(Me.Port + 1)
 		  End If
 		  DoVerb("RETR", PathEncode(RemoteFileName, WorkingDirectory))
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RMD(RemovedDirectoryName As String)
+		  DoVerb("RMD", RemovedDirectoryName)
 		End Sub
 	#tag EndMethod
 
