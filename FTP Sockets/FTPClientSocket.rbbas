@@ -21,7 +21,7 @@ Inherits FTPSocket
 	#tag Event
 		Sub TransferComplete(UserAborted As Boolean)
 		  #pragma Unused UserAborted
-		  OutputStream.Close
+		  DataStream.Close
 		  DataSocket.Disconnect
 		  VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
@@ -84,7 +84,7 @@ Inherits FTPSocket
 		    nextverb.Arguments = Params
 		  Case "LIST"
 		    'List.
-		    CreateOutputStream()
+		    CreateDataStream()
 		    nextverb.Verb = "LIST"
 		    nextverb.Arguments = Params
 		  Else
@@ -168,12 +168,12 @@ Inherits FTPSocket
 		    Case 150 'About to start data transfer
 		      Dim size As String = NthField(Response.Reply_Args, "(", 2)
 		      size = NthField(size, ")", 1)
-		      OutputLength = Val(size)
-		      CreateOutputStream(OutputFile)
+		      DataLength = Val(size)
+		      CreateDataStream(DataFile)
 		    Case 425, 426 'Data connection not ready
 		    Case 451, 551 'Disk read error
 		    Case 226 'Done
-		      TransferComplete(OutputFile)
+		      TransferComplete(DataFile)
 		    End Select
 		    
 		  Case "STOR", "APPE"
@@ -185,7 +185,7 @@ Inherits FTPSocket
 		      UploadDispatchTimer.Mode = Timer.ModeMultiple
 		      TransferInProgress = True
 		    Case 226  'Success
-		      TransferComplete(OutputFile)
+		      TransferComplete(DataFile)
 		    Case 425  'No data connection!
 		      Dim lv, la As String
 		      lv = LastVerb.Verb
@@ -222,7 +222,7 @@ Inherits FTPSocket
 		  Case "LIST"
 		    Select Case Response.Code
 		    Case 226 'Here comes the directory list
-		      RaiseEvent TransferComplete(OutPutMB)
+		      RaiseEvent TransferComplete(DataBuffer)
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
 		    End Select
@@ -240,7 +240,7 @@ Inherits FTPSocket
 		    
 		  Case "REST"
 		    If Response.Code = 350 Then
-		      OutputStream.Position = Val(LastVerb.Arguments)
+		      DataStream.Position = Val(LastVerb.Arguments)
 		    End If
 		    
 		  Case "PORT"
@@ -344,7 +344,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub RETR(RemoteFileName As String, SaveTo As FolderItem, Mode As Integer = 1)
-		  OutputFile = SaveTo
+		  DataFile = SaveTo
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
@@ -363,7 +363,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub STOR(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
-		  OutputFile = LocalFile
+		  DataFile = LocalFile
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
@@ -399,11 +399,11 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub UploadHandler(Sender As Timer)
-		  If OutputStream <> Nil Then
-		    If Not OutputStream.EOF Then
-		      WriteData(OutputStream.Read(1024 * 64))
-		      If OutputStream <> Nil Then
-		        If RaiseEvent TransferProgress(OutputStream.Position, OutputStream.Length - OutputStream.Position) Then
+		  If DataStream <> Nil Then
+		    If Not DataStream.EOF Then
+		      WriteData(DataStream.Read(1024 * 64))
+		      If DataStream <> Nil Then
+		        If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
 		          DoVerb("ABOR")
 		        End If
 		      End If
@@ -514,30 +514,6 @@ Inherits FTPSocket
 			Group="Behavior"
 			InitialValue="False"
 			Type="Boolean"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataAddress"
-			Group="Behavior"
-			Type="String"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataIsConnected"
-			Group="Behavior"
-			Type="Boolean"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataLastErrorCode"
-			Group="Behavior"
-			Type="Integer"
-			InheritedFrom="FTPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="DataPort"
-			Group="Behavior"
-			Type="Integer"
 			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty

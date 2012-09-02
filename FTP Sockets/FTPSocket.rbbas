@@ -51,14 +51,15 @@ Inherits TCPSocket
 		  ServerType = ""
 		  TransferInProgress = False
 		  TransferMode = 0
+		  DataLength = -1
 		  
 		  If DataSocket <> Nil Then
 		    DataSocket.Close
 		    DataSocket = Nil
 		  End If
 		  
-		  If OutputStream <> Nil Then
-		    OutputStream.Close
+		  If DataStream <> Nil Then
+		    DataStream.Close
 		  End If
 		  
 		  Super.Close()
@@ -85,20 +86,21 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub CreateOutputStream(BackingFile As FolderItem = Nil)
+		Protected Sub CreateDataStream(BackingFile As FolderItem = Nil)
 		  If BackingFile <> Nil Then
-		    OutputFile = BackingFile
-		    If Not OutputFile.Exists Then
-		      OutputStream = BinaryStream.Create(BackingFile, True)
+		    DataFile = BackingFile
+		    If Not DataFile.Exists Then
+		      DataStream = BinaryStream.Create(DataFile, True)
 		    Else
-		      OutputStream = BinaryStream.Open(BackingFile, False)
+		      DataStream = BinaryStream.Open(DataFile, False)
 		    End If
-		    OutputMB = Nil
+		    DataBuffer = Nil
 		  Else
-		    OutputMB = New MemoryBlock(1024 * 64)
-		    OutputStream = New BinaryStream(OutputMB)
-		    OutputFile = Nil
+		    DataBuffer = New MemoryBlock(1024 * 64)
+		    DataStream = New BinaryStream(DataBuffer)
+		    DataFile = Nil
 		  End If
+		  DataLength = -1
 		End Sub
 	#tag EndMethod
 
@@ -111,9 +113,9 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  Dim s As String = Sender.ReadAll
-		  OutputStream.Write(s)
+		  DataStream.Write(s)
 		  TransferInProgress = True
-		  If RaiseEvent TransferProgress(OutputStream.Position, OutputLength - OutputStream.Position) Then
+		  If RaiseEvent TransferProgress(DataStream.Position, DataLength - DataStream.Position) Then
 		    Write("ABOR" + CRLF)
 		  End If
 		End Sub
@@ -459,8 +461,8 @@ Inherits TCPSocket
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused Sender
-		  'If OutputStream <> Nil Then OutputStream.Close
-		  If OutputStream.Position < OutputStream.Length Then Return
+		  'If DataStream <> Nil Then DataStream.Close
+		  If DataStream.Position < DataStream.Length Then Return
 		  TransferInProgress = False
 		  RaiseEvent TransferComplete(UserAborted)
 		End Sub
@@ -527,27 +529,45 @@ Inherits TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
+		Protected DataBuffer As MemoryBlock
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected DataFile As FolderItem
+	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h1
+		#tag Getter
+			Get
+			  If mDataLength = -1 Then
+			    Return DataStream.Length
+			  Else
+			    return mDataLength
+			  End If
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  mDataLength = value
+			End Set
+		#tag EndSetter
+		Protected DataLength As UInt64
+	#tag EndComputedProperty
+
+	#tag Property, Flags = &h1
 		Protected DataSocket As TCPSocket
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected DataStream As BinaryStream
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
 		Protected LoginOK As Boolean
 	#tag EndProperty
 
-	#tag Property, Flags = &h1
-		Protected OutputFile As FolderItem
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected OutputLength As UInt64
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected OutputMB As MemoryBlock
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected OutputStream As BinaryStream
+	#tag Property, Flags = &h21
+		Private mDataLength As UInt64
 	#tag EndProperty
 
 	#tag Property, Flags = &h0

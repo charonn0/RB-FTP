@@ -103,13 +103,13 @@ Inherits FTPSocket
 		    End If
 		  Case "RETR"
 		    If LoginOK Then
-		      OutputFile = GetFolderItem(RootDirectory.AbsolutePath + WorkingDirectory + Verb.Arguments)
-		      If OutputFile <> Nil Then
-		        If OutputFile.Exists And Not OutputFile.Directory Then
-		          CreateOutputStream(OutputFile)
+		      DataFile = GetFolderItem(RootDirectory.AbsolutePath + WorkingDirectory + Verb.Arguments)
+		      If DataFile <> Nil Then
+		        If DataFile.Exists And Not DataFile.Directory Then
+		          CreateDataStream(DataFile)
 		          DoResponse(150)
-		          While Not OutputStream.EOF
-		            WriteData(OutputStream.Read(1024 * 64))
+		          While Not DataStream.EOF
+		            WriteData(DataStream.Read(1024 * 64))
 		            App.YieldToNextThread
 		          Wend
 		          DoResponse(226)
@@ -129,8 +129,8 @@ Inherits FTPSocket
 		      If RootDirectory.Child(Verb.Arguments).Exists And Not AllowWrite Then
 		        DoResponse(450, "Filename taken.")
 		      Else
-		        OutputFile = SpecialFolder.Temporary.Child(Verb.Arguments)
-		        CreateOutputStream(OutputFile)
+		        DataFile = SpecialFolder.Temporary.Child(Verb.Arguments)
+		        CreateDataStream(DataFile)
 		      End If
 		      DoResponse(150) 'Ready
 		    Else
@@ -199,7 +199,7 @@ Inherits FTPSocket
 		    End If
 		  Case "REST"
 		    If LoginOK Then
-		      OutputStream.Position = Val(Verb.Arguments)
+		      DataStream.Position = Val(Verb.Arguments)
 		      DoResponse(350)
 		    Else
 		      DoResponse(530)  'not logged in

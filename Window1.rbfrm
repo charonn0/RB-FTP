@@ -678,9 +678,6 @@ Begin Window Window1
       Begin FTPClientSocket Client
          Address         =   "mc.boredomsoft.org"
          Anonymous       =   False
-         DataIsConnected =   ""
-         DataLastErrorCode=   0
-         DataPort        =   0
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
