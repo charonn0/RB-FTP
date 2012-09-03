@@ -694,19 +694,19 @@ Begin Window Window1
       End
       Begin FTPServerSocket FTPServerSocket1
          AllowWrite      =   True
-         Anonymous       =   False
+         Anonymous       =   True
          Banner          =   "Welcome to BSFTPd!"
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
-         Left            =   1.4e+1
+         Left            =   14
          LockedInPosition=   False
          Passive         =   True
          Port            =   21
          Scope           =   0
          TabPanelIndex   =   2
-         TimeOutPeriod   =   10000
-         Top             =   3.69e+2
+         TimeOutPeriod   =   60000
+         Top             =   369
          Width           =   32
       End
       Begin PushButton PushButton13
@@ -1087,7 +1087,7 @@ End
 	#tag Event
 		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
 		  Dim percent As Int64 = BytesSent * 100 / (BytesLeft + BytesSent)
-		  ProgressBar1.Value = percent
+		  ProgressBar1.Value = percent * 2
 		End Function
 	#tag EndEvent
 #tag EndEvents
@@ -1115,6 +1115,7 @@ End
 	#tag Event
 		Sub Action()
 		  FTPServerSocket1.Listen()
+		  FTPServerSocket1.RootDirectory = SpecialFolder.Desktop.Child("Test")
 		End Sub
 	#tag EndEvent
 #tag EndEvents

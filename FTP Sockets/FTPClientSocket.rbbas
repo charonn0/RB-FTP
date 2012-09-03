@@ -64,6 +64,12 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Connect()
+		  Super.Connect()
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub CWD(NewDirectory As String)
 		  'Change the WorkingDirectory
 		  DoVerb("CWD", NewDirectory)
@@ -102,7 +108,8 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
-		  CreateDataStream()
+		  ListBuffer = New MemoryBlock(64 * 1024)
+		  CreateDataStream(ListBuffer)
 		  DoVerb("LIST", TargetDirectory)
 		End Sub
 	#tag EndMethod
@@ -183,7 +190,6 @@ Inherits FTPSocket
 		      Dim size As String = NthField(Response.Reply_Args, "(", 2)
 		      size = NthField(size, ")", 1)
 		      DataLength = Val(size)
-		      CreateDataStream(DataFile)
 		    Case 425, 426 'Data connection not ready
 		    Case 451, 551 'Disk read error
 		    Case 226 'Done
@@ -246,7 +252,7 @@ Inherits FTPSocket
 		  Case "LIST", "NLST"
 		    Select Case Response.Code
 		    Case 226 'Here comes the directory list
-		      RaiseEvent TransferComplete(DataBuffer)
+		      RaiseEvent TransferComplete(ListBuffer)
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
 		    End Select
@@ -338,7 +344,7 @@ Inherits FTPSocket
 		Sub PORT(PortNumber As Integer)
 		  'You must call either PASV or PORT before transferring anything over the DataSocket
 		  'Data port.
-		  DoVerb("PORT", IPv4_to_PASV(Me.Address, PortNumber))
+		  DoVerb("PORT", IPv4_to_PASV(Me.NetworkInterface.IPAddress, PortNumber))
 		End Sub
 	#tag EndMethod
 
@@ -439,7 +445,7 @@ Inherits FTPSocket
 		Private Sub UploadDispatchHandler(Sender As Timer)
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
-		      WriteData(DataStream.Read(1024 * 64))
+		      WriteData(DataStream.Read(512))
 		      If DataStream <> Nil Then
 		        If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
 		          DoVerb("ABOR")
@@ -496,6 +502,10 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h1
 		Protected LastVerb As FTPVerb
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected ListBuffer As MemoryBlock
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

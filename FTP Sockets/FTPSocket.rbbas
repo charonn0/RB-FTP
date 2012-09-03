@@ -68,6 +68,13 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Sub Connect()
+		  Me.NetworkInterface = System.GetNetworkInterface(0)
+		  Super.Connect()
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Sub CreateDataSocket(PASVParams As String = "")
 		  DataSocket = New TCPSocket
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
@@ -82,25 +89,33 @@ Inherits TCPSocket
 		    dport = Val(NthField(PASVParams, ":", 2))
 		    DataSocket.Address = ipv4
 		    DataSocket.Port = dport
+		  Else
+		    DataSocket.Address = Me.NetworkInterface.IPAddress
+		    DataSocket.Port = Me.Port + 1
 		  End If
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub CreateDataStream(BackingFile As FolderItem = Nil)
+		Protected Sub CreateDataStream(BackingFile As FolderItem)
 		  If BackingFile <> Nil Then
-		    DataFile = BackingFile
+		    mDataFile = BackingFile
 		    If Not DataFile.Exists Then
 		      DataStream = BinaryStream.Create(DataFile, True)
 		    Else
 		      DataStream = BinaryStream.Open(DataFile, False)
 		    End If
-		    DataBuffer = Nil
-		  Else
-		    DataBuffer = New MemoryBlock(1024 * 64)
-		    DataStream = New BinaryStream(DataBuffer)
-		    DataFile = Nil
+		    mDataBuffer = Nil
 		  End If
+		  DataLength = -1
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub CreateDataStream(Buffer As MemoryBlock)
+		  mDataBuffer = Buffer
+		  DataStream = New BinaryStream(DataBuffer)
+		  mDataFile = Nil
 		  DataLength = -1
 		End Sub
 	#tag EndMethod
@@ -305,6 +320,12 @@ Inherits TCPSocket
 		  p2 = port - p1
 		  Return h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub Listen()
+		  Me.NetworkInterface = System.GetNetworkInterface(0)
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
@@ -554,13 +575,34 @@ Inherits TCPSocket
 		Anonymous As Boolean = False
 	#tag EndProperty
 
-	#tag Property, Flags = &h1
-		Protected DataBuffer As MemoryBlock
-	#tag EndProperty
+	#tag ComputedProperty, Flags = &h21
+		#tag Getter
+			Get
+			  return mDataBuffer
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  CreateDataStream(value)
+			  
+			End Set
+		#tag EndSetter
+		Private DataBuffer As MemoryBlock
+	#tag EndComputedProperty
 
-	#tag Property, Flags = &h1
+	#tag ComputedProperty, Flags = &h1
+		#tag Getter
+			Get
+			  return mDataFile
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  CreateDataStream(value)
+			End Set
+		#tag EndSetter
 		Protected DataFile As FolderItem
-	#tag EndProperty
+	#tag EndComputedProperty
 
 	#tag ComputedProperty, Flags = &h1
 		#tag Getter
@@ -590,6 +632,14 @@ Inherits TCPSocket
 
 	#tag Property, Flags = &h1
 		Protected LoginOK As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mDataBuffer As MemoryBlock
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mDataFile As FolderItem
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

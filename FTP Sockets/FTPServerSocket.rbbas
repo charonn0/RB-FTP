@@ -24,16 +24,6 @@ Inherits FTPSocket
 	#tag EndEvent
 
 
-	#tag Method, Flags = &h1001
-		Protected Sub Constructor()
-		  Super.Constructor
-		  InactivityTimer = New Timer
-		  InactivityTimer.Period = TimeOutPeriod
-		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
-		  
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h1
 		Protected Sub DoResponse(Code As Integer, Params As String = "")
 		  If Params.Trim = "" Then Params = FTPCodeToMessage(Code)
@@ -45,6 +35,10 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h1
 		Protected Function FileListing(Directory As FolderItem) As String
+		  If Directory = Nil Then
+		    DoResponse(451, "That directory does not exist.")
+		    Return ""
+		  End If
 		  Dim thelist As String = "." + CRLF + ".." + CRLF
 		  For i As Integer = 0 To Directory.Count - 1
 		    Dim fsize, fname, fperms, fowner, fgroup, fmoddate As String
@@ -94,13 +88,14 @@ Inherits FTPSocket
 		  Next
 		  
 		  Return thelist
+		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Function FindFile(Name As String) As FolderItem
 		  Dim g As FolderItem
-		  
+		  If mWorkingDirectory = Nil Then mWorkingDirectory = App.ExecutableFile.Parent
 		  If Left(Name, 1) = "/" Then //relative to RootDirectory
 		    g = RootDirectory
 		    Name = Replace(Name, "/", "")
@@ -140,6 +135,9 @@ Inherits FTPSocket
 		Sub Listen()
 		  Super.Listen
 		  FTPLog("Now listening on port " + Str(Me.Port))
+		  InactivityTimer = New Timer
+		  InactivityTimer.Period = TimeOutPeriod
+		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
 		End Sub
 	#tag EndMethod
 
@@ -233,7 +231,7 @@ Inherits FTPSocket
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
-		  Case "CWD"
+		  Case "CWD", "XCWD"
 		    If LoginOK Then
 		      Dim g As FolderItem = FindFile(Verb.Arguments)
 		      If g <> Nil Then
@@ -258,7 +256,7 @@ Inherits FTPSocket
 		    End If
 		  Case "LIST"
 		    If LoginOK Then
-		      If DataSocket.IsConnected Then
+		      If DataSocket <> Nil Then
 		        Dim s As String = FileListing(FindFile(Verb.Arguments))
 		        If s.Trim <> "" Then
 		          DoResponse(226)
@@ -282,11 +280,19 @@ Inherits FTPSocket
 		    End If
 		  Case "PASV"
 		    If LoginOK Then
-		      CreateDataSocket()
-		      DataSocket.Listen
-		      Dim pasvtxt As String = Me.LocalAddress
-		      Dim pasvprt As Integer = DataSocket.Port
-		      DoResponse(227, "Entering Passive Mode (" + IPv4_to_PASV(pasvtxt, pasvprt) + ").")
+		      If DataSocket = Nil Then
+		        Dim pasvresponse As String = IPv4_to_PASV(Me.NetworkInterface.IPAddress, Me.Port + 1)
+		        CreateDataSocket(pasvresponse)
+		        DataSocket.Listen
+		        DoResponse(227, "Entering Passive Mode (" + pasvresponse + ").")
+		      ElseIf Not DataSocket.IsConnected Then
+		        DataSocket.Listen
+		        Dim pasvtxt As String = Me.NetworkInterface.IPAddress
+		        Dim pasvprt As Integer = DataSocket.Port
+		        DoResponse(227, "Entering Passive Mode (" + IPv4_to_PASV(pasvtxt, pasvprt) + ").")
+		      Else
+		        DoResponse(125)  //already open
+		      End If
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -387,12 +393,27 @@ Inherits FTPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mRootDirectory As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mWorkingDirectory As FolderItem
 	#tag EndProperty
 
-	#tag Property, Flags = &h0
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  return mRootDirectory
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  mRootDirectory = value
+			  mWorkingDirectory = value
+			End Set
+		#tag EndSetter
 		RootDirectory As FolderItem
-	#tag EndProperty
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h0
 		#tag Note
@@ -515,6 +536,12 @@ Inherits FTPSocket
 			Type="String"
 			EditorType="MultiLineEditor"
 			InheritedFrom="FTPSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="WorkingDirectory"
+			Group="Behavior"
+			Type="String"
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class
