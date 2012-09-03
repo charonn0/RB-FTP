@@ -121,7 +121,7 @@ Begin Window Window1
       TextUnit        =   0
       Top             =   325
       Underline       =   ""
-      Value           =   0
+      Value           =   1
       Visible         =   True
       Width           =   600
       Begin PushButton PushButton1
@@ -699,14 +699,14 @@ Begin Window Window1
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
-         Left            =   20
+         Left            =   1.4e+1
          LockedInPosition=   False
          Passive         =   True
          Port            =   21
          Scope           =   0
          TabPanelIndex   =   2
          TimeOutPeriod   =   10000
-         Top             =   359
+         Top             =   3.69e+2
          Width           =   32
       End
       Begin PushButton PushButton13
@@ -722,7 +722,7 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   73
+         Left            =   58
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True

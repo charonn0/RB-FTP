@@ -44,8 +44,87 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Function FileListing(Directory As FolderItem) As String
+		  Dim thelist As String = "." + CRLF + ".." + CRLF
+		  For i As Integer = 0 To Directory.Count - 1
+		    Dim fsize, fname, fperms, fowner, fgroup, fmoddate As String
+		    fperms = "FOROWOXGRGWGXWRWWWX"
+		    fsize = Str(Directory.TrueItem(i).Length)
+		    fname =  Directory.TrueItem(i).Name
+		    
+		    If Directory.TrueItem(i).IsReadable Then
+		      fperms = Replace(fperms, "OR", "r")
+		      fperms = Replace(fperms, "GR", "r")
+		      fperms = Replace(fperms, "WR", "r")
+		    Else
+		      fperms = Replace(fperms, "OR", "-")
+		      fperms = Replace(fperms, "GR", "-")
+		      fperms = Replace(fperms, "WR", "-")
+		    End If
+		    
+		    If Directory.TrueItem(i).IsWriteable Then
+		      fperms = Replace(fperms, "OW", "w")
+		      fperms = Replace(fperms, "GW", "w")
+		      fperms = Replace(fperms, "WW", "w")
+		    Else
+		      fperms = Replace(fperms, "OW", "-")
+		      fperms = Replace(fperms, "GW", "-")
+		      fperms = Replace(fperms, "WW", "-")
+		    End If
+		    
+		    If Directory.TrueItem(i).Directory Then
+		      fperms = Replace(fperms, "F", "D")
+		    Else
+		      fperms = Replace(fperms, "F", "-")
+		    End If
+		    
+		    If Directory.TrueItem(i).IsWriteable And Directory.TrueItem(i).IsReadable Then
+		      fperms = Replace(fperms, "OX", "x")
+		      fperms = Replace(fperms, "GX", "x")
+		      fperms = Replace(fperms, "WX", "x")
+		    Else
+		      fperms = Replace(fperms, "OX", "-")
+		      fperms = Replace(fperms, "GX", "-")
+		      fperms = Replace(fperms, "WX", "-")
+		    End If
+		    
+		    fmoddate = Directory.TrueItem(i).ModificationDate.ShortDate
+		    
+		    thelist = thelist + fperms + " 1 " + fowner + " " + fgroup + " " + fsize + " " + fmoddate + " " + fname + CRLF
+		  Next
+		  
+		  Return thelist
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Function FindFile(Name As String) As FolderItem
-		  If RootDirectory.Child(Name).Exists Then Return RootDirectory.Child(Name)
+		  Dim g As FolderItem
+		  
+		  If Left(Name, 1) = "/" Then //relative to RootDirectory
+		    g = RootDirectory
+		    Name = Replace(Name, "/", "")
+		  Else //relative to WorkingDirectory
+		    g = mWorkingDirectory
+		  End If
+		  
+		  Dim parts() As String = Split(Name, "/")
+		  For i As Integer = 0 To UBound(parts)
+		    If g.Child(parts(i)).Exists Then
+		      g = g.Child(parts(i))
+		    Else
+		      Return Nil
+		    End If
+		  Next
+		  
+		  If ChildOfParent(g, RootDirectory) Then
+		    Return g
+		  Else
+		    Return Nil
+		  End If
+		  
+		Exception NilObjectException
+		  Return Nil
 		End Function
 	#tag EndMethod
 
@@ -146,7 +225,11 @@ Inherits FTPSocket
 		    End If
 		  Case "SYST"
 		    If LoginOK Then
-		      DoResponse(215, "BS FTPd " + Format(FTPVersion, "#0.0#"))
+		      #If TargetWin32 Then
+		        DoResponse(215, "Windows_NT Type: L8")
+		      #Else
+		        DoResponse(215, "UNIX Type: L8")
+		      #endif
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -155,7 +238,7 @@ Inherits FTPSocket
 		      Dim g As FolderItem = FindFile(Verb.Arguments)
 		      If g <> Nil Then
 		        If ChildOfParent(g, RootDirectory) Then
-		          WorkingDirectory = Replace(g.AbsolutePath, RootDirectory.AbsolutePath, "")
+		          mWorkingDirectory = g
 		          DoResponse(250)  'OK
 		        Else
 		          DoResponse(550)  'bad file
@@ -175,10 +258,18 @@ Inherits FTPSocket
 		    End If
 		  Case "LIST"
 		    If LoginOK Then
-		      DoResponse(502)  'Not implemented FIXME
-		      ' 226 'Here comes the directory list
-		      ' 425, 426  'no connection or connection lost
-		      ' 451  'Disk error
+		      If DataSocket.IsConnected Then
+		        Dim s As String = FileListing(FindFile(Verb.Arguments))
+		        If s.Trim <> "" Then
+		          DoResponse(226)
+		          WriteData(s)
+		          DataSocket.Close
+		        Else
+		          DoResponse(451, "No list.")
+		        End If
+		      Else
+		        DoResponse(425) //no connection
+		      End If
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -193,7 +284,9 @@ Inherits FTPSocket
 		    If LoginOK Then
 		      CreateDataSocket()
 		      DataSocket.Listen
-		      DoResponse(227, "Entering Passive Mode (" + IPv4_to_PASV(DataSocket.Address, DataSocket.Port) + ").")
+		      Dim pasvtxt As String = Me.LocalAddress
+		      Dim pasvprt As Integer = DataSocket.Port
+		      DoResponse(227, "Entering Passive Mode (" + IPv4_to_PASV(pasvtxt, pasvprt) + ").")
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -207,20 +300,16 @@ Inherits FTPSocket
 		    
 		  Case "PORT"
 		    If LoginOK Then
-		      If DataSocket.IsConnected Then
-		        DoResponse(125)
-		      Else
-		        CreateDataSocket(Verb.Arguments)
-		        DoResponse(200, Verb.Arguments)
-		        DataSocket.Connect
-		      End If
+		      CreateDataSocket(Verb.Arguments)
+		      DoResponse(200, Verb.Arguments)
+		      DataSocket.Connect
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
 		    
 		  Case "TYPE"
 		    If LoginOK Then
-		      Select Case Verb.Arguments
+		      Select Case Verb.Arguments.Trim
 		      Case "A", "A N"
 		        Me.TransferMode = ASCIIMode
 		        DoResponse(200)
@@ -297,6 +386,10 @@ Inherits FTPSocket
 		Private InactivityTimer As Timer
 	#tag EndProperty
 
+	#tag Property, Flags = &h21
+		Private mWorkingDirectory As FolderItem
+	#tag EndProperty
+
 	#tag Property, Flags = &h0
 		RootDirectory As FolderItem
 	#tag EndProperty
@@ -308,9 +401,18 @@ Inherits FTPSocket
 		TimeOutPeriod As Integer = 600000
 	#tag EndProperty
 
-	#tag Property, Flags = &h1
-		Protected WorkingDirectory As String = "/"
-	#tag EndProperty
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  If mWorkingDirectory <> Nil And RootDirectory <> Nil Then
+			    return Replace(mWorkingDirectory.AbsolutePath, RootDirectory.AbsolutePath, "/")
+			  Else
+			    Return "/"
+			  End If
+			End Get
+		#tag EndGetter
+		WorkingDirectory As String
+	#tag EndComputedProperty
 
 
 	#tag ViewBehavior

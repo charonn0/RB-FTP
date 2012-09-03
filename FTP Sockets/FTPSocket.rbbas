@@ -297,7 +297,7 @@ Inherits TCPSocket
 		Protected Shared Function IPv4_to_PASV(IPv4 As String, Port As Integer) As String
 		  Dim p1, p2 As Integer
 		  Dim h1, h2, h3, h4 As String
-		  h1 = NthField(NthField(IPv4, ".", 1), "(", 2)
+		  h1 = NthField(IPv4, ".", 1)
 		  h2 = NthField(IPv4, ".", 2)
 		  h3 = NthField(IPv4, ".", 3)
 		  h4 = NthField(IPv4, ".", 4)
