@@ -253,6 +253,7 @@ Inherits FTPSocket
 		    Select Case Response.Code
 		    Case 226 'Here comes the directory list
 		      ListResponse(ListBuffer)
+		      ListBuffer = Nil
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
 		    End Select
@@ -448,6 +449,7 @@ Inherits FTPSocket
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
 		      WriteData(DataStream.Read(32 * 1024))
+		      App.YieldToNextThread()
 		      If DataStream <> Nil Then
 		        If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
 		          DoVerb("ABOR")
