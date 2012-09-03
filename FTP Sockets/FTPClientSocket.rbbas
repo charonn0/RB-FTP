@@ -49,6 +49,19 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub APPE(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
+		  CreateDataStream(LocalFile)
+		  TYPE = Mode
+		  If Me.Passive Then
+		    PASV()
+		  Else
+		    PORT(Me.Port + 1)
+		  End If
+		  DoVerb("APPE", RemoteFileName)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub CDUP()
 		  DoVerb("CDUP")
 		End Sub
