@@ -125,6 +125,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub InactivityHandler(Sender As Timer)
+		  //Handles the FTPServerSocket.InactivityTimer.Action event
 		  Sender.Mode = Timer.ModeOff
 		  DoResponse(421, "Inactivity timeout.")
 		  Me.Close

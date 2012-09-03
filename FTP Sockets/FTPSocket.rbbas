@@ -510,7 +510,7 @@ Inherits TCPSocket
 		  Case 100
 		    err = err + ": Could not create a socket!"
 		  Case 103
-		    err = err + ": The specified server address is invalid."
+		    err = err + ": Unable to contact host."
 		  Case 105
 		    err = err + ": That port number is already in use."
 		  Case 106

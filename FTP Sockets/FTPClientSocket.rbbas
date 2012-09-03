@@ -147,26 +147,18 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub ParseResponse(Data As String)
-		  Dim Code As Integer
-		  Dim msg As String
+		  Dim Code As Integer = Val(Left(Data, 3))
+		  Dim msg As String = data.Replace(Format(Code, "000"), "")
 		  
-		  Code = Val(Left(Data, 3))
-		  msg = data.Replace(Format(Code, "000"), "")
-		  
-		  Dim response As FTPResponse
-		  response.Code = Code
-		  response.Reply_Args = msg
-		  
-		  
-		  If Response.Reply_Args.Trim <> "" Then
-		    FTPLog(Str(Response.Code) + " " + Response.Reply_Args.Trim)
+		  If msg.Trim <> "" Then
+		    FTPLog(Str(Code) + " " + msg.Trim)
 		  Else
-		    FTPLog(Str(Response.Code) + " " + FTPCodeToMessage(Response.Code).Trim)
+		    FTPLog(Str(Code) + " " + FTPCodeToMessage(Code).Trim)
 		  End If
 		  
 		  Select Case LastVerb.Verb
 		  Case "USER"
-		    Select Case Response.Code
+		    Select Case Code
 		    Case 230  'Logged in W/O pass
 		      LoginOK = True
 		      RaiseEvent Connected()
@@ -175,7 +167,7 @@ Inherits FTPSocket
 		    End Select
 		    
 		  Case "PASS"
-		    Select Case Response.Code
+		    Select Case Code
 		    Case 230 'Logged in with pass
 		      LoginOK = True
 		      FTPLog("Ready")
@@ -184,9 +176,9 @@ Inherits FTPSocket
 		      DoVerb("USER", Me.Username)
 		    End Select
 		  Case "RETR"
-		    Select Case Response.Code
+		    Select Case Code
 		    Case 150 'About to start data transfer
-		      Dim size As String = NthField(Response.Reply_Args, "(", 2)
+		      Dim size As String = NthField(msg, "(", 2)
 		      size = NthField(size, ")", 1)
 		      DataLength = Val(size)
 		    Case 425, 426 'Data connection not ready
@@ -196,7 +188,7 @@ Inherits FTPSocket
 		    End Select
 		    
 		  Case "STOR", "APPE"
-		    Select Case Response.Code
+		    Select Case Code
 		    Case 150  'Ready
 		      UploadDispatchTimer = New Timer
 		      AddHandler UploadDispatchTimer.Action, AddressOf UploadDispatchHandler
@@ -219,8 +211,8 @@ Inherits FTPSocket
 		    Case 426  'Data connection lost
 		    End Select
 		  Case "STAT"
-		    If response.Code = 200 Then
-		      Dim Stats() As String = Split(Response.Reply_Args, EndOfLine.Windows)
+		    If Code = 200 Then
+		      Dim Stats() As String = Split(msg, EndOfLine.Windows)
 		      Stats.Remove(Stats.Ubound)
 		      Stats.Remove(0)
 		      For Each Stat As String In Stats
@@ -230,7 +222,7 @@ Inherits FTPSocket
 		    End If
 		    
 		  Case "FEAT"
-		    ServerFeatures = Split(Response.Reply_Args, EndOfLine.Windows)
+		    ServerFeatures = Split(msg, EndOfLine.Windows)
 		    ServerFeatures.Remove(ServerFeatures.Ubound)
 		    ServerFeatures.Remove(0)
 		    For Each Feature As String In ServerFeatures
@@ -238,19 +230,19 @@ Inherits FTPSocket
 		      FTPLog("   " + Feature)
 		    Next
 		  Case "SYST"
-		    ServerType = Response.Reply_Args
+		    ServerType = msg
 		  Case "CWD"
-		    Select Case Response.Code
+		    Select Case Code
 		    Case 250, 200 'OK
 		      mWorkingDirectory = LastVerb.Arguments
 		    End Select
 		    
 		  Case "PWD"
-		    If Response.Code = 257 Then 'OK
+		    If Code = 257 Then 'OK
 		      mWorkingDirectory = LastVerb.Arguments
 		    End If
 		  Case "LIST", "NLST"
-		    Select Case Response.Code
+		    Select Case Code
 		    Case 226 'Here comes the directory list
 		      ListResponse(ListBuffer)
 		      ListBuffer = Nil
@@ -259,30 +251,30 @@ Inherits FTPSocket
 		    End Select
 		    
 		  Case "CDUP"
-		    If Response.Code = 200 Or Response.Code = 250 Then
+		    If Code = 200 Or Code = 250 Then
 		      DoVerb("PWD")
 		    End If
 		    
 		  Case "PASV"
-		    If Response.Code = 227 Then 'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
-		      CreateDataSocket(PASV_to_IPv4(response.Reply_Args))
+		    If Code = 227 Then 'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
+		      CreateDataSocket(PASV_to_IPv4(msg))
 		      DataSocket.Connect
 		    End If
 		    
 		  Case "REST"
-		    If Response.Code = 350 Then
+		    If Code = 350 Then
 		      DataStream.Position = Val(LastVerb.Arguments)
 		    End If
 		    
 		  Case "PORT"
-		    If Response.Code = 200 Then
+		    If Code = 200 Then
 		      'Active mode OK. Connect to the following port
-		      CreateDataSocket(PASV_to_IPv4(response.Reply_Args))
+		      CreateDataSocket(PASV_to_IPv4(msg))
 		    End If
 		    
 		  Case "SIZE"
 		  Case "TYPE"
-		    If Response.Code = 200 Then
+		    If Code = 200 Then
 		      Select Case LastVerb.Arguments
 		      Case "A"
 		        Me.TransferMode = ASCIIMode
@@ -301,12 +293,12 @@ Inherits FTPSocket
 		  Case "RMD"
 		  Case "DELE"
 		  Case "RNFR"
-		    If Response.Code = 350 Then
+		    If Code = 350 Then
 		      DoVerb("RNTO", RNT)
 		    End If
 		    
 		  Case "RNTO"
-		    If Response.Code = 250 Then
+		    If Code = 250 Then
 		      FTPLog(RNF + " renamed to " + RNT + " successfully.")
 		    End If
 		    RNT = ""
@@ -316,7 +308,7 @@ Inherits FTPSocket
 		    Me.Close
 		    
 		  Else
-		    If Response.Code = 220 Then  'Server now ready
+		    If Code = 220 Then  'Server now ready
 		      'The server is now ready to begin the login handshake
 		      If Me.Anonymous Then
 		        Me.Username = "anonymous"
@@ -324,7 +316,7 @@ Inherits FTPSocket
 		      End If
 		      DoVerb("USER", Me.Username)
 		      
-		    ElseIf Response.Code = 421 Then  'Timeout
+		    ElseIf Code = 421 Then  'Timeout
 		      Me.Close
 		      
 		    End If
@@ -446,6 +438,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub UploadDispatchHandler(Sender As Timer)
+		  //Handles the FTPClientSocket.UploadDispatchTimer.Action event
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
 		      WriteData(DataStream.Read(32 * 1024))
@@ -467,6 +460,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub VerbDispatchHandler(Sender As Timer)
+		  //Handles the FTPClientSocket.VerbDispatchTimer.Action event
 		  If Not TransferInProgress And UBound(PendingVerbs) > -1 Then
 		    Dim nextverb As FTPVerb = PendingVerbs(0)
 		    PendingVerbs.Remove(0)
@@ -548,12 +542,6 @@ Inherits FTPSocket
 		#tag EndGetter
 		WorkingDirectory As String
 	#tag EndComputedProperty
-
-
-	#tag Structure, Name = FTPResponse, Flags = &h1
-		Code As Integer
-		Reply_Args As String*496
-	#tag EndStructure
 
 
 	#tag ViewBehavior
