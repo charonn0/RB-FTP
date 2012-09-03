@@ -28,7 +28,7 @@ Inherits FTPSocket
 		Sub TransferComplete(UserAborted As Boolean)
 		  #pragma Unused UserAborted
 		  DataStream.Close
-		  DataSocket.Disconnect
+		  DataSocket.Close
 		  VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
 	#tag EndEvent
@@ -164,7 +164,6 @@ Inherits FTPSocket
 		    FTPLog(Str(Response.Code) + " " + FTPCodeToMessage(Response.Code).Trim)
 		  End If
 		  
-		  
 		  Select Case LastVerb.Verb
 		  Case "USER"
 		    Select Case Response.Code
@@ -193,7 +192,7 @@ Inherits FTPSocket
 		    Case 425, 426 'Data connection not ready
 		    Case 451, 551 'Disk read error
 		    Case 226 'Done
-		      TransferComplete(DataFile)
+		      TransferComplete()
 		    End Select
 		    
 		  Case "STOR", "APPE"
@@ -201,11 +200,12 @@ Inherits FTPSocket
 		    Case 150  'Ready
 		      UploadDispatchTimer = New Timer
 		      AddHandler UploadDispatchTimer.Action, AddressOf UploadDispatchHandler
-		      UploadDispatchTimer.Period = 50
+		      UploadDispatchTimer.Period = 100
 		      UploadDispatchTimer.Mode = Timer.ModeMultiple
 		      TransferInProgress = True
 		    Case 226  'Success
-		      TransferComplete(DataFile)
+		      TransferComplete()
+		      DataSocket.Close
 		    Case 425  'No data connection!
 		      Dim lv, la As String
 		      lv = LastVerb.Verb
@@ -252,7 +252,7 @@ Inherits FTPSocket
 		  Case "LIST", "NLST"
 		    Select Case Response.Code
 		    Case 226 'Here comes the directory list
-		      RaiseEvent TransferComplete(ListBuffer)
+		      ListResponse(ListBuffer)
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
 		    End Select
@@ -277,7 +277,6 @@ Inherits FTPSocket
 		    If Response.Code = 200 Then
 		      'Active mode OK. Connect to the following port
 		      CreateDataSocket(PASV_to_IPv4(response.Reply_Args))
-		      DataSocket.Listen()
 		    End If
 		    
 		  Case "SIZE"
@@ -344,7 +343,10 @@ Inherits FTPSocket
 		Sub PORT(PortNumber As Integer)
 		  'You must call either PASV or PORT before transferring anything over the DataSocket
 		  'Data port.
-		  DoVerb("PORT", IPv4_to_PASV(Me.NetworkInterface.IPAddress, PortNumber))
+		  Dim portparams As String = IPv4_to_PASV(Me.NetworkInterface.IPAddress, PortNumber)
+		  CreateDataSocket(portparams)
+		  DataSocket.Listen()
+		  DoVerb("PORT", portparams)
 		End Sub
 	#tag EndMethod
 
@@ -445,7 +447,7 @@ Inherits FTPSocket
 		Private Sub UploadDispatchHandler(Sender As Timer)
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
-		      WriteData(DataStream.Read(512))
+		      WriteData(DataStream.Read(32 * 1024))
 		      If DataStream <> Nil Then
 		        If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
 		          DoVerb("ABOR")
@@ -481,7 +483,11 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferComplete(FolderItemOrMemoryBlock As Variant)
+		Event ListResponse(ListData As MemoryBlock)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event TransferComplete()
 	#tag EndHook
 
 	#tag Hook, Flags = &h0

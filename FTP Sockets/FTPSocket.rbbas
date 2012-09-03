@@ -316,8 +316,8 @@ Inherits TCPSocket
 		  h2 = NthField(IPv4, ".", 2)
 		  h3 = NthField(IPv4, ".", 3)
 		  h4 = NthField(IPv4, ".", 4)
-		  p1 = port Mod 256
-		  p2 = port - p1
+		  p1 = port \ 256
+		  p2 = port Mod 256
 		  Return h1 + "," + h2 + "," + h3 + "," + h4 + "," + Str(p1) + "," + Str(p2)
 		End Function
 	#tag EndMethod
@@ -325,6 +325,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Sub Listen()
 		  Me.NetworkInterface = System.GetNetworkInterface(0)
+		  Super.Listen()
 		End Sub
 	#tag EndMethod
 
