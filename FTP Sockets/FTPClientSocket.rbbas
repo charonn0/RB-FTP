@@ -310,6 +310,9 @@ Inherits FTPSocket
 		  Case "RNFR"
 		    If Code = 350 Then
 		      DoVerb("RNTO", RNT)
+		    Else
+		      RNT = ""
+		      RNF = ""
 		    End If
 		    
 		  Case "RNTO"
@@ -456,8 +459,7 @@ Inherits FTPSocket
 		  //Handles the FTPClientSocket.UploadDispatchTimer.Action event
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
-		      WriteData(DataStream.Read(32 * 1024))
-		      App.YieldToNextThread()
+		      WriteData(DataStream.Read(64 * 1024))
 		      If DataStream <> Nil Then
 		        If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
 		          DoVerb("ABOR")
