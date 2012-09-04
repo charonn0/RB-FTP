@@ -128,6 +128,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
+		  'Handles DataSocket.DataAvailable
 		  Dim s As String = Sender.ReadAll
 		  If RaiseEvent TransferProgress(DataStream.Position + s.LenB, DataLength) Then
 		    Write("ABOR" + CRLF)
@@ -458,18 +459,26 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Shared Function PathEncode(Path As String, NamePrefix As String = "") As String
 		  Path = ReplaceAll(Path, Chr(&o12), Chr(&o0))
-		  Return NamePrefix + Path
+		  If Left(Path, 1) = "/" Then
+		    Return NamePrefix + "/" +  Path
+		  Else
+		    Return Path
+		  End If
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Function Read() As String
-		  Dim la As String
-		  While Me.Lookahead.LenB > 0
-		    la = la + Me.ReadAll
-		    App.YieldToNextThread
-		  Wend
-		  Return la
+		  If Me.IsConnected Then
+		    Dim la As String
+		    While Me.Lookahead.LenB > 0
+		      la = la + Me.ReadAll
+		      App.YieldToNextThread
+		    Wend
+		    Return la
+		  Else
+		    ErrorHandler(Me)
+		  End If
 		End Function
 	#tag EndMethod
 
@@ -486,8 +495,8 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
+		  'Handles DataSocket.SendComplete
 		  #pragma Unused Sender
-		  'If DataStream <> Nil Then DataStream.Close
 		  If DataStream.Position < DataStream.Length Then Return
 		  TransferInProgress = False
 		  RaiseEvent TransferComplete(UserAborted)
@@ -496,6 +505,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Function SendProgressHandler(Sender As TCPSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  'Handles DataSocket.SendProgress
 		  #pragma Unused Sender
 		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
 		End Function
@@ -520,7 +530,11 @@ Inherits TCPSocket
 		  Case 108
 		    err = err + ": Out of memory."
 		  Else
-		    err = err + ": System error code."
+		    If Not Sender.IsConnected Then
+		      err = err + ": Socket not connected."
+		    Else
+		      err = err + ": System error code."
+		    End If
 		  End Select
 		  
 		  Return err
@@ -529,15 +543,19 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub Write(Command As String)
-		  Super.Write(Command)
-		  Me.Flush
+		  If Me.IsConnected Then
+		    Super.Write(Command)
+		    Me.Flush
+		  Else
+		    ErrorHandler(Me)
+		  End If
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub WriteData(Data As String)
 		  DataSocket.Write(Data)
-		  'DataSocket.Flush
+		  
 		End Sub
 	#tag EndMethod
 

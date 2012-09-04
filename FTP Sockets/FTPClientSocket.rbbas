@@ -249,7 +249,7 @@ Inherits FTPSocket
 		  Case "CWD"
 		    Select Case Code
 		    Case 250, 200 'OK
-		      mWorkingDirectory = LastVerb.Arguments
+		      mWorkingDirectory = LastVerb.Arguments.Trim
 		    End Select
 		    
 		  Case "PWD"
