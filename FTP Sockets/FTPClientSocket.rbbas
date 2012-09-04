@@ -30,6 +30,7 @@ Inherits FTPSocket
 		  DataStream.Close
 		  DataSocket.Close
 		  VerbDispatchTimer.Mode = Timer.ModeMultiple
+		  If UploadDispatchTimer <> Nil Then UploadDispatchTimer.Mode = Timer.ModeOff
 		End Sub
 	#tag EndEvent
 
@@ -116,6 +117,7 @@ Inherits FTPSocket
 		Sub List(TargetDirectory As String = "")
 		  'Retrieves a directory listing
 		  TargetDirectory = PathEncode(TargetDirectory)
+		  CreateDataSocket()
 		  If Me.Passive Then
 		    PASV()
 		  Else
@@ -459,6 +461,8 @@ Inherits FTPSocket
 		      If DataStream <> Nil Then
 		        If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
 		          DoVerb("ABOR")
+		        Else
+		          DataSocket.Flush
 		        End If
 		      End If
 		    End If

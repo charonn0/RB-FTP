@@ -190,6 +190,7 @@ Inherits FTPSocket
 		            WriteData(DataStream.Read(1024 * 64))
 		            App.YieldToNextThread
 		          Wend
+		          DataSocket.Flush
 		          DoResponse(226)
 		          DataSocket.Close
 		        Else
@@ -224,11 +225,8 @@ Inherits FTPSocket
 		    End If
 		  Case "SYST"
 		    If LoginOK Then
-		      #If TargetWin32 Then
-		        DoResponse(215, "Windows_NT Type: L8")
-		      #Else
-		        DoResponse(215, "UNIX Type: L8")
-		      #endif
+		      'We'll claim to be UNIX even if we aren't
+		      DoResponse(215, "UNIX Type: L8")
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -262,6 +260,7 @@ Inherits FTPSocket
 		        If s.Trim <> "" Then
 		          DoResponse(226)
 		          WriteData(s)
+		          DataSocket.Flush
 		          DataSocket.Close
 		        Else
 		          DoResponse(451, "No list.")

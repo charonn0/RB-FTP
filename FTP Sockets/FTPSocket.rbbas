@@ -69,7 +69,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub Connect()
-		  Me.NetworkInterface = System.GetNetworkInterface(0)
+		  If Me.NetworkInterface = Nil Then Me.NetworkInterface = System.GetNetworkInterface(0)
 		  Super.Connect()
 		End Sub
 	#tag EndMethod
@@ -324,7 +324,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub Listen()
-		  Me.NetworkInterface = System.GetNetworkInterface(0)
+		  If Me.NetworkInterface = Nil Then Me.NetworkInterface = System.GetNetworkInterface(0)
 		  Super.Listen()
 		End Sub
 	#tag EndMethod
@@ -537,7 +537,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Sub WriteData(Data As String)
 		  DataSocket.Write(Data)
-		  DataSocket.Flush
+		  'DataSocket.Flush
 		End Sub
 	#tag EndMethod
 
