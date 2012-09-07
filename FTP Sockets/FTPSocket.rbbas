@@ -74,8 +74,8 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub CreateDataSocket(PASVParams As String = "")
+	#tag Method, Flags = &h21
+		Private Sub CreateDataSocket(PASVParams As String = "")
 		  DataSocket = New TCPSocket
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
@@ -83,6 +83,7 @@ Inherits TCPSocket
 		  AddHandler DataSocket.SendProgress, AddressOf SendProgressHandler
 		  
 		  If PASVParams.Trim <> "" Then
+		    PASVParams = PASV_to_IPv4(PASVParams)
 		    Dim ipv4 As String
 		    Dim dport As Integer
 		    ipv4 = NthField(PASVParams, ":", 1)
@@ -672,6 +673,21 @@ Inherits TCPSocket
 	#tag Property, Flags = &h0
 		Password As String
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h1
+		#tag Getter
+			Get
+			  If DataSocket = Nil Then CreateDataSocket()
+			  Return IPv4_to_PASV(DataSocket.NetworkInterface.IPAddress, DataSocket.Port)
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  CreateDataSocket(value)
+			End Set
+		#tag EndSetter
+		Protected PASVAddress As String
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1
 		Protected ServerFeatures() As String

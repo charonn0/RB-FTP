@@ -70,6 +70,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub Close()
+		  VerbDispatchTimer = Nil
 		  mWorkingDirectory = ""
 		  LastVerb.Verb = ""
 		  LastVerb.Arguments = ""
@@ -79,6 +80,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub Connect()
+		  VerbDispatchTimer = Nil
 		  Super.Connect()
 		End Sub
 	#tag EndMethod
@@ -99,11 +101,12 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub DoVerb(Verb As String, Params As String = "")
+		  'Use this method to queue up verbs to be executed
 		  Dim nextverb As FTPVerb
 		  nextverb.Verb = Uppercase(Verb)
 		  nextverb.Arguments = Trim(Params)
 		  PendingVerbs.Append(nextverb)
-		  If VerbDispatchTimer <> Nil Then VerbDispatchTimer.Mode = Timer.ModeMultiple
+		  
 		End Sub
 	#tag EndMethod
 
@@ -113,11 +116,21 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub InsertVerb(Verb As String, Params As String = "")
+		  'Some verbs can't wait in line
+		  Dim nextverb As FTPVerb
+		  nextverb.Verb = Uppercase(Verb)
+		  nextverb.Arguments = Trim(Params)
+		  PendingVerbs.Insert(0, nextverb)
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Sub List(TargetDirectory As String = "")
 		  'Retrieves a directory listing
 		  TargetDirectory = PathEncode(TargetDirectory)
-		  CreateDataSocket()
 		  If Me.Passive Then
 		    PASV()
 		  Else
@@ -150,6 +163,8 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
+		  ListBuffer = New MemoryBlock(64 * 1024)
+		  CreateDataStream(ListBuffer)
 		  DoVerb("NLST", TargetDirectory)
 		End Sub
 	#tag EndMethod
@@ -178,7 +193,7 @@ Inherits FTPSocket
 		      LoginOK = True
 		      RaiseEvent Connected()
 		    Case 331, 332  'Need PASS/ACCT
-		      DoVerb("PASS", Me.Password)
+		      InsertVerb("PASS", Me.Password)
 		    End Select
 		    
 		  Case "PASS"
@@ -188,7 +203,7 @@ Inherits FTPSocket
 		      FTPLog("Ready")
 		      RaiseEvent Connected()
 		    Case 530  'USER not set!
-		      DoVerb("USER", Me.Username)
+		      InsertVerb("USER", Me.Username)
 		    End Select
 		  Case "RETR"
 		    Select Case Code
@@ -272,7 +287,7 @@ Inherits FTPSocket
 		    
 		  Case "PASV"
 		    If Code = 227 Then 'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
-		      CreateDataSocket(PASV_to_IPv4(msg))
+		      Me.PASVAddress = msg
 		      DataSocket.Connect
 		    End If
 		    
@@ -284,7 +299,7 @@ Inherits FTPSocket
 		  Case "PORT"
 		    If Code = 200 Then
 		      'Active mode OK. Connect to the following port
-		      CreateDataSocket(PASV_to_IPv4(msg))
+		      'Me.PASVAddress = msg
 		    End If
 		    
 		  Case "SIZE"
@@ -332,14 +347,13 @@ Inherits FTPSocket
 		        Me.Username = "anonymous"
 		        Me.Password = "bsftp@boredomsoft.org"
 		      End If
-		      DoVerb("USER", Me.Username)
-		      
+		      InsertVerb("USER", Me.Username)
 		    ElseIf Code = 421 Then  'Timeout
 		      Me.Close
 		      
 		    End If
 		  End Select
-		  VerbDispatchTimer.Mode = Timer.ModeMultiple
+		  If VerbDispatchTimer <> Nil Then VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
 	#tag EndMethod
 
@@ -354,10 +368,9 @@ Inherits FTPSocket
 		Sub PORT(PortNumber As Integer)
 		  'You must call either PASV or PORT before transferring anything over the DataSocket
 		  'Data port.
-		  Dim portparams As String = IPv4_to_PASV(Me.NetworkInterface.IPAddress, PortNumber)
-		  CreateDataSocket(portparams)
+		  Me.PASVAddress = IPv4_to_PASV(Me.NetworkInterface.IPAddress, PortNumber)
 		  DataSocket.Listen()
-		  DoVerb("PORT", portparams)
+		  DoVerb("PORT", Me.PASVAddress)
 		End Sub
 	#tag EndMethod
 
@@ -460,12 +473,10 @@ Inherits FTPSocket
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
 		      WriteData(DataStream.Read(64 * 1024))
-		      If DataStream <> Nil Then
-		        If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
-		          DoVerb("ABOR")
-		        Else
-		          DataSocket.Flush
-		        End If
+		      If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
+		        DoVerb("ABOR")
+		      Else
+		        DataSocket.Flush
 		      End If
 		    End If
 		  Else

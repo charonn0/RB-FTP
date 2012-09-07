@@ -901,6 +901,37 @@ Begin Window Window1
          Visible         =   True
          Width           =   60
       End
+      Begin PushButton PushButton23
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "NLST"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   389
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   23
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   403
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
    End
 End
 #tag EndWindow
@@ -1118,7 +1149,17 @@ End
 	#tag Event
 		Sub Action()
 		  Client.Connect
+		  Client.List()
+		  Client.STAT()
+		  Client.PWD()
 		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton23
+	#tag Event
+		Sub Action()
+		  Client.NLST
 		End Sub
 	#tag EndEvent
 #tag EndEvents

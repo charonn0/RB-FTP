@@ -281,15 +281,12 @@ Inherits FTPSocket
 		  Case "PASV"
 		    If LoginOK Then
 		      If DataSocket = Nil Then
-		        Dim pasvresponse As String = IPv4_to_PASV(Me.NetworkInterface.IPAddress, Me.Port + 1)
-		        CreateDataSocket(pasvresponse)
+		        Me.PASVAddress = IPv4_to_PASV(Me.NetworkInterface.IPAddress, Me.Port + 1)
 		        DataSocket.Listen
-		        DoResponse(227, "Entering Passive Mode (" + pasvresponse + ").")
+		        DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
 		      ElseIf Not DataSocket.IsConnected Then
 		        DataSocket.Listen
-		        Dim pasvtxt As String = Me.NetworkInterface.IPAddress
-		        Dim pasvprt As Integer = DataSocket.Port
-		        DoResponse(227, "Entering Passive Mode (" + IPv4_to_PASV(pasvtxt, pasvprt) + ").")
+		        DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
 		      Else
 		        DoResponse(125)  //already open
 		      End If
@@ -306,7 +303,7 @@ Inherits FTPSocket
 		    
 		  Case "PORT"
 		    If LoginOK Then
-		      CreateDataSocket(Verb.Arguments)
+		      Me.PASVAddress = Verb.Arguments
 		      DoResponse(200, Verb.Arguments)
 		      DataSocket.Connect
 		    Else
