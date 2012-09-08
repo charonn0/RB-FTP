@@ -60,7 +60,7 @@ Begin Window Window1
       ScrollbarHorizontal=   ""
       ScrollBarVertical=   True
       SelectionType   =   0
-      TabIndex        =   0
+      TabIndex        =   1
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -113,7 +113,7 @@ Begin Window Window1
       Scope           =   0
       SmallTabs       =   ""
       TabDefinition   =   "Client\rServer"
-      TabIndex        =   2
+      TabIndex        =   0
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -121,7 +121,7 @@ Begin Window Window1
       TextUnit        =   0
       Top             =   325
       Underline       =   ""
-      Value           =   0
+      Value           =   1
       Visible         =   True
       Width           =   600
       Begin FTPServerSocket FTPServerSocket1
@@ -172,37 +172,6 @@ Begin Window Window1
          Visible         =   True
          Width           =   80
       End
-      Begin PushButton PushButton20
-         AutoDeactivate  =   True
-         Bold            =   ""
-         ButtonStyle     =   0
-         Cancel          =   ""
-         Caption         =   "NOOP"
-         Default         =   ""
-         Enabled         =   True
-         Height          =   22
-         HelpTag         =   ""
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   ""
-         Left            =   326
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   ""
-         LockTop         =   False
-         Scope           =   0
-         TabIndex        =   22
-         TabPanelIndex   =   1
-         TabStop         =   True
-         TextFont        =   "System"
-         TextSize        =   0
-         TextUnit        =   0
-         Top             =   403
-         Underline       =   ""
-         Visible         =   True
-         Width           =   60
-      End
       Begin PushButton PushButton22
          AutoDeactivate  =   True
          Bold            =   ""
@@ -216,51 +185,20 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   326
+         Left            =   135
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   21
+         TabIndex        =   6
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
-         Underline       =   ""
-         Visible         =   True
-         Width           =   60
-      End
-      Begin PushButton PushButton21
-         AutoDeactivate  =   True
-         Bold            =   ""
-         ButtonStyle     =   0
-         Cancel          =   ""
-         Caption         =   "STAT"
-         Default         =   ""
-         Enabled         =   True
-         Height          =   22
-         HelpTag         =   ""
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   ""
-         Left            =   326
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   ""
-         LockTop         =   False
-         Scope           =   0
-         TabIndex        =   20
-         TabPanelIndex   =   1
-         TabStop         =   True
-         TextFont        =   "System"
-         TextSize        =   0
-         TextUnit        =   0
-         Top             =   357
+         Top             =   403
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -276,7 +214,7 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   441
+         Left            =   464
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   False
@@ -285,7 +223,7 @@ Begin Window Window1
          Multiline       =   ""
          Scope           =   0
          Selectable      =   False
-         TabIndex        =   19
+         TabIndex        =   22
          TabPanelIndex   =   1
          Text            =   "Param 2:"
          TextAlign       =   2
@@ -293,7 +231,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   378
          Transparent     =   False
          Underline       =   ""
          Visible         =   True
@@ -310,7 +248,7 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   441
+         Left            =   464
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   False
@@ -319,7 +257,7 @@ Begin Window Window1
          Multiline       =   ""
          Scope           =   0
          Selectable      =   False
-         TabIndex        =   18
+         TabIndex        =   23
          TabPanelIndex   =   1
          Text            =   "Param 1:"
          TextAlign       =   2
@@ -327,7 +265,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   359
+         Top             =   357
          Transparent     =   False
          Underline       =   ""
          Visible         =   True
@@ -339,14 +277,14 @@ Begin Window Window1
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
-         Left            =   3.97e+2
+         Left            =   562
          LockedInPosition=   False
          Passive         =   True
          Password        =   "n9tgXMv9Xu"
          Port            =   21
          Scope           =   0
          TabPanelIndex   =   1
-         Top             =   3.53e+2
+         Top             =   398
          Username        =   "ftpstore"
          Width           =   32
       End
@@ -368,7 +306,7 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   500
+         Left            =   521
          LimitText       =   0
          LockBottom      =   True
          LockedInPosition=   False
@@ -379,7 +317,7 @@ Begin Window Window1
          Password        =   ""
          ReadOnly        =   ""
          Scope           =   0
-         TabIndex        =   1
+         TabIndex        =   20
          TabPanelIndex   =   1
          TabStop         =   True
          Text            =   ""
@@ -391,7 +329,7 @@ Begin Window Window1
          Underline       =   ""
          UseFocusRing    =   True
          Visible         =   True
-         Width           =   86
+         Width           =   65
       End
       Begin TextField TextField1
          AcceptTabs      =   ""
@@ -411,7 +349,7 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   500
+         Left            =   521
          LimitText       =   0
          LockBottom      =   True
          LockedInPosition=   False
@@ -422,7 +360,7 @@ Begin Window Window1
          Password        =   ""
          ReadOnly        =   ""
          Scope           =   0
-         TabIndex        =   0
+         TabIndex        =   21
          TabPanelIndex   =   1
          TabStop         =   True
          Text            =   ""
@@ -434,7 +372,7 @@ Begin Window Window1
          Underline       =   ""
          UseFocusRing    =   True
          Visible         =   True
-         Width           =   86
+         Width           =   65
       End
       Begin PushButton PushButton19
          AutoDeactivate  =   True
@@ -449,20 +387,20 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   263
+         Left            =   327
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   15
+         TabIndex        =   17
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   357
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -480,45 +418,14 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   71
+         Left            =   7
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   6
-         TabPanelIndex   =   1
-         TabStop         =   True
-         TextFont        =   "System"
-         TextSize        =   0
-         TextUnit        =   0
-         Top             =   380
-         Underline       =   ""
-         Visible         =   True
-         Width           =   60
-      End
-      Begin PushButton PushButton5
-         AutoDeactivate  =   True
-         Bold            =   ""
-         ButtonStyle     =   0
-         Cancel          =   ""
-         Caption         =   "STOR"
-         Default         =   ""
-         Enabled         =   True
-         Height          =   22
-         HelpTag         =   ""
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   ""
-         Left            =   135
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   ""
-         LockTop         =   False
-         Scope           =   0
-         TabIndex        =   9
+         TabIndex        =   1
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
@@ -542,45 +449,14 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   199
+         Left            =   71
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   12
-         TabPanelIndex   =   1
-         TabStop         =   True
-         TextFont        =   "System"
-         TextSize        =   0
-         TextUnit        =   0
-         Top             =   380
-         Underline       =   ""
-         Visible         =   True
-         Width           =   60
-      End
-      Begin PushButton PushButton2
-         AutoDeactivate  =   True
-         Bold            =   ""
-         ButtonStyle     =   0
-         Cancel          =   ""
-         Caption         =   "PWD"
-         Default         =   ""
-         Enabled         =   True
-         Height          =   22
-         HelpTag         =   ""
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   ""
-         Left            =   7
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   ""
-         LockTop         =   False
-         Scope           =   0
-         TabIndex        =   3
+         TabIndex        =   4
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
@@ -596,7 +472,7 @@ Begin Window Window1
          Bold            =   ""
          ButtonStyle     =   0
          Cancel          =   ""
-         Caption         =   "RMD"
+         Caption         =   "TYPE A"
          Default         =   ""
          Enabled         =   True
          Height          =   22
@@ -611,7 +487,38 @@ Begin Window Window1
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   10
+         TabIndex        =   7
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   380
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton14
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "FEAT"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   7
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   2
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
@@ -622,12 +529,105 @@ Begin Window Window1
          Visible         =   True
          Width           =   60
       End
-      Begin PushButton PushButton17
+      Begin PushButton PushButton11
          AutoDeactivate  =   True
          Bold            =   ""
          ButtonStyle     =   0
          Cancel          =   ""
-         Caption         =   "MKD"
+         Caption         =   "CWD"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   263
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   12
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   403
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton4
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "RETR"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   199
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   11
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   357
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton1
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "Connect"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   7
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   0
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   403
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton23
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "NLST"
          Default         =   ""
          Enabled         =   True
          Height          =   22
@@ -666,76 +666,14 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   7
+         Left            =   199
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   4
-         TabPanelIndex   =   1
-         TabStop         =   True
-         TextFont        =   "System"
-         TextSize        =   0
-         TextUnit        =   0
-         Top             =   357
-         Underline       =   ""
-         Visible         =   True
-         Width           =   60
-      End
-      Begin PushButton PushButton14
-         AutoDeactivate  =   True
-         Bold            =   ""
-         ButtonStyle     =   0
-         Cancel          =   ""
-         Caption         =   "FEAT"
-         Default         =   ""
-         Enabled         =   True
-         Height          =   22
-         HelpTag         =   ""
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   ""
-         Left            =   263
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   ""
-         LockTop         =   False
-         Scope           =   0
-         TabIndex        =   16
-         TabPanelIndex   =   1
-         TabStop         =   True
-         TextFont        =   "System"
-         TextSize        =   0
-         TextUnit        =   0
-         Top             =   357
-         Underline       =   ""
-         Visible         =   True
-         Width           =   60
-      End
-      Begin PushButton PushButton12
-         AutoDeactivate  =   True
-         Bold            =   ""
-         ButtonStyle     =   0
-         Cancel          =   ""
-         Caption         =   "QUIT"
-         Default         =   ""
-         Enabled         =   True
-         Height          =   22
-         HelpTag         =   ""
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   ""
-         Left            =   263
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   ""
-         LockTop         =   False
-         Scope           =   0
-         TabIndex        =   14
+         TabIndex        =   9
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
@@ -746,43 +684,12 @@ Begin Window Window1
          Visible         =   True
          Width           =   60
       End
-      Begin PushButton PushButton11
+      Begin PushButton PushButton2
          AutoDeactivate  =   True
          Bold            =   ""
          ButtonStyle     =   0
          Cancel          =   ""
-         Caption         =   "CWD"
-         Default         =   ""
-         Enabled         =   True
-         Height          =   22
-         HelpTag         =   ""
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Italic          =   ""
-         Left            =   199
-         LockBottom      =   True
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   ""
-         LockTop         =   False
-         Scope           =   0
-         TabIndex        =   11
-         TabPanelIndex   =   1
-         TabStop         =   True
-         TextFont        =   "System"
-         TextSize        =   0
-         TextUnit        =   0
-         Top             =   357
-         Underline       =   ""
-         Visible         =   True
-         Width           =   60
-      End
-      Begin PushButton PushButton10
-         AutoDeactivate  =   True
-         Bold            =   ""
-         ButtonStyle     =   0
-         Cancel          =   ""
-         Caption         =   "TYPE I"
+         Caption         =   "PWD"
          Default         =   ""
          Enabled         =   True
          Height          =   22
@@ -797,7 +704,7 @@ Begin Window Window1
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   7
+         TabIndex        =   3
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
@@ -808,12 +715,12 @@ Begin Window Window1
          Visible         =   True
          Width           =   60
       End
-      Begin PushButton PushButton6
+      Begin PushButton PushButton10
          AutoDeactivate  =   True
          Bold            =   ""
          ButtonStyle     =   0
          Cancel          =   ""
-         Caption         =   "DELE"
+         Caption         =   "TYPE I"
          Default         =   ""
          Enabled         =   True
          Height          =   22
@@ -834,17 +741,17 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   357
          Underline       =   ""
          Visible         =   True
          Width           =   60
       End
-      Begin PushButton PushButton4
+      Begin PushButton PushButton5
          AutoDeactivate  =   True
          Bold            =   ""
          ButtonStyle     =   0
          Cancel          =   ""
-         Caption         =   "RETR"
+         Caption         =   "STOR"
          Default         =   ""
          Enabled         =   True
          Height          =   22
@@ -859,23 +766,85 @@ Begin Window Window1
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
+         TabIndex        =   10
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   380
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton6
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "DELE"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   263
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   14
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   357
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton21
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "STAT"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   263
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
          TabIndex        =   13
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   380
          Underline       =   ""
          Visible         =   True
          Width           =   60
       End
-      Begin PushButton PushButton1
+      Begin PushButton PushButton17
          AutoDeactivate  =   True
          Bold            =   ""
          ButtonStyle     =   0
          Cancel          =   ""
-         Caption         =   "Connect"
+         Caption         =   "MKD"
          Default         =   ""
          Enabled         =   True
          Height          =   22
@@ -883,14 +852,45 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   7
+         Left            =   327
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   2
+         TabIndex        =   16
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   380
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton24
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "RMD"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   327
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   15
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
@@ -901,12 +901,12 @@ Begin Window Window1
          Visible         =   True
          Width           =   60
       End
-      Begin PushButton PushButton23
+      Begin PushButton PushButton20
          AutoDeactivate  =   True
          Bold            =   ""
          ButtonStyle     =   0
          Cancel          =   ""
-         Caption         =   "NLST"
+         Caption         =   "NOOP"
          Default         =   ""
          Enabled         =   True
          Height          =   22
@@ -914,14 +914,45 @@ Begin Window Window1
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
          Italic          =   ""
-         Left            =   389
+         Left            =   392
          LockBottom      =   True
          LockedInPosition=   False
          LockLeft        =   True
          LockRight       =   ""
          LockTop         =   False
          Scope           =   0
-         TabIndex        =   23
+         TabIndex        =   19
+         TabPanelIndex   =   1
+         TabStop         =   True
+         TextFont        =   "System"
+         TextSize        =   0
+         TextUnit        =   0
+         Top             =   380
+         Underline       =   ""
+         Visible         =   True
+         Width           =   60
+      End
+      Begin PushButton PushButton12
+         AutoDeactivate  =   True
+         Bold            =   ""
+         ButtonStyle     =   0
+         Cancel          =   ""
+         Caption         =   "QUIT"
+         Default         =   ""
+         Enabled         =   True
+         Height          =   22
+         HelpTag         =   ""
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Italic          =   ""
+         Left            =   392
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   ""
+         LockTop         =   False
+         Scope           =   0
+         TabIndex        =   18
          TabPanelIndex   =   1
          TabStop         =   True
          TextFont        =   "System"
@@ -968,6 +999,7 @@ End
 	#tag EndEvent
 	#tag Event
 		Function CellBackgroundPaint(g As Graphics, row As Integer, column As Integer) As Boolean
+		  #pragma Unused column
 		  If row <= Me.LastIndex Then
 		    Dim tmp As String = Me.RowTag(Row)
 		    If IsNumeric(tmp.Trim) Then
@@ -1008,24 +1040,10 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events PushButton20
-	#tag Event
-		Sub Action()
-		  Client.NOOP
-		End Sub
-	#tag EndEvent
-#tag EndEvents
 #tag Events PushButton22
 	#tag Event
 		Sub Action()
 		  Client.MDTM(TextField1.Text)
-		End Sub
-	#tag EndEvent
-#tag EndEvents
-#tag Events PushButton21
-	#tag Event
-		Sub Action()
-		  Client.STAT(TextField1.Text)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -1068,16 +1086,6 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events PushButton5
-	#tag Event
-		Sub Action()
-		  Dim f As FolderItem = GetOpenFolderItem("")
-		  If f <> Nil Then
-		    Client.STOR(f.Name, f)
-		  End If
-		End Sub
-	#tag EndEvent
-#tag EndEvents
 #tag Events PushButton3
 	#tag Event
 		Sub Action()
@@ -1085,31 +1093,10 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events PushButton2
-	#tag Event
-		Sub Action()
-		  Client.PWD
-		End Sub
-	#tag EndEvent
-#tag EndEvents
 #tag Events PushButton18
 	#tag Event
 		Sub Action()
-		  Client.RMD(TextField1.Text)
-		End Sub
-	#tag EndEvent
-#tag EndEvents
-#tag Events PushButton17
-	#tag Event
-		Sub Action()
-		  Client.MKD(TextField1.Text)
-		End Sub
-	#tag EndEvent
-#tag EndEvents
-#tag Events PushButton16
-	#tag Event
-		Sub Action()
-		  Client.Rename(TextField1.Text, TextField2.Text)
+		  Client.TYPE = FTPSocket.ASCIIMode
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -1120,17 +1107,46 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events PushButton12
-	#tag Event
-		Sub Action()
-		  Client.Quit
-		End Sub
-	#tag EndEvent
-#tag EndEvents
 #tag Events PushButton11
 	#tag Event
 		Sub Action()
 		  Client.CWD(TextField1.Text)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton4
+	#tag Event
+		Sub Action()
+		  Dim f As FolderItem = SpecialFolder.Desktop.Child(ReplaceAll(TextField1.Text, "/", "_"))
+		  Client.RETR(TextField1.Text, f)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton1
+	#tag Event
+		Sub Action()
+		  Client.Connect
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton23
+	#tag Event
+		Sub Action()
+		  Client.NLST
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton16
+	#tag Event
+		Sub Action()
+		  Client.Rename(TextField1.Text, TextField2.Text)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton2
+	#tag Event
+		Sub Action()
+		  Client.PWD
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -1141,6 +1157,16 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
+#tag Events PushButton5
+	#tag Event
+		Sub Action()
+		  Dim f As FolderItem = GetOpenFolderItem("")
+		  If f <> Nil Then
+		    Client.STOR(f.Name, f)
+		  End If
+		End Sub
+	#tag EndEvent
+#tag EndEvents
 #tag Events PushButton6
 	#tag Event
 		Sub Action()
@@ -1148,29 +1174,38 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events PushButton4
+#tag Events PushButton21
 	#tag Event
 		Sub Action()
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child(TextField1.Text)
-		  Client.RETR(TextField1.Text, f)
+		  Client.STAT(TextField1.Text)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events PushButton1
+#tag Events PushButton17
 	#tag Event
 		Sub Action()
-		  Client.Connect
-		  Client.List()
-		  Client.STAT()
-		  Client.PWD()
-		  
+		  Client.MKD(TextField1.Text)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events PushButton23
+#tag Events PushButton24
 	#tag Event
 		Sub Action()
-		  Client.NLST
+		  Client.RMD(TextField1.Text)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton20
+	#tag Event
+		Sub Action()
+		  Client.NOOP
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events PushButton12
+	#tag Event
+		Sub Action()
+		  Client.Quit
 		End Sub
 	#tag EndEvent
 #tag EndEvents

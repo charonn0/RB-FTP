@@ -331,109 +331,6 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		 Shared Function ParseList(ListData As String) As FTPListEntry()
-		  Const ReadPerm = 4
-		  Const WritePerm = 2
-		  Const ExPerm = 1
-		  
-		  Const TypeFile = 0
-		  Const TypeDir = 1
-		  Const TypeLink = 2
-		  
-		  Dim list() As FTPListEntry
-		  Dim lines() As String = Split(ListData, CRLF)
-		  
-		  
-		  For Each Line As String In lines
-		    Dim mode, linkcount, owner, group, filesize, modDate, filename As String
-		    mode = NthField(line, " ", 1)
-		    Line = Replace(Line, mode, "").Trim
-		    
-		    linkcount = NthField(line, " ", 1)
-		    Line = Replace(line, linkcount, "").Trim
-		    
-		    owner = NthField(line, " ", 1)
-		    Line = Replace(Line, owner, "").Trim
-		    
-		    group = NthField(line, " ", 1)
-		    Line = Replace(Line, group, "").Trim
-		    
-		    filesize = NthField(line, " ", 1)
-		    Line = Replace(Line, filesize, "").Trim
-		    
-		    modDate = NthField(line, " ", 1) + " " + modDate + NthField(line, " ", 2) + " " + modDate + NthField(line, " ", 3)
-		    Line = Replace(Line, modDate, "").Trim
-		    
-		    filename = line.Trim
-		    
-		    Dim ListEntry As FTPListEntry
-		    Select Case Mid(mode, 1, 1)
-		    Case "-"
-		      ListEntry.EntryType = TypeFile
-		    Case "D"
-		      ListEntry.EntryType = TypeDir
-		    Case "L"
-		      ListEntry.EntryType = TypeLink
-		    End Select
-		    
-		    Dim tmp As Integer = 0
-		    If Mid(mode, 2, 1) = "r" Then
-		      tmp = tmp + 4
-		    End If
-		    
-		    If Mid(mode, 3, 1) = "w" Then
-		      tmp = tmp + 2
-		    End If
-		    
-		    If Mid(mode, 4, 1) = "x" Then
-		      tmp = tmp + 1
-		    End If
-		    
-		    ListEntry.OwnerPerms = tmp
-		    tmp = 0
-		    
-		    If Mid(mode, 5, 1) = "r" Then
-		      tmp = tmp + 4
-		    End If
-		    
-		    If Mid(mode, 6, 1) = "w" Then
-		      tmp = tmp + 2
-		    End If
-		    
-		    If Mid(mode, 7, 1) = "x" Then
-		      tmp = tmp + 1
-		    End If
-		    
-		    ListEntry.GroupPerms = tmp
-		    tmp = 0
-		    
-		    If Mid(mode, 8, 1) = "r" Then
-		      tmp = tmp + 4
-		    End If
-		    
-		    If Mid(mode, 9, 1) = "w" Then
-		      tmp = tmp + 2
-		    End If
-		    
-		    If Mid(mode, 10, 1) = "x" Then
-		      tmp = tmp + 1
-		    End If
-		    
-		    ListEntry.WorldPerms = tmp
-		    
-		    ListEntry.FileName = filename
-		    ListEntry.FileSize = Val(filesize)
-		    ListEntry.Owner = owner
-		    ListEntry.Group = group
-		    ListEntry.Timestamp = modDate
-		    list.Append(ListEntry)
-		  Next
-		  
-		  Return list
-		End Function
-	#tag EndMethod
-
 	#tag Method, Flags = &h1
 		Protected Shared Function PASV_to_IPv4(PASVParams As String) As String
 		  Dim p1, p2 As Integer
@@ -451,20 +348,14 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Shared Function PathDecode(Path As String, NamePrefix As String = "") As String
-		  Path = ReplaceAll(Path, Chr(&o0), Chr(&o12))
-		  Return ReplaceAll(NamePrefix + Path, "//", "/")
+		Protected Shared Function PathDecode(Path As String) As String
+		  Return ReplaceAll(Path, Chr(&o0), Chr(&o12))
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Shared Function PathEncode(Path As String, NamePrefix As String = "") As String
-		  Path = ReplaceAll(Path, Chr(&o12), Chr(&o0))
-		  If Left(Path, 1) = "/" Then
-		    Return NamePrefix + "/" +  Path
-		  Else
-		    Return Path
-		  End If
+		Protected Shared Function PathEncode(Path As String) As String
+		  Return ReplaceAll(Path, Chr(&o12), Chr(&o0))
 		End Function
 	#tag EndMethod
 

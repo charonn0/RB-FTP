@@ -412,7 +412,7 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
-		  DoVerb("RETR", PathEncode(RemoteFileName, WorkingDirectory))
+		  DoVerb("RETR", RemoteFileName)
 		End Sub
 	#tag EndMethod
 
