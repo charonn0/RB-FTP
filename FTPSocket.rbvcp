@@ -35,6 +35,6 @@ DefaultEncoding=&h0
 AppIcon=FTPSocket.rbres;&h0
 OSXBundleID=
 DebuggerCommandLine=
-UseGDIPlus=False
+UseGDIPlus=True
 UseBuildsFolder=True
 IsWebProject=False

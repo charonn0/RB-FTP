@@ -29,9 +29,9 @@ Begin Window Window1
       AutoHideScrollbars=   True
       Bold            =   ""
       Border          =   True
-      ColumnCount     =   3
+      ColumnCount     =   1
       ColumnsResizable=   ""
-      ColumnWidths    =   "85%,*,*"
+      ColumnWidths    =   ""
       DataField       =   ""
       DataSource      =   ""
       DefaultRowHeight=   -1
@@ -40,14 +40,14 @@ Begin Window Window1
       EnableDragReorder=   ""
       GridLinesHorizontal=   0
       GridLinesVertical=   0
-      HasHeading      =   True
+      HasHeading      =   False
       HeadingIndex    =   -1
       Height          =   294
       HelpTag         =   ""
       Hierarchical    =   ""
       Index           =   -2147483648
       InitialParent   =   ""
-      InitialValue    =   "FTP	Log	Data"
+      InitialValue    =   ""
       Italic          =   ""
       Left            =   0
       LockBottom      =   True
@@ -339,14 +339,14 @@ Begin Window Window1
          Height          =   32
          Index           =   -2147483648
          InitialParent   =   "TabPanel1"
-         Left            =   397
+         Left            =   3.97e+2
          LockedInPosition=   False
          Passive         =   True
          Password        =   "n9tgXMv9Xu"
          Port            =   21
          Scope           =   0
          TabPanelIndex   =   1
-         Top             =   353
+         Top             =   3.53e+2
          Username        =   "ftpstore"
          Width           =   32
       End
@@ -938,8 +938,9 @@ End
 
 #tag WindowCode
 	#tag Method, Flags = &h0
-		Sub Loggit(Paramarray lines() As String)
-		  Listbox1.AddRow(lines)
+		Sub Loggit(line As String)
+		  Listbox1.AddRow(line)
+		  Listbox1.RowTag(Listbox1.LastIndex) = Left(Line, 3)
 		  Listbox1.ScrollPosition = Listbox1.LastIndex * Listbox1.RowHeight
 		End Sub
 	#tag EndMethod
@@ -963,6 +964,19 @@ End
 		    cp.Text = Me.Cell(Me.ListIndex, 0)
 		    cp.Close
 		  End Select
+		End Function
+	#tag EndEvent
+	#tag Event
+		Function CellBackgroundPaint(g As Graphics, row As Integer, column As Integer) As Boolean
+		  If row <= Me.LastIndex Then
+		    Dim tmp As String = Me.RowTag(Row)
+		    If IsNumeric(tmp.Trim) Then
+		      g.foreColor= &c0080FF99
+		    else
+		      g.foreColor= &c00FF4099
+		    end if
+		    g.FillRect 0,0,g.width,g.height
+		  End If
 		End Function
 	#tag EndEvent
 #tag EndEvents
@@ -1028,13 +1042,10 @@ End
 		End Function
 	#tag EndEvent
 	#tag Event
-		Sub ListResponse(ListData As MemoryBlock)
-		  If ListData <> Nil Then
-		    Dim listing() As FTPSocket.FTPListEntry = FTPSocket.ParseList(ListData.CString(0))
-		    For i As Integer = 0 To UBound(listing)
-		      loggit(listing(i).FileName, Str(listing(i).FileSize), Str(listing(i).OwnerPerms) + Str(listing(i).GroupPerms) + Str(listing(i).WorldPerms))
-		    Next
-		  End If
+		Sub ListResponse(Listing() As String)
+		  For i As Integer = 0 To UBound(listing)
+		    loggit(listing(i))
+		  Next
 		End Sub
 	#tag EndEvent
 	#tag Event

@@ -200,7 +200,6 @@ Inherits FTPSocket
 		    Select Case Code
 		    Case 230 'Logged in with pass
 		      LoginOK = True
-		      FTPLog("Ready")
 		      RaiseEvent Connected()
 		    Case 530  'USER not set!
 		      InsertVerb("USER", Me.Username)
@@ -274,7 +273,12 @@ Inherits FTPSocket
 		  Case "LIST", "NLST"
 		    Select Case Code
 		    Case 226 'Here comes the directory list
-		      ListResponse(ListBuffer)
+		      Dim s() As String = Split(ListBuffer.CString(0), CRLF)
+		      For i As Integer = UBound(s) DownTo 0
+		        If s(i).Trim = "" Or s(i).Trim = "." Or s(i).Trim = ".." Then s.Remove(i)
+		        
+		      Next
+		      ListResponse(s)
 		      ListBuffer = Nil
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
@@ -350,7 +354,6 @@ Inherits FTPSocket
 		      InsertVerb("USER", Me.Username)
 		    ElseIf Code = 421 Then  'Timeout
 		      Me.Close
-		      
 		    End If
 		  End Select
 		  If VerbDispatchTimer <> Nil Then VerbDispatchTimer.Mode = Timer.ModeMultiple
@@ -509,7 +512,7 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event ListResponse(ListData As MemoryBlock)
+		Event ListResponse(Listing() As String)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
