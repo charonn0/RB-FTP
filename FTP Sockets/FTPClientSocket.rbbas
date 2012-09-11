@@ -36,7 +36,7 @@ Inherits FTPSocket
 
 	#tag Event
 		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
-		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
+		  Return RaiseEvent TransferProgress(DataStream.Position * 100 / (DataLength))
 		End Function
 	#tag EndEvent
 
@@ -476,13 +476,9 @@ Inherits FTPSocket
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
 		      WriteData(DataStream.Read(64 * 1024))
-		      If RaiseEvent TransferProgress(DataStream.Position, DataStream.Length - DataStream.Position) Then
-		        DoVerb("ABOR")
-		      Else
-		        DataSocket.Flush
-		      End If
 		    End If
 		  Else
+		    DataSocket.Flush
 		    Sender.Mode = Timer.ModeOff
 		  End If
 		  
@@ -520,7 +516,7 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
+		Event TransferProgress(PercentComplete As Single) As Boolean
 	#tag EndHook
 
 

@@ -76,6 +76,10 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub CreateDataSocket(PASVParams As String = "")
+		  If DataSocket <> Nil Then
+		    If DataSocket.IsConnected Then DataSocket.Flush()
+		    DataSocket.Close
+		  End If
 		  DataSocket = New TCPSocket
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
@@ -99,15 +103,14 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub CreateDataStream(BackingFile As FolderItem)
-		  If BackingFile <> Nil Then
-		    mDataFile = BackingFile
-		    If Not DataFile.Exists Then
-		      DataStream = BinaryStream.Create(DataFile, True)
-		    Else
-		      DataStream = BinaryStream.Open(DataFile, False)
-		    End If
-		    mDataBuffer = Nil
+		  mDataFile = BackingFile
+		  If Not DataFile.Exists Then
+		    DataStream = BinaryStream.Create(DataFile, True)
+		  Else
+		    DataStream = BinaryStream.Open(DataFile, True)
 		  End If
+		  mDataBuffer = Nil
+		  
 		  DataLength = -1
 		End Sub
 	#tag EndMethod
@@ -362,11 +365,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Function Read() As String
 		  If Me.IsConnected Then
-		    Dim la As String
-		    While Me.Lookahead.LenB > 0
-		      la = la + Me.ReadAll
-		      App.YieldToNextThread
-		    Wend
+		    Dim la As String = Me.ReadAll
 		    Return la
 		  Else
 		    ErrorHandler(Me)
@@ -376,11 +375,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Function ReadData() As String
-		  Dim la As String
-		  While Me.Lookahead.LenB > 0
-		    la = la + DataSocket.ReadAll
-		    App.YieldToNextThread
-		  Wend
+		  Dim la As String = DataSocket.ReadAll
 		  Return la
 		End Function
 	#tag EndMethod

@@ -92,7 +92,7 @@ Begin Window Window1
       Top             =   299
       Value           =   0
       Visible         =   True
-      Width           =   600
+      Width           =   474
    End
    Begin TabPanel TabPanel1
       AutoDeactivate  =   True
@@ -121,7 +121,7 @@ Begin Window Window1
       TextUnit        =   0
       Top             =   325
       Underline       =   ""
-      Value           =   1
+      Value           =   0
       Visible         =   True
       Width           =   600
       Begin FTPServerSocket FTPServerSocket1
@@ -964,6 +964,40 @@ Begin Window Window1
          Width           =   60
       End
    End
+   Begin Label Label3
+      AutoDeactivate  =   True
+      Bold            =   ""
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Height          =   20
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   494
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Multiline       =   ""
+      Scope           =   0
+      Selectable      =   False
+      TabIndex        =   2
+      TabPanelIndex   =   0
+      Text            =   ""
+      TextAlign       =   0
+      TextColor       =   &h000000
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   299
+      Transparent     =   False
+      Underline       =   ""
+      Visible         =   True
+      Width           =   100
+   End
 End
 #tag EndWindow
 
@@ -1054,9 +1088,9 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
-		  Dim percent As Int64 = BytesSent * 100 / (BytesLeft + BytesSent)
-		  ProgressBar1.Value = percent * 2
+		Function TransferProgress(PercentComplete As Single) As Boolean
+		  ProgressBar1.Value = PercentComplete
+		  Label3.Text = Format(PercentComplete, "###,###,###,##0.00\%")
 		End Function
 	#tag EndEvent
 	#tag Event
