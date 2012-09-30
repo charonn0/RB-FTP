@@ -282,6 +282,7 @@ Inherits FTPSocket
 		      ListBuffer = Nil
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
+		    Case 150 'Connection accepted
 		    End Select
 		    
 		  Case "CDUP"
@@ -475,7 +476,7 @@ Inherits FTPSocket
 		  //Handles the FTPClientSocket.UploadDispatchTimer.Action event
 		  If DataStream <> Nil Then
 		    If Not DataStream.EOF Then
-		      WriteData(DataStream.Read(64 * 1024))
+		      WriteData(DataStream.Read(1024 * 1024))
 		    End If
 		  Else
 		    DataSocket.Flush

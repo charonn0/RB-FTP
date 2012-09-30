@@ -272,7 +272,7 @@ Begin Window Window1
          Width           =   56
       End
       Begin FTPClientSocket Client
-         Address         =   "mc.boredomsoft.org"
+         Address         =   "192.168.1.4"
          Anonymous       =   False
          Height          =   32
          Index           =   -2147483648
@@ -280,12 +280,12 @@ Begin Window Window1
          Left            =   562
          LockedInPosition=   False
          Passive         =   True
-         Password        =   "n9tgXMv9Xu"
-         Port            =   21
+         Password        =   "passwordtest"
+         Port            =   27
          Scope           =   0
          TabPanelIndex   =   1
          Top             =   398
-         Username        =   "ftpstore"
+         Username        =   "BSTest"
          Width           =   32
       End
       Begin TextField TextField2
