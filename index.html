@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Rb-ftp by charonn0</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/charonn0/RB-FTP">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/charonn0/RB-FTP/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/charonn0/RB-FTP/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Rb-ftp</h1>
+          <p>FTP client and server implementations in realbasic</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/charonn0">charonn0</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <p><strong>RB-FTP</strong> aims to provide easy-to-use FTP client and FTP server socket classes for <a href="http://www.realsoftware.com/download/">REALstudio</a> applications.</p>
+
+<h2>How This Project Is Organized</h2>
+
+<p>This project implements three main classes:</p>
+
+<h3><a href="https://github.com/charonn0/RB-FTP/blob/master/FTP%20Sockets/FTPSocket.rbbas">FTPSocket</a></h3>
+
+<p>This class provides the SuperClass for the other FTP classes. It manages both the control connection and the data connection for both client and server implementations.</p>
+
+<h3><a href="https://github.com/charonn0/RB-FTP/blob/master/FTP%20Sockets/FTPClientSocket.rbbas">FTPClientSocket</a></h3>
+
+<p>Inherits FTPSocket, provides a FTP client. This class provides a number of methods named after the FTP verb they perform. For example, to upload a file the <a href="https://github.com/charonn0/RB-FTP/blob/master/FTP%20Sockets/FTPClientSocket.rbbas#L439">STOR</a> method is called.</p>
+
+<h3><a href="https://github.com/charonn0/RB-FTP/blob/master/FTP%20Sockets/FTPServerSocket.rbbas">FTPServerSocket</a></h3>
+
+<p>Inherits FTPSocket, provides a FTP server. This class is incomplete, I would say it's about 50% of the way to working.</p>
+
+<h2>Project Status</h2>
+
+<p>At the moment, the FTPClientSocket class works and can upload and download files, change directory, etc. The only big thing left on the client socket is parsing LIST responses, which would probably go somewhere in the <a href="https://github.com/charonn0/RB-FTP/blob/master/FTP%20Sockets/FTPSocket.rbbas#L134">FTPSocket.DataAvailableHandler</a> method which handles the DataAvailable event of the data connection.</p>
+
+<p>Work on the FTPServerSocket class is still underway.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
