@@ -220,10 +220,6 @@ Inherits FTPSocket
 		    Select Case Code
 		    Case 150  'Ready
 		      WriteData(DataStream.Read(DataLength))
-		      'UploadDispatchTimer = New Timer
-		      'AddHandler UploadDispatchTimer.Action, AddressOf UploadDispatchHandler
-		      'UploadDispatchTimer.Period = 100
-		      'UploadDispatchTimer.Mode = Timer.ModeMultiple
 		      TransferInProgress = True
 		    Case 226  'Success
 		      TransferComplete()
@@ -469,23 +465,6 @@ Inherits FTPSocket
 		  Case EBCDICMode
 		    DoVerb("TYPE", "E")
 		  End Select
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
-		Private Sub UploadDispatchHandler(Sender As Timer)
-		  //Handles the FTPClientSocket.UploadDispatchTimer.Action event
-		  If DataStream <> Nil Then
-		    If Not DataStream.EOF Then
-		      WriteData(DataStream.Read(1024 * 1024))
-		    End If
-		  Else
-		    DataSocket.Flush
-		    Sender.Mode = Timer.ModeOff
-		  End If
-		  
-		Exception NilObjectException
-		  Sender.Mode = Timer.ModeOff
 		End Sub
 	#tag EndMethod
 
