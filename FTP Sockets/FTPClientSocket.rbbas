@@ -35,8 +35,8 @@ Inherits FTPSocket
 	#tag EndEvent
 
 	#tag Event
-		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
-		  Return RaiseEvent TransferProgress(DataStream.Position * 100 / (DataLength))
+		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  Return RaiseEvent TransferProgress(BytesSent * 100 / (BytesLeft + BytesSent))
 		End Function
 	#tag EndEvent
 
@@ -219,10 +219,11 @@ Inherits FTPSocket
 		  Case "STOR", "APPE"
 		    Select Case Code
 		    Case 150  'Ready
-		      UploadDispatchTimer = New Timer
-		      AddHandler UploadDispatchTimer.Action, AddressOf UploadDispatchHandler
-		      UploadDispatchTimer.Period = 100
-		      UploadDispatchTimer.Mode = Timer.ModeMultiple
+		      WriteData(DataStream.Read(DataLength))
+		      'UploadDispatchTimer = New Timer
+		      'AddHandler UploadDispatchTimer.Action, AddressOf UploadDispatchHandler
+		      'UploadDispatchTimer.Period = 100
+		      'UploadDispatchTimer.Mode = Timer.ModeMultiple
 		      TransferInProgress = True
 		    Case 226  'Success
 		      TransferComplete()
@@ -399,7 +400,7 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub REST(StartPosition As Int64 = 0)
+		Sub REST(StartPosition As Integer = 0)
 		  DoVerb("REST", Str(StartPosition))
 		End Sub
 	#tag EndMethod

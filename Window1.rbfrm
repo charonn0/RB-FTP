@@ -7,7 +7,7 @@ Begin Window Window1
    Frame           =   0
    FullScreen      =   False
    HasBackColor    =   False
-   Height          =   4.3e+2
+   Height          =   4.12e+2
    ImplicitInstance=   True
    LiveResize      =   True
    MacProcID       =   0
@@ -20,7 +20,7 @@ Begin Window Window1
    MinimizeButton  =   True
    MinWidth        =   64
    Placement       =   2
-   Resizeable      =   True
+   Resizeable      =   False
    Title           =   "BS FTP Prototype"
    Visible         =   True
    Width           =   6.0e+2
@@ -42,7 +42,7 @@ Begin Window Window1
       GridLinesVertical=   0
       HasHeading      =   False
       HeadingIndex    =   -1
-      Height          =   294
+      Height          =   256
       HelpTag         =   ""
       Hierarchical    =   ""
       Index           =   -2147483648
@@ -76,7 +76,7 @@ Begin Window Window1
    Begin ProgressBar ProgressBar1
       AutoDeactivate  =   True
       Enabled         =   True
-      Height          =   20
+      Height          =   13
       HelpTag         =   ""
       Index           =   -2147483648
       InitialParent   =   ""
@@ -89,10 +89,10 @@ Begin Window Window1
       Maximum         =   100
       Scope           =   0
       TabPanelIndex   =   0
-      Top             =   299
+      Top             =   258
       Value           =   0
       Visible         =   True
-      Width           =   474
+      Width           =   600
    End
    Begin TabPanel TabPanel1
       AutoDeactivate  =   True
@@ -119,7 +119,7 @@ Begin Window Window1
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   325
+      Top             =   307
       Underline       =   ""
       Value           =   0
       Visible         =   True
@@ -138,7 +138,7 @@ Begin Window Window1
          Scope           =   0
          TabPanelIndex   =   2
          TimeOutPeriod   =   60000
-         Top             =   369
+         Top             =   351
          Width           =   32
       End
       Begin PushButton PushButton13
@@ -167,7 +167,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   379
+         Top             =   361
          Underline       =   ""
          Visible         =   True
          Width           =   80
@@ -198,7 +198,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   385
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -231,7 +231,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   378
+         Top             =   360
          Transparent     =   False
          Underline       =   ""
          Visible         =   True
@@ -265,7 +265,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   357
+         Top             =   339
          Transparent     =   False
          Underline       =   ""
          Visible         =   True
@@ -284,7 +284,7 @@ Begin Window Window1
          Port            =   27
          Scope           =   0
          TabPanelIndex   =   1
-         Top             =   398
+         Top             =   380
          Username        =   "BSTest"
          Width           =   32
       End
@@ -325,7 +325,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          UseFocusRing    =   True
          Visible         =   True
@@ -368,7 +368,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   356
+         Top             =   338
          Underline       =   ""
          UseFocusRing    =   True
          Visible         =   True
@@ -400,7 +400,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   357
+         Top             =   339
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -431,7 +431,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -462,7 +462,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -493,7 +493,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -524,7 +524,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   357
+         Top             =   339
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -555,7 +555,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   385
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -586,7 +586,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   357
+         Top             =   339
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -617,7 +617,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   385
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -648,7 +648,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   357
+         Top             =   339
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -679,7 +679,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   385
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -710,7 +710,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   385
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -741,7 +741,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   357
+         Top             =   339
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -772,7 +772,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -803,7 +803,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   357
+         Top             =   339
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -834,7 +834,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -865,7 +865,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -896,7 +896,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   385
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -927,7 +927,7 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   380
+         Top             =   362
          Underline       =   ""
          Visible         =   True
          Width           =   60
@@ -958,15 +958,216 @@ Begin Window Window1
          TextFont        =   "System"
          TextSize        =   0
          TextUnit        =   0
-         Top             =   403
+         Top             =   385
          Underline       =   ""
          Visible         =   True
          Width           =   60
       End
    End
-   Begin Label Label3
+   Begin TextField Username
+      AcceptTabs      =   ""
+      Alignment       =   0
+      AutoDeactivate  =   True
+      AutomaticallyCheckSpelling=   False
+      BackColor       =   &hFFFFFF
+      Bold            =   ""
+      Border          =   True
+      CueText         =   ""
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Format          =   ""
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      Italic          =   ""
+      Left            =   0
+      LimitText       =   0
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Mask            =   ""
+      Password        =   ""
+      ReadOnly        =   ""
+      Scope           =   0
+      TabIndex        =   3
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "Username"
+      TextColor       =   &h000000
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   281
+      Underline       =   ""
+      UseFocusRing    =   True
+      Visible         =   True
+      Width           =   117
+   End
+   Begin TextField Password
+      AcceptTabs      =   ""
+      Alignment       =   0
+      AutoDeactivate  =   True
+      AutomaticallyCheckSpelling=   False
+      BackColor       =   &hFFFFFF
+      Bold            =   ""
+      Border          =   True
+      CueText         =   ""
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Format          =   ""
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      Italic          =   ""
+      Left            =   122
+      LimitText       =   0
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Mask            =   ""
+      Password        =   False
+      ReadOnly        =   ""
+      Scope           =   0
+      TabIndex        =   4
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "Password"
+      TextColor       =   &h000000
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   281
+      Underline       =   ""
+      UseFocusRing    =   True
+      Visible         =   True
+      Width           =   117
+   End
+   Begin TextField Address
+      AcceptTabs      =   ""
+      Alignment       =   0
+      AutoDeactivate  =   True
+      AutomaticallyCheckSpelling=   False
+      BackColor       =   &hFFFFFF
+      Bold            =   ""
+      Border          =   True
+      CueText         =   ""
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Format          =   ""
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      Italic          =   ""
+      Left            =   245
+      LimitText       =   0
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Mask            =   ""
+      Password        =   ""
+      ReadOnly        =   ""
+      Scope           =   0
+      TabIndex        =   5
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "ftp.address.com"
+      TextColor       =   &h000000
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   281
+      Underline       =   ""
+      UseFocusRing    =   True
+      Visible         =   True
+      Width           =   117
+   End
+   Begin TextField Port
+      AcceptTabs      =   ""
+      Alignment       =   0
+      AutoDeactivate  =   True
+      AutomaticallyCheckSpelling=   False
+      BackColor       =   &hFFFFFF
+      Bold            =   ""
+      Border          =   True
+      CueText         =   ""
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Format          =   ""
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      Italic          =   ""
+      Left            =   367
+      LimitText       =   0
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Mask            =   ""
+      Password        =   False
+      ReadOnly        =   ""
+      Scope           =   0
+      TabIndex        =   6
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   21
+      TextColor       =   &h000000
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   281
+      Underline       =   ""
+      UseFocusRing    =   True
+      Visible         =   True
+      Width           =   20
+   End
+   Begin CheckBox CheckBox1
       AutoDeactivate  =   True
       Bold            =   ""
+      Caption         =   "Anonymous"
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Height          =   20
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   ""
+      Left            =   392
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Scope           =   0
+      State           =   0
+      TabIndex        =   7
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0
+      TextUnit        =   0
+      Top             =   283
+      Underline       =   ""
+      Value           =   False
+      Visible         =   True
+      Width           =   98
+   End
+   Begin CheckBox CheckBox2
+      AutoDeactivate  =   True
+      Bold            =   ""
+      Caption         =   "Passive"
       DataField       =   ""
       DataSource      =   ""
       Enabled         =   True
@@ -981,20 +1182,17 @@ Begin Window Window1
       LockLeft        =   True
       LockRight       =   ""
       LockTop         =   True
-      Multiline       =   ""
       Scope           =   0
-      Selectable      =   False
-      TabIndex        =   2
+      State           =   1
+      TabIndex        =   8
       TabPanelIndex   =   0
-      Text            =   ""
-      TextAlign       =   0
-      TextColor       =   &h000000
+      TabStop         =   True
       TextFont        =   "System"
       TextSize        =   0
       TextUnit        =   0
-      Top             =   299
-      Transparent     =   False
+      Top             =   282
       Underline       =   ""
+      Value           =   True
       Visible         =   True
       Width           =   100
    End
@@ -1053,8 +1251,8 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Function TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
-		  Dim percent As Int64 = BytesSent * 100 / (BytesLeft + BytesSent)
+		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  Dim percent As Integer = BytesSent * 100 / (BytesLeft + BytesSent)
 		  ProgressBar1.Value = percent
 		End Function
 	#tag EndEvent
@@ -1090,7 +1288,6 @@ End
 	#tag Event
 		Function TransferProgress(PercentComplete As Single) As Boolean
 		  ProgressBar1.Value = PercentComplete
-		  Label3.Text = Format(PercentComplete, "###,###,###,##0.00\%")
 		End Function
 	#tag EndEvent
 	#tag Event
@@ -1159,6 +1356,10 @@ End
 #tag Events PushButton1
 	#tag Event
 		Sub Action()
+		  Client.Username = Username.Text
+		  Client.Password = Password.Text
+		  Client.Address = Address.Text
+		  Client.Port = Val(Port.Text)
 		  Client.Connect
 		End Sub
 	#tag EndEvent
@@ -1240,6 +1441,21 @@ End
 	#tag Event
 		Sub Action()
 		  Client.Quit
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events CheckBox1
+	#tag Event
+		Sub Action()
+		  Client.Anonymous = Me.Value
+		  FTPServerSocket1.Anonymous = Me.Value
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events CheckBox2
+	#tag Event
+		Sub Action()
+		  Client.Passive = Me.Value
 		End Sub
 	#tag EndEvent
 #tag EndEvents

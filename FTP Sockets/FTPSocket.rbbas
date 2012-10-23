@@ -460,7 +460,7 @@ Inherits TCPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferProgress(BytesSent As Int64, BytesLeft As Int64) As Boolean
+		Event TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
 	#tag EndHook
 
 
@@ -525,7 +525,7 @@ Inherits TCPSocket
 			  mDataLength = value
 			End Set
 		#tag EndSetter
-		Protected DataLength As Int64
+		Protected DataLength As Integer
 	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1
@@ -549,7 +549,7 @@ Inherits TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private mDataLength As Int64
+		Private mDataLength As Integer
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -623,7 +623,7 @@ Inherits TCPSocket
 		  OwnerPerms As Integer
 		  GroupPerms As Integer
 		  WorldPerms As Integer
-		  FileSize As Int64
+		  FileSize As Integer
 		Timestamp As String*64
 	#tag EndStructure
 
