@@ -30,7 +30,6 @@ Inherits FTPSocket
 		  DataStream.Close
 		  DataSocket.Close
 		  VerbDispatchTimer.Mode = Timer.ModeMultiple
-		  If UploadDispatchTimer <> Nil Then UploadDispatchTimer.Mode = Timer.ModeOff
 		End Sub
 	#tag EndEvent
 
@@ -534,10 +533,6 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h21
 		Private RNT As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private UploadDispatchTimer As Timer
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
