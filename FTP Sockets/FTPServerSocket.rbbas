@@ -40,7 +40,7 @@ Inherits FTPSocket
 		    Return ""
 		  End If
 		  Dim thelist As String = "." + CRLF + ".." + CRLF
-		  For i As Integer = 0 To Directory.Count - 1
+		  For i As Integer = 1 To Directory.Count
 		    Dim fsize, fname, fperms, fowner, fgroup, fmoddate As String
 		    fperms = "FOROWOXGRGWGXWRWWWX"
 		    fsize = Str(Directory.TrueItem(i).Length)
@@ -84,7 +84,8 @@ Inherits FTPSocket
 		    
 		    fmoddate = Directory.TrueItem(i).ModificationDate.ShortDate
 		    
-		    thelist = thelist + fperms + " 1 " + fowner + " " + fgroup + " " + fsize + " " + fmoddate + " " + fname + CRLF
+		    'thelist = thelist + fperms + " 1 " + fowner + " " + fgroup + " " + fsize + " " + fmoddate + " " + fname + CRLF
+		    thelist = thelist + fname + CRLF
 		  Next
 		  
 		  Return thelist
@@ -93,9 +94,9 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function FindFile(Name As String) As FolderItem
+		Protected Function FindDirectory(Name As String) As FolderItem
+		  If Name.Trim = "" Then Name = "/"
 		  Dim g As FolderItem
-		  If mWorkingDirectory = Nil Then mWorkingDirectory = App.ExecutableFile.Parent
 		  If Left(Name, 1) = "/" Then //relative to RootDirectory
 		    g = RootDirectory
 		    Name = Replace(Name, "/", "")
@@ -103,13 +104,8 @@ Inherits FTPSocket
 		    g = mWorkingDirectory
 		  End If
 		  
-		  Dim parts() As String = Split(Name, "/")
-		  For i As Integer = 0 To UBound(parts)
-		    If g.Child(parts(i)).Exists Then
-		      g = g.Child(parts(i))
-		    Else
-		      Return Nil
-		    End If
+		  For i As Integer = 1 To CountFields(Name, "/") - 1
+		    g = g.Child(NthField(Name, "/", i))
 		  Next
 		  
 		  If ChildOfParent(g, RootDirectory) Then
@@ -117,6 +113,19 @@ Inherits FTPSocket
 		  Else
 		    Return Nil
 		  End If
+		  
+		Exception NilObjectException
+		  Return Nil
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function FindFile(Name As String) As FolderItem
+		  Dim g As FolderItem = FindDirectory(Name)
+		  Dim file As String = NthField(Name, "/", CountFields(Name, "/"))
+		  If file.Trim = "" Then Return Nil
+		  g = g.Child(file)
+		  Return g
 		  
 		Exception NilObjectException
 		  Return Nil
@@ -181,23 +190,20 @@ Inherits FTPSocket
 		    End If
 		  Case "RETR"
 		    If LoginOK Then
-		      DataFile = GetFolderItem(RootDirectory.AbsolutePath + WorkingDirectory + Verb.Arguments)
-		      If DataFile <> Nil Then
-		        If DataFile.Exists And Not DataFile.Directory Then
-		          CreateDataStream(DataFile)
+		      If Me.IsDataConnected Then
+		        If DataBuffer <> Nil Then
 		          DoResponse(150)
-		          While Not DataStream.EOF
-		            WriteData(DataStream.Read(1024 * 64))
+		          While Not DataBuffer.EOF
+		            TransmitData(DataBuffer.Read(DataBuffer.Length))
 		            App.YieldToNextThread
 		          Wend
-		          DataSocket.Flush
 		          DoResponse(226)
-		          DataSocket.Close
+		          Me.CloseData()
 		        Else
 		          DoResponse(451) 'bad file
 		        End If
 		      Else
-		        DoResponse(451) 'bad file
+		        DoResponse(425) 'No data connection
 		      End If
 		    Else
 		      DoResponse(530)  'not logged in
@@ -208,10 +214,8 @@ Inherits FTPSocket
 		      If RootDirectory.Child(Verb.Arguments).Exists And Not AllowWrite Then
 		        DoResponse(450, "Filename taken.")
 		      Else
-		        DataFile = SpecialFolder.Temporary.Child(Verb.Arguments)
-		        CreateDataStream(DataFile)
+		        DoResponse(150) 'Ready
 		      End If
-		      DoResponse(150) 'Ready
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -232,14 +236,10 @@ Inherits FTPSocket
 		    End If
 		  Case "CWD", "XCWD"
 		    If LoginOK Then
-		      Dim g As FolderItem = FindFile(Verb.Arguments)
+		      Dim g As FolderItem = FindDirectory(Verb.Arguments)
 		      If g <> Nil Then
-		        If ChildOfParent(g, RootDirectory) Then
-		          mWorkingDirectory = g
-		          DoResponse(250)  'OK
-		        Else
-		          DoResponse(550)  'bad file
-		        End If
+		        mWorkingDirectory = g
+		        DoResponse(250)  'OK
 		      Else
 		        DoResponse(550)  'bad file
 		      End If
@@ -255,13 +255,13 @@ Inherits FTPSocket
 		    End If
 		  Case "LIST"
 		    If LoginOK Then
-		      If DataSocket <> Nil Then
+		      If Me.IsDataConnected Then
 		        Dim s As String = FileListing(FindFile(Verb.Arguments))
 		        If s.Trim <> "" Then
+		          DoResponse(150)
+		          TransmitData(s)
+		          Me.CloseData
 		          DoResponse(226)
-		          WriteData(s)
-		          DataSocket.Flush
-		          DataSocket.Close
 		        Else
 		          DoResponse(451, "No list.")
 		        End If
@@ -273,19 +273,23 @@ Inherits FTPSocket
 		    End If
 		  Case "CDUP"
 		    If LoginOK Then
-		      DoResponse(502)  'Not implemented FIXME
+		      If ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
+		        mWorkingDirectory = mWorkingDirectory.Parent
+		        DoResponse(250)
+		      Else
+		        DoResponse(550)
+		      End If
+		      'DoResponse(502)  'Not implemented FIXME
 		      ' 200  'OK
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
 		  Case "PASV"
 		    If LoginOK Then
-		      If DataSocket = Nil Then
-		        Me.PASVAddress = IPv4_to_PASV(Me.NetworkInterface.IPAddress, Me.Port + 1)
-		        DataSocket.Listen
-		        DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
-		      ElseIf Not DataSocket.IsConnected Then
-		        DataSocket.Listen
+		      If Not Me.IsDataConnected Then
+		        Dim rand As New Random
+		        Dim port As Integer = Rand.InRange(1024, 65534)
+		        Me.ListenData(port)
 		        DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
 		      Else
 		        DoResponse(125)  //already open
@@ -295,7 +299,7 @@ Inherits FTPSocket
 		    End If
 		  Case "REST"
 		    If LoginOK Then
-		      DataStream.Position = Val(Verb.Arguments)
+		      DataBuffer.Position = Val(Verb.Arguments)
 		      DoResponse(350)
 		    Else
 		      DoResponse(530)  'not logged in
@@ -303,9 +307,8 @@ Inherits FTPSocket
 		    
 		  Case "PORT"
 		    If LoginOK Then
-		      Me.PASVAddress = Verb.Arguments
 		      DoResponse(200, Verb.Arguments)
-		      DataSocket.Connect
+		      Me.ConnectData(Verb.Arguments)
 		    Else
 		      DoResponse(530)  'not logged in
 		    End If
@@ -363,6 +366,8 @@ Inherits FTPSocket
 		  Case "QUIT"
 		    DoResponse(221, "Bye.")
 		    Me.Close
+		  Case "NOOP" 'Keep alive; no operation
+		    DoResponse(200)
 		  Else
 		    DoResponse(500)  'syntax error or unknown verb
 		  End Select
@@ -554,7 +559,6 @@ Inherits FTPSocket
 		apply, that proxy's public statement of acceptance of any version is
 		permanent authorization for you to choose that version for the
 		Library.
-		
 	#tag EndNote
 
 
@@ -564,6 +568,10 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h0
 		Banner As String = "Welcome to BSFTPd!"
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected DataBuffer As BinaryStream
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -581,6 +589,7 @@ Inherits FTPSocket
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
+			  If mRootDirectory = Nil Then mRootDirectory = App.ExecutableFile.Parent
 			  return mRootDirectory
 			End Get
 		#tag EndGetter
@@ -610,6 +619,17 @@ Inherits FTPSocket
 			  End If
 			End Get
 		#tag EndGetter
+		#tag Setter
+			Set
+			  Dim g As FolderItem = FindDirectory(value)
+			  If g = Nil Then g = RootDirectory
+			  If ChildOfParent(g, RootDirectory) Then
+			    mWorkingDirectory = g
+			  Else
+			    mWorkingDirectory = mRootDirectory
+			  End If
+			End Set
+		#tag EndSetter
 		WorkingDirectory As String
 	#tag EndComputedProperty
 

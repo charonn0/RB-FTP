@@ -27,8 +27,7 @@ Inherits FTPSocket
 	#tag Event
 		Sub TransferComplete(UserAborted As Boolean)
 		  #pragma Unused UserAborted
-		  DataStream.Close
-		  DataSocket.Close
+		  Me.CloseData
 		  VerbDispatchTimer.Mode = Timer.ModeMultiple
 		End Sub
 	#tag EndEvent
@@ -50,7 +49,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub APPE(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
-		  CreateDataStream(LocalFile)
+		  DataBuffer = BinaryStream.Open(LocalFile)
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
@@ -135,8 +134,7 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
-		  ListBuffer = New MemoryBlock(64 * 1024)
-		  CreateDataStream(ListBuffer)
+		  Dim mb As New MemoryBlock(64 * 1024)
 		  DoVerb("LIST", TargetDirectory)
 		End Sub
 	#tag EndMethod
@@ -162,8 +160,6 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
-		  ListBuffer = New MemoryBlock(64 * 1024)
-		  CreateDataStream(ListBuffer)
 		  DoVerb("NLST", TargetDirectory)
 		End Sub
 	#tag EndMethod
@@ -208,21 +204,22 @@ Inherits FTPSocket
 		    Case 150 'About to start data transfer
 		      Dim size As String = NthField(msg, "(", 2)
 		      size = NthField(size, ")", 1)
-		      DataLength = Val(size)
 		    Case 425, 426 'Data connection not ready
 		    Case 451, 551 'Disk read error
 		    Case 226 'Done
+		      DataBuffer.Write(Me.GetData)
+		      DataBuffer.Close
 		      TransferComplete()
 		    End Select
 		    
 		  Case "STOR", "APPE"
 		    Select Case Code
 		    Case 150  'Ready
-		      WriteData(DataStream.Read(DataLength))
+		      Me.TransmitData(DataBuffer.Read(DataBuffer.Length))
 		      TransferInProgress = True
 		    Case 226  'Success
 		      TransferComplete()
-		      DataSocket.Close
+		      Me.CloseData
 		    Case 425  'No data connection!
 		      Dim lv, la As String
 		      lv = LastVerb.Verb
@@ -269,13 +266,13 @@ Inherits FTPSocket
 		  Case "LIST", "NLST"
 		    Select Case Code
 		    Case 226 'Here comes the directory list
-		      Dim s() As String = Split(ListBuffer.CString(0), CRLF)
+		      Dim s() As String = Split(Me.GetData(), CRLF)
 		      For i As Integer = UBound(s) DownTo 0
 		        If s(i).Trim = "" Or s(i).Trim = "." Or s(i).Trim = ".." Then s.Remove(i)
 		        
 		      Next
 		      ListResponse(s)
-		      ListBuffer = Nil
+		      DataBuffer = Nil
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
 		    Case 150 'Connection accepted
@@ -288,13 +285,12 @@ Inherits FTPSocket
 		    
 		  Case "PASV"
 		    If Code = 227 Then 'Entering Passive Mode <h1,h2,h3,h4,p1,p2>.
-		      Me.PASVAddress = msg
-		      DataSocket.Connect
+		      Me.ConnectData(msg)
 		    End If
 		    
 		  Case "REST"
 		    If Code = 350 Then
-		      DataStream.Position = Val(LastVerb.Arguments)
+		      DataBuffer.Position = Val(LastVerb.Arguments)
 		    End If
 		    
 		  Case "PORT"
@@ -368,8 +364,7 @@ Inherits FTPSocket
 		Sub PORT(PortNumber As Integer)
 		  'You must call either PASV or PORT before transferring anything over the DataSocket
 		  'Data port.
-		  Me.PASVAddress = IPv4_to_PASV(Me.NetworkInterface.IPAddress, PortNumber)
-		  DataSocket.Listen()
+		  Me.ListenData(PortNumber)
 		  DoVerb("PORT", Me.PASVAddress)
 		End Sub
 	#tag EndMethod
@@ -402,13 +397,13 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub RETR(RemoteFileName As String, SaveTo As FolderItem, Mode As Integer = 1)
-		  DataFile = SaveTo
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
+		  DataBuffer = BinaryStream.Create(SaveTo, True)
 		  DoVerb("RETR", RemoteFileName)
 		End Sub
 	#tag EndMethod
@@ -433,13 +428,13 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h0
 		Sub STOR(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
-		  CreateDataStream(LocalFile)
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
+		  DataBuffer = BinaryStream.Open(LocalFile)
 		  DoVerb("STOR", RemoteFileName)
 		End Sub
 	#tag EndMethod
@@ -677,7 +672,6 @@ Inherits FTPSocket
 		apply, that proxy's public statement of acceptance of any version is
 		permanent authorization for you to choose that version for the
 		Library.
-		
 	#tag EndNote
 
 	#tag Note, Name = FTPClientSocket Notes
@@ -692,11 +686,11 @@ Inherits FTPSocket
 
 
 	#tag Property, Flags = &h1
-		Protected LastVerb As FTPVerb
+		Protected DataBuffer As BinaryStream
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected ListBuffer As MemoryBlock
+		Protected LastVerb As FTPVerb
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

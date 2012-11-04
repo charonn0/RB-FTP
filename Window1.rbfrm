@@ -281,7 +281,7 @@ Begin Window Window1
          LockedInPosition=   False
          Passive         =   True
          Password        =   "passwordtest"
-         Port            =   27
+         Port            =   21
          Scope           =   0
          TabPanelIndex   =   1
          Top             =   380

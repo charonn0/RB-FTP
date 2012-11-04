@@ -37,7 +37,7 @@ Inherits TCPSocket
 		  
 		  If Not Parent.Directory Then Return False
 		  While Child.Parent <> Nil
-		    If Child.Parent.AbsolutePath = Parent.AbsolutePath Then
+		    If Child.Parent.AbsolutePath = Parent.AbsolutePath Or Child.AbsolutePath = Parent.AbsolutePath Then
 		      Return True
 		    End If
 		    Child = Child.Parent
@@ -52,18 +52,22 @@ Inherits TCPSocket
 		  ServerType = ""
 		  TransferInProgress = False
 		  TransferMode = 0
-		  DataLength = -1
 		  
 		  If DataSocket <> Nil Then
-		    DataSocket.Close
+		    Me.CloseData
 		    DataSocket = Nil
 		  End If
 		  
-		  If DataStream <> Nil Then
-		    DataStream.Close
-		  End If
-		  
 		  Super.Close()
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub CloseData()
+		  If DataSocket <> Nil Then
+		    DataSocket.Flush()
+		    Me.DataSocket.Close()
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -74,13 +78,21 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Sub ConnectData(PASVparams As String)
+		  Me.CreateDataSocket(PASVparams)
+		  Me.DataSocket.Connect()
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
-		Private Sub CreateDataSocket(PASVParams As String = "")
+		Private Sub CreateDataSocket(PASVParams As String)
 		  If DataSocket <> Nil Then
 		    If DataSocket.IsConnected Then DataSocket.Flush()
-		    DataSocket.Close
+		    Me.CloseData
 		  End If
 		  DataSocket = New TCPSocket
+		  DataSocket.NetworkInterface = Self.NetworkInterface
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
 		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
@@ -95,32 +107,10 @@ Inherits TCPSocket
 		    DataSocket.Address = ipv4
 		    DataSocket.Port = dport
 		  Else
+		    Dim rand As New Random
 		    DataSocket.Address = Me.NetworkInterface.IPAddress
-		    DataSocket.Port = Me.Port + 1
+		    DataSocket.Port = Rand.InRange(1025, 65534)
 		  End If
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Sub CreateDataStream(BackingFile As FolderItem)
-		  mDataFile = BackingFile
-		  If Not DataFile.Exists Then
-		    DataStream = BinaryStream.Create(DataFile, True)
-		  Else
-		    DataStream = BinaryStream.Open(DataFile, True)
-		  End If
-		  mDataBuffer = Nil
-		  
-		  DataLength = -1
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Sub CreateDataStream(Buffer As MemoryBlock)
-		  mDataBuffer = Buffer
-		  DataStream = New BinaryStream(DataBuffer)
-		  mDataFile = Nil
-		  DataLength = -1
 		End Sub
 	#tag EndMethod
 
@@ -134,13 +124,8 @@ Inherits TCPSocket
 		Private Sub DataAvailableHandler(Sender As TCPSocket)
 		  'Handles DataSocket.DataAvailable
 		  Dim s As String = Sender.ReadAll
-		  If RaiseEvent TransferProgress(DataStream.Position + s.LenB, DataLength) Then
-		    Write("ABOR" + CRLF)
-		    TransferInProgress = False
-		  Else
-		    DataStream.Write(s)
-		    TransferInProgress = True
-		  End If
+		  DataReadBuffer = DataReadBuffer + s
+		  TransferInProgress = True
 		End Sub
 	#tag EndMethod
 
@@ -314,6 +299,14 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Function GetData() As String
+		  Dim s As String = DataReadBuffer
+		  DataReadBuffer = ""
+		  Return s
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Shared Function IPv4_to_PASV(IPv4 As String, Port As Integer) As String
 		  Dim p1, p2 As Integer
 		  Dim h1, h2, h3, h4 As String
@@ -328,6 +321,12 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Function IsDataConnected() As Boolean
+		  If DataSocket <> Nil Then Return DataSocket.IsConnected
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Sub Listen()
 		  If Me.NetworkInterface = Nil Then Me.NetworkInterface = System.GetNetworkInterface(0)
 		  Super.Listen()
@@ -335,10 +334,27 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Sub ListenData(Port As Integer)
+		  Dim PASVparams As String = IPv4_to_PASV(Me.NetworkInterface.IPAddress, Port)
+		  CreateDataSocket(PASVparams)
+		  DataSocket.Listen()
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Shared Function PASV_to_IPv4(PASVParams As String) As String
 		  Dim p1, p2 As Integer
 		  Dim h1, h2, h3, h4 As String
-		  h1 = NthField(NthField(PASVParams, ",", 1), "(", 2)
+		  PASVParams = NthField(PASVParams, " ", CountFields(PASVParams, " "))
+		  PASVParams = Replace(PASVParams, "(", "")
+		  PASVParams = Replace(PASVParams, ")", "")
+		  PASVParams = Replace(PASVParams, "{", "")
+		  PASVParams = Replace(PASVParams, "}", "")
+		  PASVParams = Replace(PASVParams, "[", "")
+		  PASVParams = Replace(PASVParams, "]", "")
+		  PASVParams = Replace(PASVParams, "<", "")
+		  PASVParams = Replace(PASVParams, ">", "")
+		  h1 = NthField(PASVParams, ",", 1)
 		  h2 = NthField(PASVParams, ",", 2)
 		  h3 = NthField(PASVParams, ",", 3)
 		  h4 = NthField(PASVParams, ",", 4)
@@ -373,18 +389,10 @@ Inherits TCPSocket
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Function ReadData() As String
-		  Dim la As String = DataSocket.ReadAll
-		  Return la
-		End Function
-	#tag EndMethod
-
 	#tag Method, Flags = &h21
 		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
 		  'Handles DataSocket.SendComplete
 		  #pragma Unused Sender
-		  If DataStream.Position < DataStream.Length Then Return
 		  TransferInProgress = False
 		  RaiseEvent TransferComplete(UserAborted)
 		End Sub
@@ -395,6 +403,7 @@ Inherits TCPSocket
 		  'Handles DataSocket.SendProgress
 		  #pragma Unused Sender
 		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
+		  
 		End Function
 	#tag EndMethod
 
@@ -429,6 +438,13 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Sub TransmitData(Data As String)
+		  Me.DataSocket.Write(Data)
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Sub Write(Command As String)
 		  If Me.IsConnected Then
 		    Super.Write(Command)
@@ -436,13 +452,6 @@ Inherits TCPSocket
 		  Else
 		    ErrorHandler(Me)
 		  End If
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Sub WriteData(Data As String)
-		  DataSocket.Write(Data)
-		  
 		End Sub
 	#tag EndMethod
 
@@ -641,7 +650,6 @@ Inherits TCPSocket
 		apply, that proxy's public statement of acceptance of any version is
 		permanent authorization for you to choose that version for the
 		Library.
-		
 	#tag EndNote
 
 	#tag Note, Name = FTPSocket Notes
@@ -661,75 +669,16 @@ Inherits TCPSocket
 		Anonymous As Boolean = False
 	#tag EndProperty
 
-	#tag ComputedProperty, Flags = &h21
-		#tag Getter
-			Get
-			  return mDataBuffer
-			End Get
-		#tag EndGetter
-		#tag Setter
-			Set
-			  CreateDataStream(value)
-			  
-			End Set
-		#tag EndSetter
-		Private DataBuffer As MemoryBlock
-	#tag EndComputedProperty
-
-	#tag ComputedProperty, Flags = &h1
-		#tag Getter
-			Get
-			  return mDataFile
-			End Get
-		#tag EndGetter
-		#tag Setter
-			Set
-			  CreateDataStream(value)
-			End Set
-		#tag EndSetter
-		Protected DataFile As FolderItem
-	#tag EndComputedProperty
-
-	#tag ComputedProperty, Flags = &h1
-		#tag Getter
-			Get
-			  If mDataLength = -1 Then
-			    Return DataStream.Length
-			  Else
-			    return mDataLength
-			  End If
-			End Get
-		#tag EndGetter
-		#tag Setter
-			Set
-			  mDataLength = value
-			End Set
-		#tag EndSetter
-		Protected DataLength As Integer
-	#tag EndComputedProperty
-
-	#tag Property, Flags = &h1
-		Protected DataSocket As TCPSocket
+	#tag Property, Flags = &h21
+		Private DataReadBuffer As String
 	#tag EndProperty
 
-	#tag Property, Flags = &h1
-		Protected DataStream As BinaryStream
+	#tag Property, Flags = &h21
+		Private DataSocket As TCPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
 		Protected LoginOK As Boolean
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private mDataBuffer As MemoryBlock
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private mDataFile As FolderItem
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private mDataLength As Integer
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -743,7 +692,7 @@ Inherits TCPSocket
 	#tag ComputedProperty, Flags = &h1
 		#tag Getter
 			Get
-			  If DataSocket = Nil Then CreateDataSocket()
+			  If DataSocket = Nil Then CreateDataSocket("")
 			  Return IPv4_to_PASV(DataSocket.NetworkInterface.IPAddress, DataSocket.Port)
 			End Get
 		#tag EndGetter
