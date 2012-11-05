@@ -5,7 +5,7 @@ Inherits FTPSocket
 		Sub Connected()
 		  FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
 		  InactivityTimer.Mode = Timer.ModeMultiple
-		  DoResponse(221, Banner)
+		  DoResponse(220, Banner)
 		End Sub
 	#tag EndEvent
 
@@ -20,6 +20,12 @@ Inherits FTPSocket
 		Sub Disconnected()
 		  FTPLog("Remote host closed the connection.")
 		  Me.Close
+		End Sub
+	#tag EndEvent
+
+	#tag Event
+		Sub TransferComplete(UserAborted As Boolean)
+		  Me.CloseData()
 		End Sub
 	#tag EndEvent
 
@@ -256,7 +262,7 @@ Inherits FTPSocket
 		  Case "LIST"
 		    If LoginOK Then
 		      If Me.IsDataConnected Then
-		        Dim s As String = FileListing(FindFile(Verb.Arguments))
+		        Dim s As String = FileListing(FindDirectory(Verb.Arguments))
 		        If s.Trim <> "" Then
 		          DoResponse(150)
 		          TransmitData(s)

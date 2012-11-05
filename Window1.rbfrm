@@ -121,7 +121,7 @@ Begin Window Window1
       TextUnit        =   0
       Top             =   307
       Underline       =   ""
-      Value           =   0
+      Value           =   1
       Visible         =   True
       Width           =   600
       Begin FTPServerSocket FTPServerSocket1
