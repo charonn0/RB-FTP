@@ -41,61 +41,24 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h1
 		Protected Function FileListing(Directory As FolderItem) As String
-		  If Directory = Nil Then
-		    DoResponse(451, "That directory does not exist.")
-		    Return ""
-		  End If
-		  Dim thelist As String = "." + CRLF + ".." + CRLF
+		  'http://cr.yp.to/ftp/list/eplf.html
+		  Dim listing As String = Encodings.ASCII.Chr(&o053)
+		  
 		  For i As Integer = 1 To Directory.Count
-		    Dim fsize, fname, fperms, fowner, fgroup, fmoddate As String
-		    fperms = "FOROWOXGRGWGXWRWWWX"
-		    fsize = Str(Directory.TrueItem(i).Length)
-		    fname =  Directory.TrueItem(i).Name
-		    
-		    If Directory.TrueItem(i).IsReadable Then
-		      fperms = Replace(fperms, "OR", "r")
-		      fperms = Replace(fperms, "GR", "r")
-		      fperms = Replace(fperms, "WR", "r")
-		    Else
-		      fperms = Replace(fperms, "OR", "-")
-		      fperms = Replace(fperms, "GR", "-")
-		      fperms = Replace(fperms, "WR", "-")
+		    Dim item As FolderItem = Directory.Item(i)
+		    If item.IsReadable Then
+		      listing = listing + "r,"
 		    End If
 		    
-		    If Directory.TrueItem(i).IsWriteable Then
-		      fperms = Replace(fperms, "OW", "w")
-		      fperms = Replace(fperms, "GW", "w")
-		      fperms = Replace(fperms, "WW", "w")
+		    If Item.Directory Then
+		      listing = listing + "/,"
 		    Else
-		      fperms = Replace(fperms, "OW", "-")
-		      fperms = Replace(fperms, "GW", "-")
-		      fperms = Replace(fperms, "WW", "-")
+		      listing = listing + "s" + Str(item.Length) + ","
 		    End If
-		    
-		    If Directory.TrueItem(i).Directory Then
-		      fperms = Replace(fperms, "F", "D")
-		    Else
-		      fperms = Replace(fperms, "F", "-")
-		    End If
-		    
-		    If Directory.TrueItem(i).IsWriteable And Directory.TrueItem(i).IsReadable Then
-		      fperms = Replace(fperms, "OX", "x")
-		      fperms = Replace(fperms, "GX", "x")
-		      fperms = Replace(fperms, "WX", "x")
-		    Else
-		      fperms = Replace(fperms, "OX", "-")
-		      fperms = Replace(fperms, "GX", "-")
-		      fperms = Replace(fperms, "WX", "-")
-		    End If
-		    
-		    fmoddate = Directory.TrueItem(i).ModificationDate.ShortDate
-		    
-		    'thelist = thelist + fperms + " 1 " + fowner + " " + fgroup + " " + fsize + " " + fmoddate + " " + fname + CRLF
-		    thelist = thelist + fname + CRLF
+		    listing = listing + Encodings.ASCII.Chr(&o011) + Item.Name + CRLF
 		  Next
 		  
-		  Return thelist
-		  
+		  Return listing
 		End Function
 	#tag EndMethod
 
@@ -110,9 +73,11 @@ Inherits FTPSocket
 		    g = mWorkingDirectory
 		  End If
 		  
-		  For i As Integer = 1 To CountFields(Name, "/") - 1
-		    g = g.Child(NthField(Name, "/", i))
-		  Next
+		  If Name.Trim <> "" Then
+		    For i As Integer = 1 To CountFields(Name, "/") - 1
+		      g = g.Child(NthField(Name, "/", i))
+		    Next
+		  End If
 		  
 		  If ChildOfParent(g, RootDirectory) Then
 		    Return g
@@ -159,43 +124,51 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub ParseVerb(Data As String)
-		  Dim Verb As FTPVerb
+		  Dim vb, args As String
 		  If InStr(Data, " ") > 0 Then
-		    Verb.Verb = NthField(Data, " ", 1)
-		    Verb.Arguments = Data.Replace(Verb.Verb + " ", "")
+		    vb = NthField(Data, " ", 1)
+		    args = Data.Replace(vb + " ", "")
 		  Else
-		    Verb.Verb = Data
+		    vb = Data
 		  End If
 		  
-		  FTPLog(Verb.Verb + " " + Verb.Arguments)
+		  FTPLog(vb + " " + args)
 		  InactivityTimer.Reset()
-		  Select Case Verb.Verb.Trim
-		  Case "USER"
-		    Username = Verb.Arguments.Trim
-		    If Me.Anonymous And Username = "anonymous" Then
-		      DoResponse(331, "Anonymous login OK, send e-mail address as password.")
-		    Else
-		      DoResponse(331) 'Need PASS
-		    End If
-		    
-		  Case "PASS"
-		    Password = Verb.Arguments.Trim
-		    If Username.Trim = "" Then
-		      DoResponse(530)  'USER not set!
-		    ElseIf Me.Anonymous And Username = "anonymous" Then
-		      Call UserLogon(Username, Password)  'anon users passwords don't matter
-		      DoResponse(230) 'Logged in with pass
-		      LoginOK = True
-		    Else
-		      If UserLogon(Username, Password) Then
+		  
+		  If LoginOK Or vb = "USER" Or vb = "PASS" Then
+		    Select Case vb.Trim
+		    Case "USER"
+		      
+		      Username = args.Trim
+		      If Me.Anonymous And Username = "anonymous" Then
+		        DoResponse(331, "Anonymous login OK, send e-mail address as password.")
+		      Else
+		        DoResponse(331) 'Need PASS
+		        LoginOK = False
+		      End If
+		      
+		    Case "PASS"
+		      
+		      Password = args.Trim
+		      If Username.Trim = "" Then
+		        DoResponse(530)  'USER not set!
+		        LoginOK = False
+		      ElseIf Me.Anonymous And Username = "anonymous" Then
+		        Call UserLogon(Username, Password)  'anon users passwords don't matter
 		        DoResponse(230) 'Logged in with pass
 		        LoginOK = True
 		      Else
-		        DoResponse(530) 'Bad password!
+		        If UserLogon(Username, Password) Then
+		          DoResponse(230) 'Logged in with pass
+		          LoginOK = True
+		        Else
+		          DoResponse(530) 'Bad password!
+		          LoginOK = False
+		        End If
 		      End If
-		    End If
-		  Case "RETR"
-		    If LoginOK Then
+		      
+		    Case "RETR"
+		      
 		      If Me.IsDataConnected Then
 		        If DataBuffer <> Nil Then
 		          DoResponse(150)
@@ -211,87 +184,68 @@ Inherits FTPSocket
 		      Else
 		        DoResponse(425) 'No data connection
 		      End If
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "STOR"
-		    If LoginOK Then
-		      If RootDirectory.Child(Verb.Arguments).Exists And Not AllowWrite Then
+		      
+		    Case "STOR"
+		      
+		      If RootDirectory.Child(args).Exists And Not AllowWrite Then
 		        DoResponse(450, "Filename taken.")
 		      Else
 		        DoResponse(150) 'Ready
 		      End If
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "FEAT"
-		    If LoginOK Then
+		      
+		    Case "FEAT"
+		      
 		      Me.Write("211-Features:" + CRLF + " PASV" + CRLF)
 		      DoResponse(211, "End")
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "SYST"
-		    If LoginOK Then
+		      
+		    Case "SYST"
+		      
 		      'We'll claim to be UNIX even if we aren't
 		      DoResponse(215, "UNIX Type: L8")
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "CWD", "XCWD"
-		    If LoginOK Then
-		      Dim g As FolderItem = FindDirectory(Verb.Arguments)
+		      
+		    Case "CWD", "XCWD"
+		      
+		      Dim g As FolderItem = FindDirectory(args)
 		      If g <> Nil Then
 		        mWorkingDirectory = g
 		        DoResponse(250)  'OK
 		      Else
 		        DoResponse(550)  'bad file
 		      End If
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "PWD"
-		    If LoginOK Then
+		      
+		    Case "PWD"
+		      
 		      DoResponse(257, """" + WorkingDirectory + """")
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "LIST"
-		    If LoginOK Then
+		      
+		    Case "LIST"
+		      
 		      If Me.IsDataConnected Then
-		        Dim s As String = FileListing(FindDirectory(Verb.Arguments))
+		        Dim dir As FolderItem = FindDirectory(args)
+		        If dir = Nil Then dir = Me.mWorkingDirectory
+		        Dim s As String = FileListing(dir)
 		        If s.Trim <> "" Then
 		          DoResponse(150)
 		          TransmitData(s)
 		          Me.CloseData
 		          DoResponse(226)
 		        Else
-		          DoResponse(451, "No list.")
+		          DoResponse(550, "That directory does not exist.")
 		        End If
 		      Else
 		        DoResponse(425) //no connection
 		      End If
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "CDUP"
-		    If LoginOK Then
+		      
+		    Case "CDUP"
+		      
 		      If ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
 		        mWorkingDirectory = mWorkingDirectory.Parent
 		        DoResponse(250)
 		      Else
 		        DoResponse(550)
 		      End If
-		      'DoResponse(502)  'Not implemented FIXME
-		      ' 200  'OK
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "PASV"
-		    If LoginOK Then
+		      
+		    Case "PASV"
+		      
 		      If Not Me.IsDataConnected Then
 		        Dim rand As New Random
 		        Dim port As Integer = Rand.InRange(1024, 65534)
@@ -300,28 +254,20 @@ Inherits FTPSocket
 		      Else
 		        DoResponse(125)  //already open
 		      End If
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "REST"
-		    If LoginOK Then
-		      DataBuffer.Position = Val(Verb.Arguments)
+		      
+		    Case "REST"
+		      
+		      DataBuffer.Position = Val(args)
 		      DoResponse(350)
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "PORT"
-		    If LoginOK Then
-		      DoResponse(200, Verb.Arguments)
-		      Me.ConnectData(Verb.Arguments)
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "TYPE"
-		    If LoginOK Then
-		      Select Case Verb.Arguments.Trim
+		      
+		    Case "PORT"
+		      
+		      DoResponse(200, args)
+		      Me.ConnectData(args)
+		      
+		    Case "TYPE"
+		      
+		      Select Case args.Trim
 		      Case "A", "A N"
 		        Me.TransferMode = ASCIIMode
 		        DoResponse(200)
@@ -331,53 +277,44 @@ Inherits FTPSocket
 		      Else
 		        DoResponse(504) 'Command not implemented for param
 		      End Select
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "MKD"
-		    If LoginOK Then
-		      DoResponse(502)  'Not implemented FIXME
-		      ' 257
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "RMD"
-		    If LoginOK Then
+		      
+		    Case "MKD"
+		      
 		      DoResponse(502)  'Not implemented FIXME
 		      
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		    
-		  Case "DELE"
-		    If LoginOK Then
+		    Case "RMD"
+		      
 		      DoResponse(502)  'Not implemented FIXME
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "RNFR"
-		    If LoginOK Then
+		      
+		    Case "DELE"
+		      
 		      DoResponse(502)  'Not implemented FIXME
-		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "RNTO"
-		    If LoginOK Then
+		      
+		    Case "RNFR"
+		      
 		      DoResponse(502)  'Not implemented FIXME
+		      
+		    Case "RNTO"
+		      
+		      DoResponse(502)  'Not implemented FIXME
+		      
+		    Case "QUIT"
+		      
+		      DoResponse(221, "Bye.")
+		      Me.Close
+		      
+		    Case "NOOP" 'Keep alive; no operation
+		      
+		      DoResponse(200)
+		      
 		    Else
-		      DoResponse(530)  'not logged in
-		    End If
-		  Case "QUIT"
-		    DoResponse(221, "Bye.")
-		    Me.Close
-		  Case "NOOP" 'Keep alive; no operation
-		    DoResponse(200)
+		      
+		      DoResponse(500)  'syntax error or unknown verb
+		      
+		    End Select
 		  Else
-		    DoResponse(500)  'syntax error or unknown verb
-		  End Select
-		  
+		    DoResponse(530)  'not logged in
+		  End If
 		  
 		End Sub
 	#tag EndMethod
