@@ -45,17 +45,30 @@ Inherits FTPSocket
 		  Dim listing As String = Encodings.ASCII.Chr(&o053)
 		  
 		  For i As Integer = 1 To Directory.Count
-		    Dim item As FolderItem = Directory.Item(i)
-		    If item.IsReadable Then
+		    If Directory.Item(i).IsReadable Then
 		      listing = listing + "r,"
 		    End If
 		    
-		    If Item.Directory Then
+		    If Directory.Item(i).Directory Then
 		      listing = listing + "/,"
 		    Else
-		      listing = listing + "s" + Str(item.Length) + ","
+		      listing = listing + "s" + Str(Directory.Item(i).Length) + ","
 		    End If
-		    listing = listing + Encodings.ASCII.Chr(&o011) + Item.Name + CRLF
+		    
+		    Dim epoch As New Date(1970, 1, 1, 0, 0, 0, 0) 'UNIX epoch
+		    Dim filetime As Date = Directory.Item(i).ModificationDate
+		    filetime.GMTOffset = 0
+		    listing = listing + "m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ","
+		    #If TargetMacOS Or TargetLinux Then
+		      listing = listing + "UP" + Format(Directory(i).Permissions, "000") + ","
+		    #Else
+		      Dim p As Integer
+		      If Directory.Item(i).IsReadable Then p = p + 4
+		      If Directory.Item(i).IsWriteable Then p = p + 2
+		      p = p + 1 'executable
+		      listing = listing + "UP" + Str(p) + Str(p) + Str(p)
+		    #endif
+		    listing = listing + Encodings.ASCII.Chr(&o011) + Directory.Item(i).Name + CRLF
 		  Next
 		  
 		  Return listing
@@ -85,7 +98,7 @@ Inherits FTPSocket
 		    Return Nil
 		  End If
 		  
-		Exception NilObjectException
+		Exception Err As NilObjectException
 		  Return Nil
 		End Function
 	#tag EndMethod
@@ -98,7 +111,7 @@ Inherits FTPSocket
 		  g = g.Child(file)
 		  Return g
 		  
-		Exception NilObjectException
+		Exception Err As NilObjectException
 		  Return Nil
 		End Function
 	#tag EndMethod
@@ -120,6 +133,16 @@ Inherits FTPSocket
 		  InactivityTimer.Period = TimeOutPeriod
 		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
 		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function NameListing(Directory As FolderItem) As String
+		  Dim listing As String
+		  For i As Integer = 1 To Directory.Count
+		    listing = listing + Directory.Item(i).Name + CRLF
+		  Next
+		  Return listing
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
@@ -288,15 +311,76 @@ Inherits FTPSocket
 		      
 		    Case "DELE"
 		      
-		      DoResponse(502)  'Not implemented FIXME
+		      If Not AllowWrite Then
+		        DoResponse(450, "Permission denied.")
+		        Return
+		      End If
+		      
+		      Dim g As FolderItem
+		      If args.Trim <> "" Then
+		        g = FindFile(args)
+		      End If
+		      
+		      If g = Nil Then
+		        DoResponse(553, "Name not recognized.")
+		      Else
+		        If Not g.Directory Then
+		          g.Delete
+		          If g.LastErrorCode = 0 Then
+		            DoResponse(250, "Delete successful.")
+		          Else
+		            DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
+		          End If
+		        Else
+		          DoResponse(550, "That's a directory.")
+		        End If
+		      End If
 		      
 		    Case "RNFR"
 		      
-		      DoResponse(502)  'Not implemented FIXME
+		      If AllowWrite Then
+		        If args.Trim <> "" Then
+		          RNF = FindFile(args)
+		          If RNF <> Nil Then
+		            DoResponse(350, "Rename OK. Send new name now.")
+		          Else
+		            DoResponse(550, "File not found.")
+		          End If
+		        Else
+		          DoResponse(501, "You must specify a file or directory.")
+		        End If
+		      Else
+		        DoResponse(450, "Permission denied.")
+		      End If
 		      
 		    Case "RNTO"
 		      
-		      DoResponse(502)  'Not implemented FIXME
+		      If RNF <> Nil Then
+		        If AllowWrite Then
+		          If args.Trim <> "" Then
+		            RNT = FindFile(args)
+		            If RNT <> Nil Then
+		              RNF.MoveFileTo(RNT)
+		              If RNF.LastErrorCode = 0 Then
+		                DoResponse(250, "Rename successful.")
+		              Else
+		                DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
+		              End If
+		            Else
+		              DoResponse(501, "You must specify a new name.") 
+		            End If
+		          Else
+		            DoResponse(553, "Name not recognized.")
+		          End If
+		        Else
+		          DoResponse(503, "You must use RNFR before RNTO.")
+		        End If
+		        RNF = Nil
+		        RNT = Nil
+		        
+		      Else
+		        DoResponse(450, "Permission denied.")
+		      End If
 		      
 		    Case "QUIT"
 		      
@@ -527,6 +611,14 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h21
 		Private mWorkingDirectory As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private RNF As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private RNT As FolderItem
 	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0
