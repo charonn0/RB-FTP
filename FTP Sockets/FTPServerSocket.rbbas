@@ -42,9 +42,10 @@ Inherits FTPSocket
 	#tag Method, Flags = &h1
 		Protected Function FileListing(Directory As FolderItem) As String
 		  'http://cr.yp.to/ftp/list/eplf.html
-		  Dim listing As String = Encodings.ASCII.Chr(&o053)
+		  Dim listing As String
 		  
 		  For i As Integer = 1 To Directory.Count
+		    listing = listing + Encodings.ASCII.Chr(&o053)
 		    If Directory.Item(i).IsReadable Then
 		      listing = listing + "r,"
 		    End If
@@ -87,9 +88,13 @@ Inherits FTPSocket
 		  End If
 		  
 		  If Name.Trim <> "" Then
-		    For i As Integer = 1 To CountFields(Name, "/") - 1
-		      g = g.Child(NthField(Name, "/", i))
-		    Next
+		    If InStr(Name, "/") > 0 Then
+		      For i As Integer = 1 To CountFields(Name, "/") - 1
+		        g = g.Child(NthField(Name, "/", i))
+		      Next
+		    Else
+		      g = g.Child(Name)
+		    End If
 		  End If
 		  
 		  If ChildOfParent(g, RootDirectory) Then
@@ -318,7 +323,7 @@ Inherits FTPSocket
 		      
 		      Dim g As FolderItem
 		      If args.Trim <> "" Then
-		        g = FindFile(args)
+		        g = FindFile(args.Trim)
 		      End If
 		      
 		      If g = Nil Then
@@ -329,7 +334,7 @@ Inherits FTPSocket
 		          If g.LastErrorCode = 0 Then
 		            DoResponse(250, "Delete successful.")
 		          Else
-		            DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
+		            DoResponse(451, "System error: " + Str(g.LastErrorCode))
 		          End If
 		        Else
 		          DoResponse(550, "That's a directory.")
@@ -358,16 +363,18 @@ Inherits FTPSocket
 		      If RNF <> Nil Then
 		        If AllowWrite Then
 		          If args.Trim <> "" Then
-		            RNT = FindFile(args)
+		            RNT = FindFile(args.Trim)
 		            If RNT <> Nil Then
-		              RNF.MoveFileTo(RNT)
+		              Dim newname As String = RNT.Name.Trim
+		              RNF.Name = newname
 		              If RNF.LastErrorCode = 0 Then
+		                RNF.Delete
 		                DoResponse(250, "Rename successful.")
 		              Else
 		                DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
 		              End If
 		            Else
-		              DoResponse(501, "You must specify a new name.") 
+		              DoResponse(501, "You must specify a new name.")
 		            End If
 		          Else
 		            DoResponse(553, "Name not recognized.")
