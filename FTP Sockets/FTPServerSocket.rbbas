@@ -61,7 +61,7 @@ Inherits FTPSocket
 		    filetime.GMTOffset = 0
 		    listing = listing + "m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ","
 		    #If TargetMacOS Or TargetLinux Then
-		      listing = listing + "UP" + Format(Directory(i).Permissions, "000") + ","
+		      listing = listing + "UP" + Format(Directory.Item(i).Permissions, "000") + ","
 		    #Else
 		      Dim p As Integer
 		      If Directory.Item(i).IsReadable Then p = p + 4
