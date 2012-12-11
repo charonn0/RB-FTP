@@ -87,10 +87,7 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub CreateDataSocket(PASVParams As String)
-		  If DataSocket <> Nil Then
-		    If DataSocket.IsConnected Then DataSocket.Flush()
-		    Me.CloseData
-		  End If
+		  Me.CloseData
 		  DataSocket = New TCPSocket
 		  DataSocket.NetworkInterface = Self.NetworkInterface
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler

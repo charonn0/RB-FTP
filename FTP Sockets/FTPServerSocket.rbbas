@@ -25,6 +25,7 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub TransferComplete(UserAborted As Boolean)
+		  #pragma Unused UserAborted
 		  Me.CloseData()
 		End Sub
 	#tag EndEvent
@@ -77,7 +78,7 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function FindDirectory(Name As String) As FolderItem
+		Protected Function FindFile(Name As String) As FolderItem
 		  If Name.Trim = "" Then Name = "/"
 		  Dim g As FolderItem
 		  If Left(Name, 1) = "/" Then //relative to RootDirectory
@@ -102,19 +103,6 @@ Inherits FTPSocket
 		  Else
 		    Return Nil
 		  End If
-		  
-		Exception Err As NilObjectException
-		  Return Nil
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Function FindFile(Name As String) As FolderItem
-		  Dim g As FolderItem = FindDirectory(Name)
-		  Dim file As String = NthField(Name, "/", CountFields(Name, "/"))
-		  If file.Trim = "" Then Return Nil
-		  g = g.Child(file)
-		  Return g
 		  
 		Exception Err As NilObjectException
 		  Return Nil
@@ -233,7 +221,7 @@ Inherits FTPSocket
 		      
 		    Case "CWD", "XCWD"
 		      
-		      Dim g As FolderItem = FindDirectory(args)
+		      Dim g As FolderItem = FindFile(args)
 		      If g <> Nil Then
 		        mWorkingDirectory = g
 		        DoResponse(250)  'OK
@@ -248,7 +236,7 @@ Inherits FTPSocket
 		    Case "LIST"
 		      
 		      If Me.IsDataConnected Then
-		        Dim dir As FolderItem = FindDirectory(args)
+		        Dim dir As FolderItem = FindFile(args)
 		        If dir = Nil Then dir = Me.mWorkingDirectory
 		        Dim s As String = FileListing(dir)
 		        If s.Trim <> "" Then
@@ -663,7 +651,7 @@ Inherits FTPSocket
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Dim g As FolderItem = FindDirectory(value)
+			  Dim g As FolderItem = FindFile(value)
 			  If g = Nil Then g = RootDirectory
 			  If ChildOfParent(g, RootDirectory) Then
 			    mWorkingDirectory = g

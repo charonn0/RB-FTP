@@ -79,6 +79,7 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub Connect()
 		  VerbDispatchTimer = Nil
+		  ReDim PendingVerbs(-1)
 		  Super.Connect()
 		End Sub
 	#tag EndMethod
@@ -134,7 +135,6 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
-		  Dim mb As New MemoryBlock(64 * 1024)
 		  DoVerb("LIST", TargetDirectory)
 		End Sub
 	#tag EndMethod
