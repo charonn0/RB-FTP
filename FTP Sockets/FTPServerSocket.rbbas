@@ -31,6 +31,18 @@ Inherits FTPSocket
 	#tag EndEvent
 
 
+	#tag Method, Flags = &h1000
+		Sub Constructor()
+		  // Calling the overridden superclass constructor.
+		  // Note that this may need modifications if there are multiple constructor choices.
+		  // Possible constructor calls:
+		  // Constructor() -- From TCPSocket
+		  // Constructor() -- From SocketCore
+		  Super.Constructor
+		  Me.ServerFeatures = Split("PASV UTF8")
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
 		Protected Sub DoResponse(Code As Integer, Params As String = "")
 		  If Params.Trim = "" Then Params = FTPCodeToMessage(Code)
@@ -96,6 +108,8 @@ Inherits FTPSocket
 		    Else
 		      g = g.Child(Name)
 		    End If
+		  Else
+		    g = Me.mWorkingDirectory
 		  End If
 		  
 		  If ChildOfParent(g, RootDirectory) Then
@@ -210,8 +224,10 @@ Inherits FTPSocket
 		      End If
 		      
 		    Case "FEAT"
-		      
-		      Me.Write("211-Features:" + CRLF + " PASV" + CRLF)
+		      Me.Write("211-Features:" + CRLF)
+		      For Each feature As String In Me.ServerFeatures
+		        Me.Write(" " + feature + CRLF)
+		      Next
 		      DoResponse(211, "End")
 		      
 		    Case "SYST"
@@ -242,11 +258,11 @@ Inherits FTPSocket
 		        If s.Trim <> "" Then
 		          DoResponse(150)
 		          TransmitData(s)
-		          Me.CloseData
-		          DoResponse(226)
 		        Else
 		          DoResponse(550, "That directory does not exist.")
 		        End If
+		        Me.CloseData
+		        DoResponse(226)
 		      Else
 		        DoResponse(425) //no connection
 		      End If
