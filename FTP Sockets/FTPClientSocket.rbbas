@@ -197,7 +197,7 @@ Inherits FTPSocket
 		      LoginOK = True
 		      RaiseEvent Connected()
 		    Case 530  'USER not set!
-		      InsertVerb("USER", Me.Username)
+		      InsertVerb("USER", Me.Username) 'Warning: some FTP servers (Microsoft IIS) send this code for ALL errors, resulting in an infinite loop.
 		    End Select
 		  Case "RETR"
 		    Select Case Code
@@ -233,7 +233,7 @@ Inherits FTPSocket
 		    Case 426  'Data connection lost
 		    End Select
 		  Case "STAT"
-		    If Code = 200 Then
+		    If Code = 211 Or Code = 212 Or Code = 213 Then
 		      Dim Stats() As String = Split(msg, EndOfLine.Windows)
 		      Stats.Remove(Stats.Ubound)
 		      Stats.Remove(0)
