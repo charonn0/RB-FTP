@@ -261,7 +261,8 @@ Inherits FTPSocket
 		    
 		  Case "PWD"
 		    If Code = 257 Then 'OK
-		      mWorkingDirectory = LastVerb.Arguments
+		      mWorkingDirectory = NthField(msg, " ", 2)
+		      mWorkingDirectory = ReplaceAll(msg, """", "")
 		    End If
 		  Case "LIST", "NLST"
 		    Select Case Code
