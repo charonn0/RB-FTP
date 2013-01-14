@@ -53,7 +53,15 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function FileListing(Directory As FolderItem) As String
+		Protected Function FileListing(Directory As FolderItem, NamesOnly As Boolean = False) As String
+		  If NamesOnly Then
+		    Dim listing As String
+		    For i As Integer = 1 To Directory.Count
+		      listing = listing + Directory.Item(i).Name + CRLF
+		    Next
+		    Return listing
+		  End If
+		  
 		  'http://cr.yp.to/ftp/list/eplf.html
 		  Dim listing As String
 		  
@@ -91,35 +99,21 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h1
 		Protected Function FindFile(Name As String) As FolderItem
-		  If Name.Trim = "" Then Name = "/"
-		  Dim g As FolderItem
-		  If Left(Name, 1) = "/" Then //relative to RootDirectory
-		    g = RootDirectory
-		    Name = Replace(Name, "/", "")
-		  Else //relative to WorkingDirectory
-		    g = mWorkingDirectory
+		  Name = Name.Trim
+		  If Name = "" Then Return mWorkingDirectory
+		  If Name = "/" Then Return RootDirectory
+		  
+		  If Left(Name, 1) = "/" Then 'Relative to root
+		    Name = ReplaceAll(RootDirectory.AbsolutePath + Name, "//", "/")
+		  Else 'Relative to WorkingDir
+		    Name = ReplaceAll(mWorkingDirectory.AbsolutePath + Name, "//", "/")
 		  End If
 		  
-		  If Name.Trim <> "" Then
-		    If InStr(Name, "/") > 0 Then
-		      For i As Integer = 1 To CountFields(Name, "/") - 1
-		        g = g.Child(NthField(Name, "/", i))
-		      Next
-		    Else
-		      g = g.Child(Name)
-		    End If
-		  Else
-		    g = Me.mWorkingDirectory
-		  End If
+		  Dim found As FolderItem = GetFolderItem(Name)
 		  
-		  If ChildOfParent(g, RootDirectory) Then
-		    Return g
-		  Else
-		    Return Nil
+		  If found.Exists Then
+		    Return found
 		  End If
-		  
-		Exception Err As NilObjectException
-		  Return Nil
 		End Function
 	#tag EndMethod
 
@@ -142,22 +136,12 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Function NameListing(Directory As FolderItem) As String
-		  Dim listing As String
-		  For i As Integer = 1 To Directory.Count
-		    listing = listing + Directory.Item(i).Name + CRLF
-		  Next
-		  Return listing
-		End Function
-	#tag EndMethod
-
 	#tag Method, Flags = &h21
 		Private Sub ParseVerb(Data As String)
 		  Dim vb, args As String
 		  If InStr(Data, " ") > 0 Then
 		    vb = NthField(Data, " ", 1)
-		    args = Data.Replace(vb + " ", "")
+		    args = Data.Replace(vb + " ", "").Trim
 		  Else
 		    vb = Data
 		  End If
@@ -200,6 +184,11 @@ Inherits FTPSocket
 		    Case "RETR"
 		      
 		      If Me.IsDataConnected Then
+		        Dim f As FolderItem = FindFile(args)
+		        If f <> Nil Then
+		          DataBuffer = BinaryStream.Open(f)
+		        End If
+		        
 		        If DataBuffer <> Nil Then
 		          DoResponse(150)
 		          While Not DataBuffer.EOF
@@ -250,22 +239,20 @@ Inherits FTPSocket
 		      DoResponse(257, """" + WorkingDirectory + """")
 		      
 		    Case "LIST"
+		      If args = "-a" Then args = WorkingDirectory
 		      
-		      If Me.IsDataConnected Then
-		        Dim dir As FolderItem = FindFile(args)
-		        If dir = Nil Then dir = Me.mWorkingDirectory
-		        Dim s As String = FileListing(dir)
-		        If s.Trim <> "" Then
-		          DoResponse(150)
-		          TransmitData(s)
-		        Else
-		          DoResponse(550, "That directory does not exist.")
-		        End If
-		        Me.CloseData
-		        DoResponse(226)
+		      Dim dir As FolderItem = FindFile(args)
+		      If dir = Nil Then dir = Me.mWorkingDirectory
+		      Dim s As String = FileListing(dir)
+		      If s.Trim <> "" Then
+		        DoResponse(150)
+		        TransmitData(s)
 		      Else
-		        DoResponse(425) //no connection
+		        DoResponse(550, "That directory does not exist.")
 		      End If
+		      Me.CloseData
+		      DoResponse(226)
+		      
 		      
 		    Case "CDUP"
 		      
