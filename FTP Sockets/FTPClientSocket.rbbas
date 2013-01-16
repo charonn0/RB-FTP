@@ -266,19 +266,17 @@ Inherits FTPSocket
 		    End If
 		  Case "LIST", "NLST"
 		    Select Case Code
-		    Case 226 'Here comes the directory list
+		    Case 226, 150 'Here comes the directory list
 		      Dim s() As String = Split(Me.GetData(), CRLF)
 		      For i As Integer = UBound(s) DownTo 0
 		        If s(i).Trim = "" Or s(i).Trim = "." Or s(i).Trim = ".." Then s.Remove(i)
 		        
 		      Next
 		      ListResponse(s)
-		      DataBuffer = Nil
 		    Case 425, 426  'no connection or connection lost
 		    Case 451  'Disk error
-		    Case 150 'Connection accepted
 		    End Select
-		    
+		    DataBuffer = Nil
 		  Case "CDUP"
 		    If Code = 200 Or Code = 250 Then
 		      DoVerb("PWD")
