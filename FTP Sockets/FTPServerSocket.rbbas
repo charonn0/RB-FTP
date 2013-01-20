@@ -235,12 +235,12 @@ Inherits FTPSocket
 		      
 		      DoResponse(257, """" + WorkingDirectory + """")
 		      
-		    Case "LIST"
+		    Case "LIST", "NLST"
 		      If args = "-a" Then args = WorkingDirectory
 		      
 		      Dim dir As FolderItem = FindFile(args)
 		      If dir = Nil Then dir = Me.mWorkingDirectory
-		      Dim s As String = FileListing(dir)
+		      Dim s As String = FileListing(dir, vb.Trim = "NLST")
 		      If s.Trim <> "" Then
 		        DoResponse(150)
 		        TransmitData(s)
