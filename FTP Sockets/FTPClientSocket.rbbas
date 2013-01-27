@@ -99,12 +99,17 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub DoVerb(Verb As String, Params As String = "")
+		Protected Sub DoVerb(Verb As String, Params As String = "", HighPriority As Boolean = False)
 		  'Use this method to queue up verbs to be executed
 		  Dim nextverb As FTPVerb
 		  nextverb.Verb = Uppercase(Verb)
 		  nextverb.Arguments = Trim(Params)
-		  PendingVerbs.Append(nextverb)
+		  If Not HighPriority Then
+		    PendingVerbs.Insert(0, nextverb)
+		  Else
+		    'Some verbs can't wait in line
+		    PendingVerbs.Append(nextverb)
+		  End If
 		  
 		End Sub
 	#tag EndMethod
@@ -112,17 +117,6 @@ Inherits FTPSocket
 	#tag Method, Flags = &h0
 		Sub FEAT()
 		  DoVerb("FEAT")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
-		Private Sub InsertVerb(Verb As String, Params As String = "")
-		  'Some verbs can't wait in line
-		  Dim nextverb As FTPVerb
-		  nextverb.Verb = Uppercase(Verb)
-		  nextverb.Arguments = Trim(Params)
-		  PendingVerbs.Insert(0, nextverb)
-		  
 		End Sub
 	#tag EndMethod
 
@@ -173,10 +167,10 @@ Inherits FTPSocket
 	#tag Method, Flags = &h21
 		Private Sub ParseResponse(Data As String)
 		  Dim Code As Integer = Val(Left(Data, 3))
-		  Dim msg As String = data.Replace(Format(Code, "000"), "")
+		  Dim msg As String = data.Replace(Format(Code, "000"), "").Trim
 		  
-		  If msg.Trim <> "" Then
-		    FTPLog(Str(Code) + " " + msg.Trim)
+		  If msg <> "" Then
+		    FTPLog(Str(Code) + " " + msg)
 		  Else
 		    FTPLog(Str(Code) + " " + FTPCodeToMessage(Code).Trim)
 		  End If
@@ -188,7 +182,7 @@ Inherits FTPSocket
 		      LoginOK = True
 		      RaiseEvent Connected()
 		    Case 331, 332  'Need PASS/ACCT
-		      InsertVerb("PASS", Me.Password)
+		      DoVerb("PASS", Me.Password, True)
 		    End Select
 		    
 		  Case "PASS"
@@ -197,7 +191,7 @@ Inherits FTPSocket
 		      LoginOK = True
 		      RaiseEvent Connected()
 		    Case 530  'USER not set!
-		      InsertVerb("USER", Me.Username) 'Warning: some FTP servers (Microsoft IIS) send this code for ALL errors, resulting in an infinite loop.
+		      DoVerb("USER", Me.Username, True) 'Warning: some FTP servers (Microsoft IIS) send this code for ALL errors, resulting in an infinite loop.
 		    End Select
 		  Case "RETR"
 		    Select Case Code
@@ -343,7 +337,7 @@ Inherits FTPSocket
 		        Me.Username = "anonymous"
 		        Me.Password = "bsftp@boredomsoft.org"
 		      End If
-		      InsertVerb("USER", Me.Username)
+		      DoVerb("USER", Me.Username, True)
 		    ElseIf Code = 421 Then  'Timeout
 		      Me.Close
 		    End If
@@ -465,8 +459,7 @@ Inherits FTPSocket
 		Private Sub VerbDispatchHandler(Sender As Timer)
 		  //Handles the FTPClientSocket.VerbDispatchTimer.Action event
 		  If Not TransferInProgress And UBound(PendingVerbs) > -1 Then
-		    Dim nextverb As FTPVerb = PendingVerbs(0)
-		    PendingVerbs.Remove(0)
+		    Dim nextverb As FTPVerb = PendingVerbs.Pop
 		    FTPLog(nextverb.Verb + " " + nextverb.Arguments)
 		    Me.Write(nextverb.Verb + " " + nextverb.Arguments + CRLF)
 		    LastVerb = nextverb

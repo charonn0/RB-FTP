@@ -27,6 +27,7 @@ Inherits FTPSocket
 		Sub TransferComplete(UserAborted As Boolean)
 		  #pragma Unused UserAborted
 		  Me.CloseData()
+		  DoResponse(226, "Transfer complete.")
 		End Sub
 	#tag EndEvent
 
@@ -95,7 +96,7 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function FindFile(Name As String) As FolderItem
+		Protected Function FindFile(Name As String, AllowNonExistant As Boolean = False) As FolderItem
 		  Name = Name.Trim
 		  If Name = "" Then Return mWorkingDirectory
 		  If Name = "/" Then Return RootDirectory
@@ -108,7 +109,7 @@ Inherits FTPSocket
 		  
 		  Dim found As FolderItem = GetFolderItem(Name)
 		  
-		  If found.Exists Then
+		  If (found.Exists Or AllowNonExistant) And ChildOfParent(found, Me.RootDirectory) Then
 		    Return found
 		  End If
 		End Function
@@ -201,13 +202,32 @@ Inherits FTPSocket
 		        DoResponse(425) 'No data connection
 		      End If
 		      
-		    Case "STOR"
-		      
-		      If RootDirectory.Child(args).Exists And Not AllowWrite Then
-		        DoResponse(450, "Filename taken.")
-		      Else
-		        DoResponse(150) 'Ready
+		    Case "STOR", "STORU"
+		      If Not AllowWrite Then
+		        DoResponse(550, "Permission denied.")
+		        Return
 		      End If
+		      If Not Me.IsDataConnected Then
+		        DoResponse(425)
+		        Return
+		      End If
+		      
+		      Dim saveTo As FolderItem
+		      If vb = "STOR" Then
+		        saveTo = FindFile(args, True)
+		        If saveTo.Exists Then
+		          DoResponse(450, "Filename taken.")
+		          Return
+		        Else
+		          Me.DataBuffer = BinaryStream.Create(saveTo, False)
+		        End If
+		      ElseIf vb = "STORU" Then
+		        saveTo = GetTemporaryFolderItem()
+		        saveTo.MoveFileTo(mWorkingDirectory.Child(Str(Microseconds)))
+		        Me.DataBuffer = BinaryStream.Open(saveTo, True)
+		      End If
+		      
+		      DoResponse(150) 'Ready
 		      
 		    Case "FEAT"
 		      Me.Write("211-Features:" + CRLF)
@@ -386,6 +406,34 @@ Inherits FTPSocket
 		      
 		      DoResponse(200)
 		      
+		    Case "OPTS"
+		      
+		      Dim option As String
+		      Dim value As Boolean
+		      option = NthField(args, CRLF, 1).Trim
+		      args = Replace(args, option, "").Trim
+		      If args = "ON" Then
+		        value = True
+		      ElseIf args = "OFF" Then
+		        value = False
+		      Else
+		        DoResponse(504)
+		        Return 'Error
+		      End If
+		      If OPTS(option, value) Then
+		        DoResponse(200)
+		      Else
+		        DoResponse(504)
+		      End If
+		      
+		    Case "SITE"
+		      
+		      If SITE(args) Then
+		        DoResponse(200)
+		      Else
+		        DoResponse(504)
+		      End If
+		      
 		    Else
 		      
 		      DoResponse(500)  'syntax error or unknown verb
@@ -398,6 +446,14 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+
+	#tag Hook, Flags = &h0
+		Event OPTS(Name As String, Value As Boolean) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event SITE(Arguments As String) As Boolean
+	#tag EndHook
 
 	#tag Hook, Flags = &h0
 		Event UserLogon(UserName As String, Password As String) As Boolean
