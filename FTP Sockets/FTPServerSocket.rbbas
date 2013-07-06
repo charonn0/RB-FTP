@@ -474,6 +474,10 @@ Inherits FTPSocket
 		    DoResponse(530)  'not logged in
 		  End If
 		  
+		Exception Err
+		  If Err IsA EndException Or Err IsA ThreadEndException Then Raise Err
+		  DoResponse(500, "Runtime exception")
+		  
 		End Sub
 	#tag EndMethod
 
