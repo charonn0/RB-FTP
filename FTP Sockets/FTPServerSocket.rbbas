@@ -4,6 +4,9 @@ Inherits FTPSocket
 	#tag Event
 		Sub Connected()
 		  FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
+		  InactivityTimer = New Timer
+		  InactivityTimer.Period = TimeOutPeriod
+		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
 		  InactivityTimer.Mode = Timer.ModeMultiple
 		  DoResponse(220, Banner)
 		End Sub
@@ -90,7 +93,7 @@ Inherits FTPSocket
 		      listing = listing + Encodings.ASCII.Chr(&o011) + Directory.Item(i).Name + CRLF
 		    Next
 		  End If
-		  
+		  'If listing.Trim = "" And Directory <> Nil And Directory.Exists And Directory.Directory Then listing = "." + CRLF + ".." + CRLF
 		  Return listing
 		End Function
 	#tag EndMethod
@@ -100,17 +103,20 @@ Inherits FTPSocket
 		  Name = Name.Trim
 		  If Name = "" Then Return mWorkingDirectory
 		  If Name = "/" Then Return RootDirectory
-		  
+		  Dim path As String
 		  If Left(Name, 1) = "/" Then 'Relative to root
-		    Name = ReplaceAll(RootDirectory.AbsolutePath + Name, "//", "/")
+		    path = RootDirectory.AbsolutePath
+		    Name = Right(Name, Name.Len - 1)
 		  Else 'Relative to WorkingDir
-		    Name = ReplaceAll(mWorkingDirectory.AbsolutePath + Name, "//", "/")
+		    path = mWorkingDirectory.AbsolutePath
 		  End If
 		  
-		  Dim found As FolderItem = GetFolderItem(Name)
+		  Dim found As FolderItem = GetFolderItem(path + Name)
 		  
 		  If (found.Exists Or AllowNonExistant) And ChildOfParent(found, Me.RootDirectory) Then
 		    Return found
+		  Else
+		    Break
 		  End If
 		End Function
 	#tag EndMethod
@@ -128,9 +134,6 @@ Inherits FTPSocket
 		Sub Listen()
 		  Super.Listen
 		  FTPLog("Now listening on port " + Str(Me.Port))
-		  InactivityTimer = New Timer
-		  InactivityTimer.Period = TimeOutPeriod
-		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
 		End Sub
 	#tag EndMethod
 
@@ -256,7 +259,7 @@ Inherits FTPSocket
 		      DoResponse(257, """" + WorkingDirectory + """")
 		      
 		    Case "LIST", "NLST"
-		      If args = "-a" Then args = WorkingDirectory
+		      If args = "-a" or args.Trim = "" Then args = WorkingDirectory
 		      
 		      Dim dir As FolderItem = FindFile(args)
 		      If dir = Nil Then dir = Me.mWorkingDirectory
@@ -264,6 +267,8 @@ Inherits FTPSocket
 		      If s.Trim <> "" Then
 		        DoResponse(150)
 		        TransmitData(s)
+		      ElseIf dir.Exists Then
+		        DoResponse(150)
 		      Else
 		        DoResponse(550, "That directory does not exist.")
 		      End If
@@ -315,12 +320,39 @@ Inherits FTPSocket
 		      End Select
 		      
 		    Case "MKD"
-		      
-		      DoResponse(502)  'Not implemented FIXME
+		      Dim dir As FolderItem = FindFile(args.Trim, True)
+		      If dir = Nil Then
+		        DoResponse(550, "invalid name")
+		        Return
+		      End If
+		      If Not dir.Exists Then
+		        dir.CreateAsFolder
+		        If dir.Exists Then
+		          DoResponse(257, "directory created")
+		        Else
+		          DoResponse(550, "directory NOT created")
+		        End If
+		      Else
+		        DoResponse(550, "directory already exists")
+		      End If
 		      
 		    Case "RMD"
 		      
-		      DoResponse(502)  'Not implemented FIXME
+		      Dim dir As FolderItem = FindFile(args.Trim)
+		      If dir = Nil Then
+		        DoResponse(550, "no such directory")
+		        Return
+		      End If
+		      If dir.Exists Then
+		        If dir.Count = 0 Then
+		          dir.Delete
+		          DoResponse(250, "directory deleted")
+		        Else
+		          DoResponse(450, "directory is not empty")
+		        End If
+		      Else
+		        DoResponse(550, "directory does not exist")
+		      End If
 		      
 		    Case "DELE"
 		      
@@ -371,12 +403,11 @@ Inherits FTPSocket
 		      If RNF <> Nil Then
 		        If AllowWrite Then
 		          If args.Trim <> "" Then
-		            RNT = FindFile(args.Trim)
+		            RNT = FindFile(args.Trim, True)
 		            If RNT <> Nil Then
 		              Dim newname As String = RNT.Name.Trim
 		              RNF.Name = newname
 		              If RNF.LastErrorCode = 0 Then
-		                RNF.Delete
 		                DoResponse(250, "Rename successful.")
 		              Else
 		                DoResponse(451, "System error: " + Str(RNF.LastErrorCode))

@@ -121,26 +121,9 @@ Begin Window Window1
       TextUnit        =   0
       Top             =   307
       Underline       =   ""
-      Value           =   0
+      Value           =   1
       Visible         =   True
       Width           =   600
-      Begin FTPServerSocket FTPServerSocket1
-         AllowWrite      =   True
-         Anonymous       =   True
-         Banner          =   "Welcome to BSFTPd!"
-         Height          =   32
-         Index           =   -2147483648
-         InitialParent   =   "TabPanel1"
-         Left            =   14
-         LockedInPosition=   False
-         Passive         =   True
-         Port            =   21
-         Scope           =   0
-         TabPanelIndex   =   2
-         TimeOutPeriod   =   60000
-         Top             =   351
-         Width           =   32
-      End
       Begin PushButton PushButton13
          AutoDeactivate  =   True
          Bold            =   ""
@@ -963,6 +946,20 @@ Begin Window Window1
          Visible         =   True
          Width           =   60
       End
+      Begin ServerSocket FTPServer
+         Height          =   32
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Left            =   14
+         LockedInPosition=   False
+         MaximumSocketsConnected=   10
+         MinimumSocketsAvailable=   2
+         Port            =   21
+         Scope           =   0
+         TabPanelIndex   =   2
+         Top             =   351
+         Width           =   32
+      End
    End
    Begin TextField Username
       AcceptTabs      =   ""
@@ -1208,6 +1205,36 @@ End
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub LogHandler(Sender As FTPServerSocket, LogLine As String)
+		  If LogLine.Trim <> "" Then loggit(LogLine)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function ProgressHandler(Sender As FTPServerSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  Dim percent As Integer = BytesSent * 100 / (BytesLeft + BytesSent)
+		  ProgressBar1.Value = percent
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function UserLogonHandler(Sender As FTPServerSocket, UserName As String, Password As String) As Boolean
+		  If UserName = "andrew" And Password = "andrew@boredomsoft.org" Then
+		    Return True
+		  End If
+		End Function
+	#tag EndMethod
+
+
+	#tag Property, Flags = &h0
+		ServerAnon As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		ServerRoot As FolderItem
+	#tag EndProperty
+
 
 #tag EndWindowCode
 
@@ -1244,31 +1271,12 @@ End
 		End Function
 	#tag EndEvent
 #tag EndEvents
-#tag Events FTPServerSocket1
-	#tag Event
-		Sub FTPLog(LogLine As String)
-		  If LogLine.Trim <> "" Then loggit(LogLine)
-		End Sub
-	#tag EndEvent
-	#tag Event
-		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
-		  Dim percent As Integer = BytesSent * 100 / (BytesLeft + BytesSent)
-		  ProgressBar1.Value = percent
-		End Function
-	#tag EndEvent
-	#tag Event
-		Function UserLogon(UserName As String, Password As String) As Boolean
-		  If UserName = "andrew" And Password = "andrew@boredomsoft.org" Then
-		    Return True
-		  End If
-		End Function
-	#tag EndEvent
-#tag EndEvents
 #tag Events PushButton13
 	#tag Event
 		Sub Action()
-		  FTPServerSocket1.Listen()
-		  FTPServerSocket1.RootDirectory = SpecialFolder.Desktop.Child("Test")
+		  FTPServer.NetworkInterface = System.GetNetworkInterface(0)
+		  FTPServer.Listen()
+		  ServerRoot = SpecialFolder.Desktop'.Child("Test")
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -1444,11 +1452,33 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
+#tag Events FTPServer
+	#tag Event
+		Function AddSocket() As TCPSocket
+		  Dim client As New FTPServerSocket
+		  client.RootDirectory = ServerRoot
+		  client.Banner = "Welcome to BSFTPd!"
+		  client.AllowWrite = True
+		  client.TimeOutPeriod = 60000
+		  client.Anonymous = ServerAnon
+		  client.NetworkInterface = Me.NetworkInterface
+		  AddHandler client.FTPLog, AddressOf LogHandler
+		  AddHandler client.TransferProgress, AddressOf ProgressHandler
+		  AddHandler client.UserLogon, AddressOf UserLogonHandler
+		  Return client
+		End Function
+	#tag EndEvent
+	#tag Event
+		Sub Error(ErrorCode as Integer)
+		  Loggit("ServerSocket error: " + Str(ErrorCode))
+		End Sub
+	#tag EndEvent
+#tag EndEvents
 #tag Events CheckBox1
 	#tag Event
 		Sub Action()
 		  Client.Anonymous = Me.Value
-		  FTPServerSocket1.Anonymous = Me.Value
+		  ServerAnon = Me.Value
 		End Sub
 	#tag EndEvent
 #tag EndEvents

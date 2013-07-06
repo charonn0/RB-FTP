@@ -137,7 +137,7 @@ Inherits TCPSocket
 		  If Sender.LastErrorCode = 102 Then
 		    Sender.Close
 		    TransferInProgress = False
-		    TransferComplete(True)
+		    'TransferComplete(True)
 		  Else
 		    Sender.Close
 		    RaiseEvent FTPLog(SocketErrorMessage(Sender))
