@@ -205,7 +205,7 @@ Inherits FTPSocket
 		        DoResponse(425) 'No data connection
 		      End If
 		      
-		    Case "STOR", "STORU"
+		    Case "STOR", "STORU", "APPE"
 		      If Not AllowWrite Then
 		        DoResponse(550, "Permission denied.")
 		        Return
@@ -216,7 +216,8 @@ Inherits FTPSocket
 		      End If
 		      
 		      Dim saveTo As FolderItem
-		      If vb = "STOR" Then
+		      Select Case vb
+		      Case "STOR"
 		        saveTo = FindFile(args, True)
 		        If saveTo.Exists Then
 		          DoResponse(450, "Filename taken.")
@@ -224,13 +225,30 @@ Inherits FTPSocket
 		        Else
 		          Me.DataBuffer = BinaryStream.Create(saveTo, False)
 		        End If
-		      ElseIf vb = "STORU" Then
+		        
+		      Case "APPE"
+		        saveTo = FindFile(args, True)
+		        If Not saveTo.Exists Then
+		          DoResponse(450, "File does not exist")
+		          Return
+		        Else
+		          Me.DataBuffer = BinaryStream.Open(saveTo, False)
+		          Me.DataBuffer.Position = Me.DataBuffer.Length
+		        End If
+		        
+		        
+		      Case "STORU"
 		        saveTo = GetTemporaryFolderItem()
 		        saveTo.MoveFileTo(mWorkingDirectory.Child(Str(Microseconds)))
 		        Me.DataBuffer = BinaryStream.Open(saveTo, True)
-		      End If
+		      End Select
 		      
 		      DoResponse(150) 'Ready
+		      Me.TransferInProgress = True
+		      STORTimer = New Timer
+		      STORTimer.Period = 200
+		      AddHandler STORTimer.Action, AddressOf Me.STORHandler
+		      STORTimer.Mode = Timer.ModeMultiple
 		      
 		    Case "FEAT"
 		      Me.Write("211-Features:" + CRLF)
@@ -481,6 +499,19 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub STORHandler(Sender As Timer)
+		  //Handles the FTPServerSocket.InactivityTimer.Action event
+		  If Not Me.TransferInProgress Then
+		    Sender.Mode = Timer.ModeOff
+		    DoResponse(226, "Upload complete")
+		    Me.DataBuffer.Write(Me.GetData)
+		    Me.DataBuffer.Close
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
 
 	#tag Hook, Flags = &h0
 		Event OPTS(Name As String, Value As Boolean) As Boolean
@@ -723,6 +754,10 @@ Inherits FTPSocket
 		RootDirectory As FolderItem
 	#tag EndComputedProperty
 
+	#tag Property, Flags = &h21
+		Private STORTimer As Timer
+	#tag EndProperty
+
 	#tag Property, Flags = &h0
 		#tag Note
 			600000ms = 10 minutes
@@ -760,7 +795,6 @@ Inherits FTPSocket
 			Name="Address"
 			Group="Behavior"
 			Type="String"
-			EditorType="MultiLineEditor"
 			InheritedFrom="TCPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
@@ -799,12 +833,14 @@ Inherits FTPSocket
 			Visible=true
 			Group="Position"
 			InitialValue="0"
+			Type="Integer"
 			InheritedFrom="Object"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Name"
 			Visible=true
 			Group="ID"
+			Type="String"
 			InheritedFrom="Object"
 		#tag EndViewProperty
 		#tag ViewProperty
@@ -833,6 +869,7 @@ Inherits FTPSocket
 			Name="Super"
 			Visible=true
 			Group="ID"
+			Type="String"
 			InheritedFrom="Object"
 		#tag EndViewProperty
 		#tag ViewProperty
@@ -847,6 +884,7 @@ Inherits FTPSocket
 			Visible=true
 			Group="Position"
 			InitialValue="0"
+			Type="Integer"
 			InheritedFrom="Object"
 		#tag EndViewProperty
 		#tag ViewProperty
