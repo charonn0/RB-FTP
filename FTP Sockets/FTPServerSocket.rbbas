@@ -51,6 +51,7 @@ Inherits FTPSocket
 		Protected Sub DoResponse(Code As Integer, Params As String = "")
 		  If Params.Trim = "" Then Params = FTPCodeToMessage(Code)
 		  params = Trim(Str(Code) + " " + Params)
+		  If UTFMode Then params = ConvertEncoding(params, Encodings.UTF8)
 		  Me.Write(params + CRLF)
 		  FTPLog(params)
 		End Sub
@@ -140,6 +141,7 @@ Inherits FTPSocket
 	#tag Method, Flags = &h21
 		Private Sub ParseVerb(Data As String)
 		  Dim vb, args As String
+		  If UTFMode Then Data = DefineEncoding(Data, Encodings.UTF8)
 		  If InStr(Data, " ") > 0 Then
 		    vb = NthField(Data, " ", 1)
 		    args = Data.Replace(vb + " ", "").Trim
@@ -286,6 +288,11 @@ Inherits FTPSocket
 		      Dim s As String = FileListing(dir, vb.Trim = "NLST")
 		      If s.Trim <> "" Then
 		        DoResponse(150)
+		        If Me.UTFMode Then
+		          s = ConvertEncoding(s, Encodings.UTF8)
+		        Else
+		          s = ConvertEncoding(s, Encodings.ASCII)
+		        End If
 		        TransmitData(s)
 		      ElseIf dir.Exists Then
 		        DoResponse(150)
@@ -461,7 +468,7 @@ Inherits FTPSocket
 		      
 		      Dim option As String
 		      Dim value As Boolean
-		      option = NthField(args, CRLF, 1).Trim
+		      option = NthField(args, " ", 1).Trim
 		      args = Replace(args, option, "").Trim
 		      If args = "ON" Then
 		        value = True
@@ -471,11 +478,15 @@ Inherits FTPSocket
 		        DoResponse(504)
 		        Return 'Error
 		      End If
-		      If OPTS(option, value) Then
+		      Select Case option
+		      Case "UTF8"
+		        Me.UTFMode = value
 		        DoResponse(200)
 		      Else
-		        DoResponse(504)
-		      End If
+		        If Not OPTS(option, value) Then
+		          DoResponse(504)
+		        End If
+		      End Select
 		      
 		    Case "SITE"
 		      
@@ -503,7 +514,7 @@ Inherits FTPSocket
 
 	#tag Method, Flags = &h21
 		Private Sub STORHandler(Sender As Timer)
-		  //Handles the FTPServerSocket.InactivityTimer.Action event
+		  //Handles the FTPServerSocket.STORTimer.Action event
 		  If Not Me.TransferInProgress Then
 		    Sender.Mode = Timer.ModeOff
 		    DoResponse(226, "Upload complete")
@@ -765,6 +776,10 @@ Inherits FTPSocket
 			600000ms = 10 minutes
 		#tag EndNote
 		TimeOutPeriod As Integer = 600000
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		UTFMode As Boolean
 	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0
