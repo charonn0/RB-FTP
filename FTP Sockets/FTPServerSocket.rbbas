@@ -273,8 +273,10 @@ Inherits FTPSocket
 		      End If
 		      
 		    Case "PWD"
-		      
-		      DoResponse(257, """" + WorkingDirectory + """")
+		      Dim dir As String = WorkingDirectory
+		      If Right(dir, 1) = "\" Or Right(dir, 1) = "/" And dir.Len > 1 Then dir = Left(dir, dir.Len - 1)
+		      dir = ReplaceAll(dir, "\", "/")
+		      DoResponse(257, """" + dir + """")
 		      
 		    Case "LIST", "NLST"
 		      If args = "-a" or args.Trim = "" Then args = WorkingDirectory
