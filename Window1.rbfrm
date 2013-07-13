@@ -1,9 +1,8 @@
 #tag Window
 Begin Window Window1
-   BackColor       =   &cFFFFFF00
+   BackColor       =   "&cFFFFFF00"
    Backdrop        =   0
    CloseButton     =   True
-   Compatibility   =   ""
    Composite       =   False
    Frame           =   0
    FullScreen      =   False
@@ -128,7 +127,7 @@ Begin Window Window1
       Begin PushButton PushButton13
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "Listen"
          Default         =   False
@@ -159,7 +158,7 @@ Begin Window Window1
       Begin PushButton PushButton22
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "MDTM"
          Default         =   False
@@ -211,7 +210,7 @@ Begin Window Window1
          TabPanelIndex   =   1
          Text            =   "Param 2:"
          TextAlign       =   2
-         TextColor       =   &c00000000
+         TextColor       =   "&c00000000"
          TextFont        =   "System"
          TextSize        =   0.0
          TextUnit        =   0
@@ -245,7 +244,7 @@ Begin Window Window1
          TabPanelIndex   =   1
          Text            =   "Param 1:"
          TextAlign       =   2
-         TextColor       =   &c00000000
+         TextColor       =   "&c00000000"
          TextFont        =   "System"
          TextSize        =   0.0
          TextUnit        =   0
@@ -277,7 +276,7 @@ Begin Window Window1
          Alignment       =   0
          AutoDeactivate  =   True
          AutomaticallyCheckSpelling=   False
-         BackColor       =   &cFFFFFF00
+         BackColor       =   "&cFFFFFF00"
          Bold            =   False
          Border          =   True
          CueText         =   ""
@@ -305,7 +304,7 @@ Begin Window Window1
          TabPanelIndex   =   1
          TabStop         =   True
          Text            =   ""
-         TextColor       =   &c00000000
+         TextColor       =   "&c00000000"
          TextFont        =   "System"
          TextSize        =   0.0
          TextUnit        =   0
@@ -320,7 +319,7 @@ Begin Window Window1
          Alignment       =   0
          AutoDeactivate  =   True
          AutomaticallyCheckSpelling=   False
-         BackColor       =   &cFFFFFF00
+         BackColor       =   "&cFFFFFF00"
          Bold            =   False
          Border          =   True
          CueText         =   ""
@@ -348,7 +347,7 @@ Begin Window Window1
          TabPanelIndex   =   1
          TabStop         =   True
          Text            =   ""
-         TextColor       =   &c00000000
+         TextColor       =   "&c00000000"
          TextFont        =   "System"
          TextSize        =   0.0
          TextUnit        =   0
@@ -361,7 +360,7 @@ Begin Window Window1
       Begin PushButton PushButton19
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "CDUP"
          Default         =   False
@@ -392,7 +391,7 @@ Begin Window Window1
       Begin PushButton PushButton15
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "SYST"
          Default         =   False
@@ -423,7 +422,7 @@ Begin Window Window1
       Begin PushButton PushButton3
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "LIST"
          Default         =   False
@@ -454,7 +453,7 @@ Begin Window Window1
       Begin PushButton PushButton18
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "TYPE A"
          Default         =   False
@@ -485,7 +484,7 @@ Begin Window Window1
       Begin PushButton PushButton14
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "FEAT"
          Default         =   False
@@ -516,7 +515,7 @@ Begin Window Window1
       Begin PushButton PushButton11
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "CWD"
          Default         =   False
@@ -547,7 +546,7 @@ Begin Window Window1
       Begin PushButton PushButton4
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "RETR"
          Default         =   False
@@ -578,7 +577,7 @@ Begin Window Window1
       Begin PushButton PushButton1
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "Connect"
          Default         =   False
@@ -609,7 +608,7 @@ Begin Window Window1
       Begin PushButton PushButton23
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "NLST"
          Default         =   False
@@ -640,7 +639,7 @@ Begin Window Window1
       Begin PushButton PushButton16
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "Rename"
          Default         =   False
@@ -671,7 +670,7 @@ Begin Window Window1
       Begin PushButton PushButton2
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "PWD"
          Default         =   False
@@ -702,7 +701,7 @@ Begin Window Window1
       Begin PushButton PushButton10
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "TYPE I"
          Default         =   False
@@ -733,7 +732,7 @@ Begin Window Window1
       Begin PushButton PushButton5
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "STOR"
          Default         =   False
@@ -764,7 +763,7 @@ Begin Window Window1
       Begin PushButton PushButton6
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "DELE"
          Default         =   False
@@ -795,7 +794,7 @@ Begin Window Window1
       Begin PushButton PushButton21
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "STAT"
          Default         =   False
@@ -826,7 +825,7 @@ Begin Window Window1
       Begin PushButton PushButton17
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "MKD"
          Default         =   False
@@ -857,7 +856,7 @@ Begin Window Window1
       Begin PushButton PushButton24
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "RMD"
          Default         =   False
@@ -888,7 +887,7 @@ Begin Window Window1
       Begin PushButton PushButton20
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "NOOP"
          Default         =   False
@@ -919,7 +918,7 @@ Begin Window Window1
       Begin PushButton PushButton12
          AutoDeactivate  =   True
          Bold            =   False
-         ButtonStyle     =   "0"
+         ButtonStyle     =   0
          Cancel          =   False
          Caption         =   "QUIT"
          Default         =   False
@@ -947,27 +946,27 @@ Begin Window Window1
          Visible         =   True
          Width           =   60
       End
-   End
-   Begin ServerSocket FTPServer
-      Height          =   32
-      Index           =   -2147483648
-      InitialParent   =   "TabPanel1"
-      Left            =   14
-      LockedInPosition=   False
-      MaximumSocketsConnected=   10
-      MinimumSocketsAvailable=   2
-      Port            =   21
-      Scope           =   0
-      TabPanelIndex   =   0
-      Top             =   351
-      Width           =   32
+      Begin ServerSocket FTPServer
+         Height          =   32
+         Index           =   -2147483648
+         InitialParent   =   "TabPanel1"
+         Left            =   14
+         LockedInPosition=   False
+         MaximumSocketsConnected=   10
+         MinimumSocketsAvailable=   2
+         Port            =   21
+         Scope           =   0
+         TabPanelIndex   =   2
+         Top             =   351
+         Width           =   32
+      End
    End
    Begin TextField Username
       AcceptTabs      =   False
       Alignment       =   0
       AutoDeactivate  =   True
       AutomaticallyCheckSpelling=   False
-      BackColor       =   &cFFFFFF00
+      BackColor       =   "&cFFFFFF00"
       Bold            =   False
       Border          =   True
       CueText         =   ""
@@ -994,7 +993,7 @@ Begin Window Window1
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "Username"
-      TextColor       =   &c00000000
+      TextColor       =   "&c00000000"
       TextFont        =   "System"
       TextSize        =   0.0
       TextUnit        =   0
@@ -1009,7 +1008,7 @@ Begin Window Window1
       Alignment       =   0
       AutoDeactivate  =   True
       AutomaticallyCheckSpelling=   False
-      BackColor       =   &cFFFFFF00
+      BackColor       =   "&cFFFFFF00"
       Bold            =   False
       Border          =   True
       CueText         =   ""
@@ -1036,7 +1035,7 @@ Begin Window Window1
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "Password"
-      TextColor       =   &c00000000
+      TextColor       =   "&c00000000"
       TextFont        =   "System"
       TextSize        =   0.0
       TextUnit        =   0
@@ -1051,7 +1050,7 @@ Begin Window Window1
       Alignment       =   0
       AutoDeactivate  =   True
       AutomaticallyCheckSpelling=   False
-      BackColor       =   &cFFFFFF00
+      BackColor       =   "&cFFFFFF00"
       Bold            =   False
       Border          =   True
       CueText         =   ""
@@ -1078,7 +1077,7 @@ Begin Window Window1
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "ftp.address.com"
-      TextColor       =   &c00000000
+      TextColor       =   "&c00000000"
       TextFont        =   "System"
       TextSize        =   0.0
       TextUnit        =   0
@@ -1093,7 +1092,7 @@ Begin Window Window1
       Alignment       =   0
       AutoDeactivate  =   True
       AutomaticallyCheckSpelling=   False
-      BackColor       =   &cFFFFFF00
+      BackColor       =   "&cFFFFFF00"
       Bold            =   False
       Border          =   True
       CueText         =   ""
@@ -1119,8 +1118,8 @@ Begin Window Window1
       TabIndex        =   6
       TabPanelIndex   =   0
       TabStop         =   True
-      Text            =   "21"
-      TextColor       =   &c00000000
+      Text            =   21
+      TextColor       =   "&c00000000"
       TextFont        =   "System"
       TextSize        =   0.0
       TextUnit        =   0
@@ -1208,12 +1207,14 @@ End
 
 	#tag Method, Flags = &h21
 		Private Sub LogHandler(Sender As FTPServerSocket, LogLine As String)
+		  #pragma Unused Sender
 		  If LogLine.Trim <> "" Then loggit(LogLine)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Function ProgressHandler(Sender As FTPServerSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  #pragma Unused Sender
 		  Dim percent As Integer = BytesSent * 100 / (BytesLeft + BytesSent)
 		  ProgressBar1.Value = percent
 		End Function
@@ -1221,6 +1222,7 @@ End
 
 	#tag Method, Flags = &h21
 		Private Function UserLogonHandler(Sender As FTPServerSocket, UserName As String, Password As String) As Boolean
+		  #pragma Unused Sender
 		  If UserName = "andrew" And Password = "andrew@boredomsoft.org" Then
 		    Return True
 		  End If
@@ -1490,255 +1492,3 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag ViewBehavior
-	#tag ViewProperty
-		Name="BackColor"
-		Visible=true
-		Group="Appearance"
-		InitialValue="&hFFFFFF"
-		Type="Color"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Backdrop"
-		Visible=true
-		Group="Appearance"
-		Type="Picture"
-		EditorType="Picture"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="CloseButton"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Composite"
-		Visible=true
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Frame"
-		Visible=true
-		Group="Appearance"
-		InitialValue="0"
-		Type="Integer"
-		EditorType="Enum"
-		InheritedFrom="Window"
-		#tag EnumValues
-			"0 - Document"
-			"1 - Movable Modal"
-			"2 - Modal Dialog"
-			"3 - Floating Window"
-			"4 - Plain Box"
-			"5 - Shadowed Box"
-			"6 - Rounded Window"
-			"7 - Global Floating Window"
-			"8 - Sheet Window"
-			"9 - Metal Window"
-			"10 - Drawer Window"
-			"11 - Modeless Dialog"
-		#tag EndEnumValues
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="FullScreen"
-		Visible=true
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="HasBackColor"
-		Visible=true
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Height"
-		Visible=true
-		Group="Position"
-		InitialValue="400"
-		Type="Integer"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="ImplicitInstance"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Interfaces"
-		Visible=true
-		Group="ID"
-		Type="String"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="LiveResize"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MacProcID"
-		Visible=true
-		Group="Appearance"
-		InitialValue="0"
-		Type="Integer"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MaxHeight"
-		Visible=true
-		Group="Position"
-		InitialValue="32000"
-		Type="Integer"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MaximizeButton"
-		Visible=true
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MaxWidth"
-		Visible=true
-		Group="Position"
-		InitialValue="32000"
-		Type="Integer"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MenuBar"
-		Visible=true
-		Group="Appearance"
-		Type="MenuBar"
-		EditorType="MenuBar"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MenuBarVisible"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MinHeight"
-		Visible=true
-		Group="Position"
-		InitialValue="64"
-		Type="Integer"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MinimizeButton"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MinWidth"
-		Visible=true
-		Group="Position"
-		InitialValue="64"
-		Type="Integer"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Name"
-		Visible=true
-		Group="ID"
-		Type="String"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Placement"
-		Visible=true
-		Group="Position"
-		InitialValue="0"
-		Type="Integer"
-		EditorType="Enum"
-		InheritedFrom="Window"
-		#tag EnumValues
-			"0 - Default"
-			"1 - Parent Window"
-			"2 - Main Screen"
-			"3 - Parent Window Screen"
-			"4 - Stagger"
-		#tag EndEnumValues
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Resizeable"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="ServerAnon"
-		Group="Behavior"
-		Type="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Super"
-		Visible=true
-		Group="ID"
-		Type="String"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Title"
-		Visible=true
-		Group="Appearance"
-		InitialValue="Untitled"
-		Type="String"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Visible"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Width"
-		Visible=true
-		Group="Position"
-		InitialValue="600"
-		Type="Integer"
-		InheritedFrom="Window"
-	#tag EndViewProperty
-#tag EndViewBehavior

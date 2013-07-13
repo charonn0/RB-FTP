@@ -57,6 +57,408 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_CDUP(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  #pragma Unused Argument
+		  If ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
+		    mWorkingDirectory = mWorkingDirectory.Parent
+		    DoResponse(250)
+		  Else
+		    DoResponse(550)
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_CWD(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  Dim g As FolderItem = FindFile(Argument)
+		  If g <> Nil Then
+		    mWorkingDirectory = g
+		    DoResponse(250)  'OK
+		  Else
+		    DoResponse(550)  'bad file
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_DELE(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  If Not AllowWrite Then
+		    DoResponse(450, "Permission denied.")
+		    Return
+		  End If
+		  
+		  Dim g As FolderItem
+		  If Argument.Trim <> "" Then
+		    g = FindFile(Argument.Trim)
+		  End If
+		  
+		  If g = Nil Then
+		    DoResponse(553, "Name not recognized.")
+		  Else
+		    If Not g.Directory Then
+		      g.Delete
+		      If g.LastErrorCode = 0 Then
+		        DoResponse(250, "Delete successful.")
+		      Else
+		        DoResponse(451, "System error: " + Str(g.LastErrorCode))
+		      End If
+		    Else
+		      DoResponse(550, "That's a directory.")
+		    End If
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_FEAT(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  #pragma Unused Argument
+		  Me.Write("211-Features:" + CRLF)
+		  For Each feature As String In Me.ServerFeatures
+		    Me.Write(" " + feature + CRLF)
+		  Next
+		  DoResponse(211, "End")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_LIST(Verb As String, Argument As String)
+		  If Argument = "-a" or Argument.Trim = "" Then Argument = WorkingDirectory
+		  
+		  Dim dir As FolderItem = FindFile(Argument)
+		  If dir = Nil Then dir = Me.mWorkingDirectory
+		  Dim s As String = FileListing(dir, Verb.Trim = "NLST")
+		  If s.Trim <> "" Then
+		    DoResponse(150)
+		    If Me.UTFMode Then
+		      s = ConvertEncoding(s, Encodings.UTF8)
+		    Else
+		      s = ConvertEncoding(s, Encodings.ASCII)
+		    End If
+		    TransmitData(s)
+		  ElseIf dir.Exists Then
+		    DoResponse(150)
+		  Else
+		    DoResponse(550, "That directory does not exist.")
+		  End If
+		  Me.CloseData
+		  DoResponse(226)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_MKD(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  Dim dir As FolderItem = FindFile(Argument.Trim, True)
+		  If dir = Nil Then
+		    DoResponse(550, "invalid name")
+		    Return
+		  End If
+		  If Not dir.Exists Then
+		    dir.CreateAsFolder
+		    If dir.Exists Then
+		      DoResponse(257, "directory created")
+		    Else
+		      DoResponse(550, "directory NOT created")
+		    End If
+		  Else
+		    DoResponse(550, "directory already exists")
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_OPTS(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  Dim option As String
+		  Dim value As Boolean
+		  option = NthField(Argument, " ", 1).Trim
+		  Argument = Replace(Argument, option, "").Trim
+		  If Argument = "ON" Then
+		    value = True
+		  ElseIf Argument = "OFF" Then
+		    value = False
+		  Else
+		    DoResponse(504)
+		    Return 'Error
+		  End If
+		  Select Case option
+		  Case "UTF8"
+		    Me.UTFMode = value
+		    DoResponse(200)
+		  Else
+		    If Not OPTS(option, value) Then
+		      DoResponse(504)
+		    End If
+		  End Select
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_PASS(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  Password = Argument.Trim
+		  If Username.Trim = "" Then
+		    DoResponse(530)  'USER not set!
+		    LoginOK = False
+		  ElseIf Me.Anonymous And Username = "anonymous" Then
+		    Call UserLogon(Username, Password)  'anon users passwords don't matter
+		    DoResponse(230) 'Logged in with pass
+		    LoginOK = True
+		  Else
+		    If UserLogon(Username, Password) Then
+		      DoResponse(230) 'Logged in with pass
+		      LoginOK = True
+		    Else
+		      DoResponse(530) 'Bad password!
+		      LoginOK = False
+		    End If
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_PASV(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  #pragma Unused Argument
+		  If Not Me.IsDataConnected Then
+		    Dim rand As New Random
+		    Dim port As Integer = Rand.InRange(1024, 65534)
+		    Me.ListenData(port)
+		    DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
+		  Else
+		    DoResponse(125)  //already open
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_PORT(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  DoResponse(200, Argument)
+		  Me.ConnectData(Argument)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_PWD(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  #pragma Unused Argument
+		  Dim dir As String = WorkingDirectory
+		  If Right(dir, 1) = "\" Or Right(dir, 1) = "/" And dir.Len > 1 Then dir = Left(dir, dir.Len - 1)
+		  dir = ReplaceAll(dir, "\", "/")
+		  DoResponse(257, """" + dir + """")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_REST(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  DataBuffer.Position = Val(Argument)
+		  DoResponse(350)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_RETR(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  If Me.IsDataConnected Then
+		    Dim f As FolderItem = FindFile(Argument)
+		    If f <> Nil Then
+		      DataBuffer = BinaryStream.Open(f)
+		    End If
+		    
+		    If DataBuffer <> Nil Then
+		      DoResponse(150)
+		      While Not DataBuffer.EOF
+		        TransmitData(DataBuffer.Read(DataBuffer.Length))
+		        App.YieldToNextThread
+		      Wend
+		      DoResponse(226)
+		      Me.CloseData()
+		    Else
+		      DoResponse(451) 'bad file
+		    End If
+		  Else
+		    DoResponse(425) 'No data connection
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_RMD(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  Dim dir As FolderItem = FindFile(Argument.Trim)
+		  If dir = Nil Then
+		    DoResponse(550, "no such directory")
+		    Return
+		  End If
+		  If dir.Exists Then
+		    If dir.Count = 0 Then
+		      dir.Delete
+		      DoResponse(250, "directory deleted")
+		    Else
+		      DoResponse(450, "directory is not empty")
+		    End If
+		  Else
+		    DoResponse(550, "directory does not exist")
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_RNF(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  If AllowWrite Then
+		    If Argument.Trim <> "" Then
+		      RNF = FindFile(Argument)
+		      If RNF <> Nil Then
+		        DoResponse(350, "Rename OK. Send new name now.")
+		      Else
+		        DoResponse(550, "File not found.")
+		      End If
+		    Else
+		      DoResponse(501, "You must specify a file or directory.")
+		    End If
+		  Else
+		    DoResponse(450, "Permission denied.")
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_RNTO(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  If RNF <> Nil Then
+		    If AllowWrite Then
+		      If Argument.Trim <> "" Then
+		        RNT = FindFile(Argument.Trim, True)
+		        If RNT <> Nil Then
+		          Dim newname As String = RNT.Name.Trim
+		          RNF.Name = newname
+		          If RNF.LastErrorCode = 0 Then
+		            DoResponse(250, "Rename successful.")
+		          Else
+		            DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
+		          End If
+		        Else
+		          DoResponse(501, "You must specify a new name.")
+		        End If
+		      Else
+		        DoResponse(553, "Name not recognized.")
+		      End If
+		    Else
+		      DoResponse(503, "You must use RNFR before RNTO.")
+		    End If
+		    RNF = Nil
+		    RNT = Nil
+		    
+		  Else
+		    DoResponse(450, "Permission denied.")
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_SITE(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  If SITE(Argument) Then
+		    DoResponse(200)
+		  Else
+		    DoResponse(504)
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_STOR(Verb As String, Argument As String)
+		  If Not AllowWrite Then
+		    DoResponse(550, "Permission denied.")
+		    Return
+		  End If
+		  If Not Me.IsDataConnected Then
+		    DoResponse(425)
+		    Return
+		  End If
+		  
+		  Dim saveTo As FolderItem
+		  Select Case Verb
+		  Case "STOR"
+		    saveTo = FindFile(Argument, True)
+		    If saveTo.Exists Then
+		      DoResponse(450, "Filename taken.")
+		      Return
+		    Else
+		      Me.DataBuffer = BinaryStream.Create(saveTo, False)
+		    End If
+		    
+		  Case "APPE"
+		    saveTo = FindFile(Argument, True)
+		    If Not saveTo.Exists Then
+		      DoResponse(450, "File does not exist")
+		      Return
+		    Else
+		      Me.DataBuffer = BinaryStream.Open(saveTo, False)
+		      Me.DataBuffer.Position = Me.DataBuffer.Length
+		    End If
+		    
+		    
+		  Case "STORU"
+		    saveTo = GetTemporaryFolderItem()
+		    saveTo.MoveFileTo(mWorkingDirectory.Child(Str(Microseconds)))
+		    Me.DataBuffer = BinaryStream.Open(saveTo, True)
+		  End Select
+		  
+		  DoResponse(150) 'Ready
+		  Me.TransferInProgress = True
+		  STORTimer = New Timer
+		  STORTimer.Period = 200
+		  AddHandler STORTimer.Action, AddressOf Me.STORHandler
+		  STORTimer.Mode = Timer.ModeMultiple
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_TYPE(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  Select Case Argument.Trim
+		  Case "A", "A N"
+		    Me.TransferMode = ASCIIMode
+		    DoResponse(200)
+		  Case "I", "L"
+		    Me.TransferMode = BinaryMode
+		    DoResponse(200)
+		  Else
+		    DoResponse(504) 'Command not implemented for param
+		  End Select
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_USER(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  Username = Argument.Trim
+		  If Me.Anonymous And Username = "anonymous" Then
+		    DoResponse(331, "Anonymous login OK, send e-mail address as password.")
+		  Else
+		    DoResponse(331) 'Need PASS
+		    LoginOK = False
+		  End If
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
 		Protected Function FileListing(Directory As FolderItem, NamesOnly As Boolean = False) As String
 		  Dim listing As String
@@ -119,6 +521,9 @@ Inherits FTPSocket
 		  Else
 		    Break
 		  End If
+		  
+		Exception
+		  Return Nil
 		End Function
 	#tag EndMethod
 
@@ -155,349 +560,77 @@ Inherits FTPSocket
 		  If LoginOK Or vb = "USER" Or vb = "PASS" Then
 		    Select Case vb.Trim
 		    Case "USER"
-		      
-		      Username = args.Trim
-		      If Me.Anonymous And Username = "anonymous" Then
-		        DoResponse(331, "Anonymous login OK, send e-mail address as password.")
-		      Else
-		        DoResponse(331) 'Need PASS
-		        LoginOK = False
-		      End If
+		      DoVerb_USER(vb, args)
 		      
 		    Case "PASS"
-		      
-		      Password = args.Trim
-		      If Username.Trim = "" Then
-		        DoResponse(530)  'USER not set!
-		        LoginOK = False
-		      ElseIf Me.Anonymous And Username = "anonymous" Then
-		        Call UserLogon(Username, Password)  'anon users passwords don't matter
-		        DoResponse(230) 'Logged in with pass
-		        LoginOK = True
-		      Else
-		        If UserLogon(Username, Password) Then
-		          DoResponse(230) 'Logged in with pass
-		          LoginOK = True
-		        Else
-		          DoResponse(530) 'Bad password!
-		          LoginOK = False
-		        End If
-		      End If
+		      DoVerb_PASS(vb, args)
 		      
 		    Case "RETR"
-		      
-		      If Me.IsDataConnected Then
-		        Dim f As FolderItem = FindFile(args)
-		        If f <> Nil Then
-		          DataBuffer = BinaryStream.Open(f)
-		        End If
-		        
-		        If DataBuffer <> Nil Then
-		          DoResponse(150)
-		          While Not DataBuffer.EOF
-		            TransmitData(DataBuffer.Read(DataBuffer.Length))
-		            App.YieldToNextThread
-		          Wend
-		          DoResponse(226)
-		          Me.CloseData()
-		        Else
-		          DoResponse(451) 'bad file
-		        End If
-		      Else
-		        DoResponse(425) 'No data connection
-		      End If
+		      DoVerb_RETR(vb, args)
 		      
 		    Case "STOR", "STORU", "APPE"
-		      If Not AllowWrite Then
-		        DoResponse(550, "Permission denied.")
-		        Return
-		      End If
-		      If Not Me.IsDataConnected Then
-		        DoResponse(425)
-		        Return
-		      End If
-		      
-		      Dim saveTo As FolderItem
-		      Select Case vb
-		      Case "STOR"
-		        saveTo = FindFile(args, True)
-		        If saveTo.Exists Then
-		          DoResponse(450, "Filename taken.")
-		          Return
-		        Else
-		          Me.DataBuffer = BinaryStream.Create(saveTo, False)
-		        End If
-		        
-		      Case "APPE"
-		        saveTo = FindFile(args, True)
-		        If Not saveTo.Exists Then
-		          DoResponse(450, "File does not exist")
-		          Return
-		        Else
-		          Me.DataBuffer = BinaryStream.Open(saveTo, False)
-		          Me.DataBuffer.Position = Me.DataBuffer.Length
-		        End If
-		        
-		        
-		      Case "STORU"
-		        saveTo = GetTemporaryFolderItem()
-		        saveTo.MoveFileTo(mWorkingDirectory.Child(Str(Microseconds)))
-		        Me.DataBuffer = BinaryStream.Open(saveTo, True)
-		      End Select
-		      
-		      DoResponse(150) 'Ready
-		      Me.TransferInProgress = True
-		      STORTimer = New Timer
-		      STORTimer.Period = 200
-		      AddHandler STORTimer.Action, AddressOf Me.STORHandler
-		      STORTimer.Mode = Timer.ModeMultiple
+		      Me.DoVerb_STOR(vb, args)
 		      
 		    Case "FEAT"
-		      Me.Write("211-Features:" + CRLF)
-		      For Each feature As String In Me.ServerFeatures
-		        Me.Write(" " + feature + CRLF)
-		      Next
-		      DoResponse(211, "End")
+		      DoVerb_FEAT(vb, args)
 		      
 		    Case "SYST"
-		      
 		      'We'll claim to be UNIX even if we aren't
 		      DoResponse(215, "UNIX Type: L8")
 		      
 		    Case "CWD", "XCWD"
-		      
-		      Dim g As FolderItem = FindFile(args)
-		      If g <> Nil Then
-		        mWorkingDirectory = g
-		        DoResponse(250)  'OK
-		      Else
-		        DoResponse(550)  'bad file
-		      End If
+		      DoVerb_CWD(vb, args)
 		      
 		    Case "PWD"
-		      Dim dir As String = WorkingDirectory
-		      If Right(dir, 1) = "\" Or Right(dir, 1) = "/" And dir.Len > 1 Then dir = Left(dir, dir.Len - 1)
-		      dir = ReplaceAll(dir, "\", "/")
-		      DoResponse(257, """" + dir + """")
+		      DoVerb_PWD(vb, args)
 		      
 		    Case "LIST", "NLST"
-		      If args = "-a" or args.Trim = "" Then args = WorkingDirectory
-		      
-		      Dim dir As FolderItem = FindFile(args)
-		      If dir = Nil Then dir = Me.mWorkingDirectory
-		      Dim s As String = FileListing(dir, vb.Trim = "NLST")
-		      If s.Trim <> "" Then
-		        DoResponse(150)
-		        If Me.UTFMode Then
-		          s = ConvertEncoding(s, Encodings.UTF8)
-		        Else
-		          s = ConvertEncoding(s, Encodings.ASCII)
-		        End If
-		        TransmitData(s)
-		      ElseIf dir.Exists Then
-		        DoResponse(150)
-		      Else
-		        DoResponse(550, "That directory does not exist.")
-		      End If
-		      Me.CloseData
-		      DoResponse(226)
-		      
+		      DoVerb_List(vb, args)
 		      
 		    Case "CDUP"
-		      
-		      If ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
-		        mWorkingDirectory = mWorkingDirectory.Parent
-		        DoResponse(250)
-		      Else
-		        DoResponse(550)
-		      End If
+		      DoVerb_CDUP(vb, args)
 		      
 		    Case "PASV"
-		      
-		      If Not Me.IsDataConnected Then
-		        Dim rand As New Random
-		        Dim port As Integer = Rand.InRange(1024, 65534)
-		        Me.ListenData(port)
-		        DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
-		      Else
-		        DoResponse(125)  //already open
-		      End If
+		      DoVerb_PASV(vb, args)
 		      
 		    Case "REST"
-		      
-		      DataBuffer.Position = Val(args)
-		      DoResponse(350)
+		      DoVerb_REST(vb, args)
 		      
 		    Case "PORT"
-		      
-		      DoResponse(200, args)
-		      Me.ConnectData(args)
+		      DoVerb_PORT(vb, args)
 		      
 		    Case "TYPE"
-		      
-		      Select Case args.Trim
-		      Case "A", "A N"
-		        Me.TransferMode = ASCIIMode
-		        DoResponse(200)
-		      Case "I", "L"
-		        Me.TransferMode = BinaryMode
-		        DoResponse(200)
-		      Else
-		        DoResponse(504) 'Command not implemented for param
-		      End Select
+		      DoVerb_TYPE(vb, args)
 		      
 		    Case "MKD"
-		      Dim dir As FolderItem = FindFile(args.Trim, True)
-		      If dir = Nil Then
-		        DoResponse(550, "invalid name")
-		        Return
-		      End If
-		      If Not dir.Exists Then
-		        dir.CreateAsFolder
-		        If dir.Exists Then
-		          DoResponse(257, "directory created")
-		        Else
-		          DoResponse(550, "directory NOT created")
-		        End If
-		      Else
-		        DoResponse(550, "directory already exists")
-		      End If
+		      DoVerb_MKD(vb, args)
 		      
 		    Case "RMD"
-		      
-		      Dim dir As FolderItem = FindFile(args.Trim)
-		      If dir = Nil Then
-		        DoResponse(550, "no such directory")
-		        Return
-		      End If
-		      If dir.Exists Then
-		        If dir.Count = 0 Then
-		          dir.Delete
-		          DoResponse(250, "directory deleted")
-		        Else
-		          DoResponse(450, "directory is not empty")
-		        End If
-		      Else
-		        DoResponse(550, "directory does not exist")
-		      End If
+		      DoVerb_RMD(vb, args)
 		      
 		    Case "DELE"
-		      
-		      If Not AllowWrite Then
-		        DoResponse(450, "Permission denied.")
-		        Return
-		      End If
-		      
-		      Dim g As FolderItem
-		      If args.Trim <> "" Then
-		        g = FindFile(args.Trim)
-		      End If
-		      
-		      If g = Nil Then
-		        DoResponse(553, "Name not recognized.")
-		      Else
-		        If Not g.Directory Then
-		          g.Delete
-		          If g.LastErrorCode = 0 Then
-		            DoResponse(250, "Delete successful.")
-		          Else
-		            DoResponse(451, "System error: " + Str(g.LastErrorCode))
-		          End If
-		        Else
-		          DoResponse(550, "That's a directory.")
-		        End If
-		      End If
+		      DoVerb_DELE(vb, args)
 		      
 		    Case "RNFR"
-		      
-		      If AllowWrite Then
-		        If args.Trim <> "" Then
-		          RNF = FindFile(args)
-		          If RNF <> Nil Then
-		            DoResponse(350, "Rename OK. Send new name now.")
-		          Else
-		            DoResponse(550, "File not found.")
-		          End If
-		        Else
-		          DoResponse(501, "You must specify a file or directory.")
-		        End If
-		      Else
-		        DoResponse(450, "Permission denied.")
-		      End If
+		      DoVerb_RNF(vb, args)
 		      
 		    Case "RNTO"
-		      
-		      If RNF <> Nil Then
-		        If AllowWrite Then
-		          If args.Trim <> "" Then
-		            RNT = FindFile(args.Trim, True)
-		            If RNT <> Nil Then
-		              Dim newname As String = RNT.Name.Trim
-		              RNF.Name = newname
-		              If RNF.LastErrorCode = 0 Then
-		                DoResponse(250, "Rename successful.")
-		              Else
-		                DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
-		              End If
-		            Else
-		              DoResponse(501, "You must specify a new name.")
-		            End If
-		          Else
-		            DoResponse(553, "Name not recognized.")
-		          End If
-		        Else
-		          DoResponse(503, "You must use RNFR before RNTO.")
-		        End If
-		        RNF = Nil
-		        RNT = Nil
-		        
-		      Else
-		        DoResponse(450, "Permission denied.")
-		      End If
+		      DoVerb_RNTO(vb, args)
 		      
 		    Case "QUIT"
-		      
 		      DoResponse(221, "Bye.")
 		      Me.Close
 		      
 		    Case "NOOP" 'Keep alive; no operation
-		      
 		      DoResponse(200)
 		      
 		    Case "OPTS"
-		      
-		      Dim option As String
-		      Dim value As Boolean
-		      option = NthField(args, " ", 1).Trim
-		      args = Replace(args, option, "").Trim
-		      If args = "ON" Then
-		        value = True
-		      ElseIf args = "OFF" Then
-		        value = False
-		      Else
-		        DoResponse(504)
-		        Return 'Error
-		      End If
-		      Select Case option
-		      Case "UTF8"
-		        Me.UTFMode = value
-		        DoResponse(200)
-		      Else
-		        If Not OPTS(option, value) Then
-		          DoResponse(504)
-		        End If
-		      End Select
+		      DoVerb_OPTS(vb, args)
 		      
 		    Case "SITE"
-		      
-		      If SITE(args) Then
-		        DoResponse(200)
-		      Else
-		        DoResponse(504)
-		      End If
+		      DoVerb_SITE(vb, args)
 		      
 		    Else
-		      
 		      DoResponse(500)  'syntax error or unknown verb
 		      
 		    End Select
@@ -910,6 +1043,11 @@ Inherits FTPSocket
 			Type="String"
 			EditorType="MultiLineEditor"
 			InheritedFrom="FTPSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="UTFMode"
+			Group="Behavior"
+			Type="Boolean"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="WorkingDirectory"
