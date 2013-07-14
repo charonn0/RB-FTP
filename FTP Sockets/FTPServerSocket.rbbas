@@ -278,12 +278,10 @@ Inherits FTPSocket
 		    
 		    If DataBuffer <> Nil Then
 		      DoResponse(150)
-		      While Not DataBuffer.EOF
-		        TransmitData(DataBuffer.Read(DataBuffer.Length))
-		        App.YieldToNextThread
-		      Wend
-		      DoResponse(226)
-		      Me.CloseData()
+		      RETRTimer = New Timer
+		      RETRTimer.Period = 200
+		      AddHandler RETRTimer.Action, AddressOf Me.RETRHandler
+		      RETRTimer.Mode = Timer.ModeMultiple
 		    Else
 		      DoResponse(451) 'bad file
 		    End If
@@ -646,6 +644,19 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub RETRHandler(Sender As Timer)
+		  //Handles the FTPServerSocket.RETRTimer.Action event
+		  
+		  TransmitData(DataBuffer.Read(DataBuffer.Length))
+		  DoResponse(226)
+		  DataBuffer.Close
+		  Me.CloseData()
+		  Sender.Mode = Timer.ModeOff
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub STORHandler(Sender As Timer)
 		  //Handles the FTPServerSocket.STORTimer.Action event
 		  If Not Me.TransferInProgress Then
@@ -874,6 +885,10 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h21
 		Private mWorkingDirectory As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private RETRTimer As Timer
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
