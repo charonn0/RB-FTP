@@ -343,14 +343,11 @@ Inherits TCPSocket
 		  Dim p1, p2 As Integer
 		  Dim h1, h2, h3, h4 As String
 		  PASVParams = NthField(PASVParams, " ", CountFields(PASVParams, " "))
-		  PASVParams = Replace(PASVParams, "(", "")
-		  PASVParams = Replace(PASVParams, ")", "")
-		  PASVParams = Replace(PASVParams, "{", "")
-		  PASVParams = Replace(PASVParams, "}", "")
-		  PASVParams = Replace(PASVParams, "[", "")
-		  PASVParams = Replace(PASVParams, "]", "")
-		  PASVParams = Replace(PASVParams, "<", "")
-		  PASVParams = Replace(PASVParams, ">", "")
+		  Dim parentheticals() As String = Split("(){}[]<>", "")
+		  For Each paren As String In parentheticals
+		    PASVParams = Replace(PASVParams, paren, "")
+		  Next
+		  
 		  h1 = NthField(PASVParams, ",", 1)
 		  h2 = NthField(PASVParams, ",", 2)
 		  h3 = NthField(PASVParams, ",", 3)
