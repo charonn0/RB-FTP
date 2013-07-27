@@ -78,7 +78,7 @@ Inherits FTPSocket
 		    mWorkingDirectory = g
 		    DoResponse(250)  'OK
 		  Else
-		    DoResponse(550)  'bad file
+		    DoResponse(553, "Name not recognized.")  'bad file
 		  End If
 		End Sub
 	#tag EndMethod
@@ -516,8 +516,6 @@ Inherits FTPSocket
 		  
 		  If (found.Exists Or AllowNonExistant) And ChildOfParent(found, Me.RootDirectory) Then
 		    Return found
-		  Else
-		    Break
 		  End If
 		  
 		Exception
