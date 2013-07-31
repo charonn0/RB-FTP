@@ -9,6 +9,7 @@ Inherits FTPSocket
 		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
 		  InactivityTimer.Mode = Timer.ModeMultiple
 		  DoResponse(220, Banner)
+		  RaiseEvent Connected()
 		End Sub
 	#tag EndEvent
 
@@ -667,6 +668,10 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
+
+	#tag Hook, Flags = &h0
+		Event Connected()
+	#tag EndHook
 
 	#tag Hook, Flags = &h0
 		Event OPTS(Name As String, Value As Boolean) As Boolean
