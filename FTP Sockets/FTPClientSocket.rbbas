@@ -80,6 +80,7 @@ Inherits FTPSocket
 		Sub Connect()
 		  VerbDispatchTimer = Nil
 		  ReDim PendingVerbs(-1)
+		  PendingUploads = New Dictionary
 		  Super.Connect()
 		End Sub
 	#tag EndMethod
@@ -427,8 +428,8 @@ Inherits FTPSocket
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
-		  DataBuffer = BinaryStream.Open(LocalFile)
-		  DoVerb("STOR", RemoteFileName)
+		  PendingUploads.Value(RemoteFileName.Trim) = LocalFile
+		  DoVerb("STOR", RemoteFileName.Trim)
 		End Sub
 	#tag EndMethod
 
@@ -460,11 +461,20 @@ Inherits FTPSocket
 		  //Handles the FTPClientSocket.VerbDispatchTimer.Action event
 		  If Not TransferInProgress And UBound(PendingVerbs) > -1 Then
 		    Dim nextverb As FTPVerb = PendingVerbs.Pop
+		    If nextverb.Verb = "STOR" Then
+		      DataBuffer = BinaryStream.Open(PendingUploads.Value(nextverb.Arguments))
+		      PendingUploads.Remove(nextverb.Arguments)
+		    End If
 		    FTPLog(nextverb.Verb + " " + nextverb.Arguments)
 		    Me.Write(nextverb.Verb + " " + nextverb.Arguments + CRLF)
 		    LastVerb = nextverb
 		    Sender.Mode = Timer.ModeOff
 		  End If
+		  
+		Exception Err As KeyNotFoundException
+		  FTPLog("Local file could not be found to upload!")
+		  If DataBuffer <> Nil Then DataBuffer.Close
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -516,8 +526,12 @@ Inherits FTPSocket
 		Private mWorkingDirectory As String
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private PendingVerbs() As FTPVerb
+	#tag Property, Flags = &h1
+		Protected PendingUploads As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected PendingVerbs() As FTPVerb
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
