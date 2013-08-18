@@ -358,6 +358,7 @@ Inherits FTPSocket
 		Sub PORT(PortNumber As Integer)
 		  'You must call either PASV or PORT before transferring anything over the DataSocket
 		  'Data port.
+		  If Me.IsDataConnected Then Me.CloseData
 		  Me.ListenData(PortNumber)
 		  DoVerb("PORT", Me.PASVAddress)
 		End Sub
@@ -462,7 +463,7 @@ Inherits FTPSocket
 		  //Handles the FTPClientSocket.VerbDispatchTimer.Action event
 		  If Not TransferInProgress And UBound(PendingVerbs) > -1 Then
 		    Dim nextverb As FTPVerb = PendingVerbs.Pop
-		    If nextverb.Verb = "STOR" Or nextverb.Verb = "RETR" Or nextverb.Verb = "APPE" Then
+		    If nextverb.Verb = "STOR" Or nextverb.Verb = "RETR" Or nextverb.Verb = "APPE" Or nextverb.Verb = "LIST" Or nextverb.Verb = "NLST" Then
 		      DataBuffer = BinaryStream.Open(PendingTransfers.Value(nextverb.Arguments))
 		      PendingTransfers.Remove(nextverb.Arguments)
 		    End If
