@@ -79,17 +79,21 @@ Inherits TCPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub ConnectData(PASVparams As String)
-		  Me.CreateDataSocket(PASVparams)
+		Protected Sub ConnectData(PASVparams As String, DataInterface As NetworkInterface = Nil)
+		  Me.CreateDataSocket(PASVparams, DataInterface)
 		  Me.DataSocket.Connect()
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub CreateDataSocket(PASVParams As String)
+		Private Sub CreateDataSocket(PASVParams As String, NetInterface As NetworkInterface = Nil)
 		  Me.CloseData
 		  DataSocket = New TCPSocket
-		  DataSocket.NetworkInterface = Self.NetworkInterface
+		  If NetInterface <> Nil Then
+		    DataSocket.NetworkInterface = NetInterface
+		  Else
+		    DataSocket.NetworkInterface = Self.NetworkInterface
+		  End If
 		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
 		  AddHandler DataSocket.Error, AddressOf ErrorHandler
 		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
@@ -105,7 +109,7 @@ Inherits TCPSocket
 		    DataSocket.Port = dport
 		  Else
 		    Dim rand As New Random
-		    DataSocket.Address = Me.NetworkInterface.IPAddress
+		    DataSocket.Address = DataSocket.NetworkInterface.IPAddress
 		    DataSocket.Port = Rand.InRange(1025, 65534)
 		  End If
 		End Sub
@@ -352,7 +356,7 @@ Inherits TCPSocket
 		    For j As Integer = 0 To UBound(facts)
 		      Dim fact As String = facts(j)
 		      Dim char As String = Left(fact, 1)
-		      If char = "+" Then 
+		      If char = "+" Then
 		        fact = Replace(fact, "+", "")
 		        char = Left(fact, 1)
 		      ElseIf char = "u" Then
