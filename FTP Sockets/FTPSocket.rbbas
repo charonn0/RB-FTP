@@ -34,7 +34,7 @@ Inherits TCPSocket
 		Protected Shared Function ChildOfParent(Child As FolderItem, Parent As FolderItem) As Boolean
 		  'A method to determine whether the Child FolderItem is contained within the Parent
 		  'FolderItem or one of its sub-directories.
-		  
+		  #pragma BreakOnExceptions Off
 		  If Not Parent.Directory Then Return False
 		  While Child.Parent <> Nil
 		    If Child.Parent.AbsolutePath = Parent.AbsolutePath Or Child.AbsolutePath = Parent.AbsolutePath Then
@@ -42,6 +42,9 @@ Inherits TCPSocket
 		    End If
 		    Child = Child.Parent
 		  Wend
+		  
+		Exception
+		  Return False
 		End Function
 	#tag EndMethod
 
@@ -342,10 +345,10 @@ Inherits TCPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Shared Function ParseFileList(Raw As String) As Dictionary
+	#tag Method, Flags = &h0
+		 Shared Function ParseFileList(Raw As String) As Dictionary
 		  'work in progress
-		  Dim lines() As String = Split(Raw, CRLF)
+		  Dim lines() As String = Split(ReplaceLineEndings(Raw, CRLF), CRLF)
 		  Dim res As New Dictionary
 		  
 		  For i As Integer = 0 To UBound(lines)
