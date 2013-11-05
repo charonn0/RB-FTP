@@ -200,7 +200,19 @@ Inherits FTPSocket
 		      Dim size As String = NthField(msg, "(", 2)
 		      size = NthField(size, ")", 1)
 		    Case 425, 426 'Data connection not ready
+		      Dim lv, la As String
+		      lv = LastVerb.Verb
+		      la = LastVerb.Arguments
+		      If Passive Then
+		        PASV()
+		      Else
+		        PORT(Me.Port + 1)
+		      End If
+		      DoVerb(lv, la)
 		    Case 451, 551 'Disk read error
+		      DataBuffer.Close
+		      Call GetData()
+		      TransferComplete()
 		    Case 226 'Done
 		      Dim s As String = Me.GetData
 		      DataBuffer.Write(s)
@@ -227,6 +239,9 @@ Inherits FTPSocket
 		      End If
 		      DoVerb(lv, la)
 		    Case 426  'Data connection lost
+		      DataBuffer.Close
+		      Call GetData()
+		      TransferComplete()
 		    End Select
 		  Case "STAT"
 		    If Code = 211 Or Code = 212 Or Code = 213 Then
