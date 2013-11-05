@@ -202,7 +202,8 @@ Inherits FTPSocket
 		    Case 425, 426 'Data connection not ready
 		    Case 451, 551 'Disk read error
 		    Case 226 'Done
-		      DataBuffer.Write(Me.GetData)
+		      Dim s As String = Me.GetData
+		      DataBuffer.Write(s)
 		      DataBuffer.Close
 		      TransferComplete()
 		    End Select
@@ -399,7 +400,6 @@ Inherits FTPSocket
 		    PORT(Me.Port + 1)
 		  End If
 		  PendingTransfers.Value(RemoteFileName.Trim) = SaveTo
-		  DataBuffer = BinaryStream.Create(SaveTo, True)
 		  DoVerb("RETR", RemoteFileName.Trim)
 		End Sub
 	#tag EndMethod
@@ -463,8 +463,11 @@ Inherits FTPSocket
 		  //Handles the FTPClientSocket.VerbDispatchTimer.Action event
 		  If Not TransferInProgress And UBound(PendingVerbs) > -1 Then
 		    Dim nextverb As FTPVerb = PendingVerbs.Pop
-		    If nextverb.Verb = "STOR" Or nextverb.Verb = "RETR" Or nextverb.Verb = "APPE" Then
+		    If nextverb.Verb = "STOR" Or nextverb.Verb = "APPE" Then
 		      DataBuffer = BinaryStream.Open(PendingTransfers.Value(nextverb.Arguments))
+		      PendingTransfers.Remove(nextverb.Arguments)
+		    ElseIf nextverb.Verb = "RETR" Then
+		      DataBuffer = BinaryStream.Create(PendingTransfers.Value(nextverb.Arguments), True)
 		      PendingTransfers.Remove(nextverb.Arguments)
 		    End If
 		    FTPLog(nextverb.Verb + " " + nextverb.Arguments)
