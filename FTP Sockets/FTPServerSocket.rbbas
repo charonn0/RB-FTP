@@ -76,8 +76,13 @@ Inherits FTPSocket
 		  #pragma Unused Verb
 		  Dim g As FolderItem = FindFile(Argument)
 		  If g <> Nil Then
-		    mWorkingDirectory = g
-		    DoResponse(250)  'OK
+		    If g.Directory Then
+		      mWorkingDirectory = g
+		      DoResponse(250)  'OK
+		    Else
+		      DoResponse(553, "That is not a directory")
+		    End If
+		    
 		  Else
 		    DoResponse(553, "Name not recognized.")  'bad file
 		  End If
@@ -510,7 +515,7 @@ Inherits FTPSocket
 		    path = RootDirectory.AbsolutePath
 		    Name = Right(Name, Name.Len - 1)
 		  Else 'Relative to WorkingDir
-		    path = mWorkingDirectory.AbsolutePath
+		    path = WorkingDirectory
 		  End If
 		  
 		  Dim found As FolderItem = GetFolderItem(path + Name)
