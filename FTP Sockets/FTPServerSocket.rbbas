@@ -259,6 +259,9 @@ Inherits FTPSocket
 		  #pragma Unused Argument
 		  Dim dir As String = WorkingDirectory
 		  If Right(dir, 1) = "\" Or Right(dir, 1) = "/" And dir.Len > 1 Then dir = Left(dir, dir.Len - 1)
+		  Do Until InStr(dir, "//") = 0
+		    dir = Replace(dir, "//", "/")
+		  Loop
 		  dir = ReplaceAll(dir, "\", "/")
 		  DoResponse(257, """" + dir + """")
 		End Sub
@@ -515,7 +518,7 @@ Inherits FTPSocket
 		    path = RootDirectory.AbsolutePath
 		    Name = Right(Name, Name.Len - 1)
 		  Else 'Relative to WorkingDir
-		    path = WorkingDirectory
+		    path = RootDirectory.AbsolutePath + WorkingDirectory
 		  End If
 		  
 		  Dim found As FolderItem = GetFolderItem(path + Name)
