@@ -475,32 +475,34 @@ Inherits FTPSocket
 		    Next
 		  Else
 		    'http://cr.yp.to/ftp/list/eplf.html
-		    For i As Integer = 1 To Directory.Count
+		    Dim count As Integer = Directory.Count
+		    For i As Integer = 1 To Count
+		      Dim item As FolderItem = Directory.Item(i)
 		      listing = listing + Encodings.ASCII.Chr(&o053)
-		      If Directory.Item(i).IsReadable Then
+		      If item.IsReadable Then
 		        listing = listing + "r,"
 		      End If
 		      
-		      If Directory.Item(i).Directory Then
+		      If item.Directory Then
 		        listing = listing + "/,"
 		      Else
-		        listing = listing + "s" + Str(Directory.Item(i).Length) + ","
+		        listing = listing + "s" + Str(item.Length) + ","
 		      End If
 		      
 		      Dim epoch As New Date(1970, 1, 1, 0, 0, 0, 0) 'UNIX epoch
-		      Dim filetime As Date = Directory.Item(i).ModificationDate
+		      Dim filetime As Date = item.ModificationDate
 		      filetime.GMTOffset = 0
 		      listing = listing + "m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ","
 		      #If TargetMacOS Or TargetLinux Then
-		        listing = listing + "UP" + Format(Directory.Item(i).Permissions, "000") + ","
+		        listing = listing + "UP" + Format(item.Permissions, "000") + ","
 		      #Else
 		        Dim p As Integer
-		        If Directory.Item(i).IsReadable Then p = p + 4
-		        If Directory.Item(i).IsWriteable Then p = p + 2
+		        If item.IsReadable Then p = p + 4
+		        If item.IsWriteable Then p = p + 2
 		        p = p + 1 'executable
 		        listing = listing + "UP" + Str(p) + Str(p) + Str(p)
 		      #endif
-		      listing = listing + Encodings.ASCII.Chr(&o011) + Directory.Item(i).Name + CRLF
+		      listing = listing + Encodings.ASCII.Chr(&o011) + item.Name + CRLF
 		    Next
 		  End If
 		  'If listing.Trim = "" And Directory <> Nil And Directory.Exists And Directory.Directory Then listing = "." + CRLF + ".." + CRLF
