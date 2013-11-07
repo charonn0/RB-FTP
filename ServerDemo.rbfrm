@@ -297,8 +297,8 @@ Begin Window ServerDemo
       Index           =   -2147483648
       Left            =   612
       LockedInPosition=   False
-      MaximumSocketsConnected=   10
-      MinimumSocketsAvailable=   2
+      MaximumSocketsConnected=   25
+      MinimumSocketsAvailable=   10
       Port            =   21
       Scope           =   0
       TabPanelIndex   =   0
@@ -381,9 +381,14 @@ End
 
 	#tag Method, Flags = &h0
 		Sub Loggit(line As String)
-		  Listbox1.AddRow(line)
-		  Listbox1.RowTag(Listbox1.LastIndex) = Left(Line, 3)
-		  Listbox1.ScrollPosition = Listbox1.LastIndex * Listbox1.RowHeight
+		  #pragma BreakOnExceptions Off
+		  Try
+		    Listbox1.AddRow(line)
+		    Listbox1.RowTag(Listbox1.LastIndex) = Left(Line, 3)
+		    Listbox1.ScrollPosition = Listbox1.LastIndex * Listbox1.RowHeight
+		  Catch
+		    Return
+		  End Try
 		End Sub
 	#tag EndMethod
 

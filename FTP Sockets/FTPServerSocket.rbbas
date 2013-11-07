@@ -62,7 +62,7 @@ Inherits FTPSocket
 		Private Sub DoVerb_CDUP(Verb As String, Argument As String)
 		  #pragma Unused Verb
 		  #pragma Unused Argument
-		  If ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
+		  If RootDirectory.AbsolutePath = mWorkingDirectory.Parent.AbsolutePath Or ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
 		    mWorkingDirectory = mWorkingDirectory.Parent
 		    DoResponse(250)
 		  Else
