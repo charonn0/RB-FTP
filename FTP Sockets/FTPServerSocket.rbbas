@@ -212,7 +212,7 @@ Inherits FTPSocket
 		  #pragma Unused Verb
 		  Password = Argument.Trim
 		  If Username.Trim = "" Then
-		    DoResponse(530)  'USER not set!
+		    DoResponse(530, "USER not set.")  'USER not set!
 		    LoginOK = False
 		  ElseIf Me.Anonymous And Username = "anonymous" Then
 		    Call UserLogon(Username, Password)  'anon users passwords don't matter
@@ -223,7 +223,7 @@ Inherits FTPSocket
 		      DoResponse(230) 'Logged in with pass
 		      LoginOK = True
 		    Else
-		      DoResponse(530) 'Bad password!
+		      DoResponse(530, "Invalid USER or PASS.") 'Bad password!
 		      LoginOK = False
 		    End If
 		  End If
@@ -347,8 +347,8 @@ Inherits FTPSocket
 		Private Sub DoVerb_RNTO(Verb As String, Argument As String)
 		  #pragma Unused Verb
 		  
-		  If RNF <> Nil Then
-		    If AllowWrite Then
+		  If AllowWrite Then
+		    If RNF <> Nil Then
 		      If Argument.Trim <> "" Then
 		        RNT = FindFile(Argument.Trim, True)
 		        If RNT <> Nil Then
