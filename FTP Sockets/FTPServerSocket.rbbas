@@ -15,8 +15,14 @@ Inherits FTPSocket
 
 	#tag Event
 		Sub DataAvailable()
-		  Dim s As String = Me.Read
-		  ParseVerb(s)
+		  Dim i As Integer = InStrB(Me.Lookahead, CRLF)
+		  Do Until i <= 0
+		    Dim data As String = Me.Read(i + 2)
+		    ParseVerb(data)
+		    i = InStrB(Me.Lookahead, CRLF)
+		    If i > 0  Then Break
+		  Loop
+		  
 		End Sub
 	#tag EndEvent
 
