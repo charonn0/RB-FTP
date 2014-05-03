@@ -386,12 +386,30 @@ Inherits FTPSocket
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_SITE(Verb As String, Argument As String)
 		  #pragma Unused Verb
-		  
-		  If SITE(Argument) Then
-		    DoResponse(200)
-		  Else
-		    DoResponse(504)
+		  Dim code As Integer = 504 ' not implemented
+		  Dim msg As String
+		  If Not RaiseEvent SITE(Argument, code, msg) Then
+		    Select Case NthField(Argument, " ", 1).Trim.Uppercase
+		    Case "CHMOD"
+		      #If Not TargetWin32 Then
+		        Dim f As FolderItem = FindFile(NthField(Argument, " ", 3).Trim)
+		        If f <> Nil And AllowWrite Then
+		          f.Permissions = Val("&u" + NthField(Argument, " ", 2).Trim)
+		          code = 200
+		        ElseIf AllowWrite Then
+		          code = 451 ' action aborted due to error
+		          msg = "Not found."
+		        Else
+		          code = 450 ' action not taken
+		          msg = "Permission denied."
+		        End If
+		      #Else
+		        code = 202 ' not implemented; superfluous
+		      #endif
+		    End Select
 		  End If
+		  
+		  DoResponse(code, msg)
 		End Sub
 	#tag EndMethod
 
@@ -694,7 +712,7 @@ Inherits FTPSocket
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event SITE(Arguments As String) As Boolean
+		Event SITE(Arguments As String, ByRef ResponseCode As Integer, ByRef ResponseMessage As String) As Boolean
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
