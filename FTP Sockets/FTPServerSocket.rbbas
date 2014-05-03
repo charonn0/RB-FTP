@@ -244,6 +244,7 @@ Inherits FTPSocket
 		    Dim rand As New Random
 		    Dim port As Integer = Rand.InRange(1024, 65534)
 		    Me.ListenData(port)
+		    App.DoEvents(100)
 		    DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
 		  Else
 		    DoResponse(125)  //already open
