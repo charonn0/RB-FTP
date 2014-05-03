@@ -14,10 +14,9 @@ Inherits FTPSocket
 		Sub DataAvailable()
 		  Dim i As Integer = InStrB(Me.Lookahead, CRLF)
 		  Do Until i <= 0
-		    Dim data As String = Me.Read(i + 2)
+		    Dim data As String = Me.Read(i + 1)
 		    ParseResponse(data)
 		    i = InStrB(Me.Lookahead, CRLF)
-		    If i > 0  Then Break
 		  Loop
 		  
 		  
