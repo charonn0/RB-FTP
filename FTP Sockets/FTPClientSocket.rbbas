@@ -72,6 +72,12 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub CHMOD(RemoteFileName As String, NewPerms As String)
+		  DoVerb("SITE", "CHMOD " + NewPerms.Trim + " " + RemoteFileName.Trim)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Close()
 		  VerbDispatchTimer = Nil
 		  mWorkingDirectory = ""
@@ -108,6 +114,7 @@ Inherits FTPSocket
 		Protected Sub DoVerb(Verb As String, Params As String = "", HighPriority As Boolean = False)
 		  'Use this method to queue up verbs to be executed
 		  Dim nextverb As FTPVerb
+		  If verb = "SITE" Then Break
 		  nextverb.Verb = Uppercase(Verb)
 		  nextverb.Arguments = Trim(Params)
 		  If Not HighPriority Then
