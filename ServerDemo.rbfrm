@@ -169,7 +169,6 @@ Begin Window ServerDemo
       Selectable      =   False
       TabIndex        =   6
       TabPanelIndex   =   0
-      TabStop         =   True
       Text            =   "Listen On:"
       TextAlign       =   2
       TextColor       =   &h000000
@@ -294,7 +293,6 @@ Begin Window ServerDemo
       Width           =   80
    End
    Begin ServerSocket FTPServer
-      Enabled         =   True
       Height          =   32
       Index           =   -2147483648
       Left            =   612
@@ -303,11 +301,8 @@ Begin Window ServerDemo
       MinimumSocketsAvailable=   10
       Port            =   21
       Scope           =   0
-      TabIndex        =   7
       TabPanelIndex   =   0
-      TabStop         =   True
       Top             =   0
-      Visible         =   True
       Width           =   32
    End
    Begin PushButton PushButton3
@@ -500,8 +495,8 @@ End
 		  client.AllowWrite = True
 		  client.TimeOutPeriod = 60000
 		  client.NetworkInterface = Me.NetworkInterface
-		  AddHandler client.FTPLog, AddressOf LogHandler
-		  AddHandler client.UserLogon, AddressOf UserLogonHandler
+		  AddHandler client.FTPLog, WeakAddressOf LogHandler
+		  AddHandler client.UserLogon, WeakAddressOf UserLogonHandler
 		  Return client
 		End Function
 	#tag EndEvent

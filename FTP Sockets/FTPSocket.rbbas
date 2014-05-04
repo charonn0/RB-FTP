@@ -97,10 +97,10 @@ Inherits TCPSocket
 		  Else
 		    DataSocket.NetworkInterface = Self.NetworkInterface
 		  End If
-		  AddHandler DataSocket.DataAvailable, AddressOf DataAvailableHandler
-		  AddHandler DataSocket.Error, AddressOf ErrorHandler
-		  AddHandler DataSocket.SendComplete, AddressOf SendCompleteHandler
-		  AddHandler DataSocket.SendProgress, AddressOf SendProgressHandler
+		  AddHandler DataSocket.DataAvailable, WeakAddressOf DataAvailableHandler
+		  AddHandler DataSocket.Error, WeakAddressOf ErrorHandler
+		  AddHandler DataSocket.SendComplete, WeakAddressOf SendCompleteHandler
+		  AddHandler DataSocket.SendProgress, WeakAddressOf SendProgressHandler
 		  
 		  If PASVParams.Trim <> "" Then
 		    PASVParams = PASV_to_IPv4(PASVParams)

@@ -6,7 +6,7 @@ Inherits FTPSocket
 		  FTPLog("Connected to " + Me.RemoteAddress + ":" + Str(Me.Port))
 		  VerbDispatchTimer = New Timer
 		  VerbDispatchTimer.Period = 100
-		  AddHandler VerbDispatchTimer.Action, AddressOf VerbDispatchHandler
+		  AddHandler VerbDispatchTimer.Action, WeakAddressOf VerbDispatchHandler
 		End Sub
 	#tag EndEvent
 
