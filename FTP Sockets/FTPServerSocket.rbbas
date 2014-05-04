@@ -4,10 +4,6 @@ Inherits FTPSocket
 	#tag Event
 		Sub Connected()
 		  FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
-		  InactivityTimer = New Timer
-		  InactivityTimer.Period = TimeOutPeriod
-		  AddHandler InactivityTimer.Action, AddressOf InactivityHandler
-		  InactivityTimer.Mode = Timer.ModeMultiple
 		  DoResponse(220, Banner)
 		  RaiseEvent Connected()
 		End Sub
@@ -295,7 +291,7 @@ Inherits FTPSocket
 		      DoResponse(150)
 		      RETRTimer = New Timer
 		      RETRTimer.Period = 200
-		      AddHandler RETRTimer.Action, AddressOf Me.RETRHandler
+		      AddHandler RETRTimer.Action, WeakAddressOf Me.RETRHandler
 		      RETRTimer.Mode = Timer.ModeMultiple
 		    Else
 		      DoResponse(451) 'bad file
@@ -456,7 +452,7 @@ Inherits FTPSocket
 		  Me.TransferInProgress = True
 		  STORTimer = New Timer
 		  STORTimer.Period = 200
-		  AddHandler STORTimer.Action, AddressOf Me.STORHandler
+		  AddHandler STORTimer.Action, WeakAddressOf Me.STORHandler
 		  STORTimer.Mode = Timer.ModeMultiple
 		End Sub
 	#tag EndMethod
@@ -561,9 +557,13 @@ Inherits FTPSocket
 	#tag Method, Flags = &h21
 		Private Sub InactivityHandler(Sender As Timer)
 		  //Handles the FTPServerSocket.InactivityTimer.Action event
-		  Sender.Mode = Timer.ModeOff
-		  DoResponse(421, "Inactivity timeout.")
-		  Me.Close
+		  If Me.IsConnected Then
+		    Sender.Mode = Timer.ModeOff
+		    If Me.TimeOutPeriod > 0 Then
+		      DoResponse(421, "Inactivity timeout.")
+		      Me.Close
+		    End If
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -586,7 +586,7 @@ Inherits FTPSocket
 		  End If
 		  
 		  FTPLog(vb + " " + args)
-		  InactivityTimer.Reset()
+		  If InactivityTimer <> Nil Then InactivityTimer.Reset()
 		  
 		  If LoginOK Or vb = "USER" Or vb = "PASS" Then
 		    Select Case vb.Trim
@@ -653,13 +653,16 @@ Inherits FTPSocket
 		      Me.Close
 		      
 		    Case "NOOP" 'Keep alive; no operation
-		      DoResponse(200)
+		      DoResponse(200, "Nothing? I can do that!")
 		      
 		    Case "OPTS"
 		      DoVerb_OPTS(vb, args)
 		      
 		    Case "SITE"
 		      DoVerb_SITE(vb, args)
+		      
+		    Case "ACCT"
+		      DoResponse(202) 'superfluous; not an error
 		      
 		    Else
 		      DoResponse(500)  'syntax error or unknown verb
@@ -921,6 +924,14 @@ Inherits FTPSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		#tag Note
+			600000ms = 1 minute
+			Set to 0 for no timeout.
+		#tag EndNote
+		Private mTimeOutPeriod As Integer = 600000
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mWorkingDirectory As FolderItem
 	#tag EndProperty
 
@@ -956,12 +967,23 @@ Inherits FTPSocket
 		Private STORTimer As Timer
 	#tag EndProperty
 
-	#tag Property, Flags = &h0
-		#tag Note
-			600000ms = 10 minutes
-		#tag EndNote
-		TimeOutPeriod As Integer = 600000
-	#tag EndProperty
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  return mTimeOutPeriod
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  mTimeOutPeriod = value
+			  InactivityTimer = New Timer
+			  InactivityTimer.Period = mTimeOutPeriod
+			  AddHandler InactivityTimer.Action, WeakAddressOf InactivityHandler
+			  InactivityTimer.Mode = Timer.ModeMultiple
+			End Set
+		#tag EndSetter
+		TimeOutPeriod As Integer
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h0
 		UTFMode As Boolean
