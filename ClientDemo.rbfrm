@@ -20,7 +20,7 @@ Begin Window ClientDemo
    MinimizeButton  =   True
    MinWidth        =   64
    Placement       =   2
-   Resizeable      =   False
+   Resizeable      =   True
    Title           =   "FTP Client"
    Visible         =   True
    Width           =   6.0e+2
@@ -92,10 +92,10 @@ Begin Window ClientDemo
       Italic          =   False
       Left            =   3
       LimitText       =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Mask            =   ""
       Password        =   False
@@ -134,10 +134,10 @@ Begin Window ClientDemo
       Italic          =   False
       Left            =   125
       LimitText       =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Mask            =   ""
       Password        =   False
@@ -176,10 +176,10 @@ Begin Window ClientDemo
       Italic          =   False
       Left            =   245
       LimitText       =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Mask            =   ""
       Password        =   False
@@ -218,10 +218,10 @@ Begin Window ClientDemo
       Italic          =   False
       Left            =   367
       LimitText       =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Mask            =   ""
       Password        =   False
@@ -254,10 +254,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   392
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       State           =   0
@@ -286,10 +286,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   494
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       State           =   1
@@ -319,10 +319,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   135
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   9
@@ -348,10 +348,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   464
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Multiline       =   False
       Scope           =   0
@@ -382,10 +382,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   464
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Multiline       =   False
       Scope           =   0
@@ -441,7 +441,7 @@ Begin Window ClientDemo
       Italic          =   False
       Left            =   521
       LimitText       =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   True
@@ -484,7 +484,7 @@ Begin Window ClientDemo
       Italic          =   False
       Left            =   521
       LimitText       =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   True
@@ -521,10 +521,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   327
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   14
@@ -552,10 +552,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   7
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   15
@@ -583,10 +583,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   71
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   16
@@ -614,10 +614,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   135
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   17
@@ -645,10 +645,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   7
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   18
@@ -676,10 +676,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   263
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   19
@@ -707,10 +707,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   199
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   20
@@ -738,10 +738,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   7
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   21
@@ -769,10 +769,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   71
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   22
@@ -800,10 +800,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   199
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   23
@@ -831,10 +831,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   71
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   24
@@ -862,10 +862,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   135
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   25
@@ -893,10 +893,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   199
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   26
@@ -924,10 +924,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   263
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   27
@@ -955,10 +955,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   263
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   28
@@ -986,10 +986,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   327
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   29
@@ -1017,10 +1017,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   327
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   30
@@ -1048,10 +1048,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   392
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   31
@@ -1079,10 +1079,10 @@ Begin Window ClientDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   392
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   True
+      LockRight       =   False
       LockTop         =   False
       Scope           =   0
       TabIndex        =   32
@@ -1102,7 +1102,9 @@ End
 #tag WindowCode
 	#tag Method, Flags = &h0
 		Sub Loggit(line As String)
-		  Listbox1.AddRow(Replace(line, Chr(5), ""))
+		  Dim s As String = Replace(line, Chr(5), "")
+		  s = Replace(s, Chr(4), "")
+		  Listbox1.AddRow(s)
 		  Listbox1.RowTag(Listbox1.LastIndex) = Left(Line, 3)
 		  Listbox1.ScrollPosition = Listbox1.LastIndex * Listbox1.RowHeight
 		End Sub
@@ -1148,6 +1150,8 @@ End
 		      g.foreColor= &c8080FF00 'light purple
 		    Case Chr(5)
 		      g.ForeColor = &cFFFF8000 'light yellow
+		    Case Chr(4)
+		      g.ForeColor = &cC0C0C000 'light grey
 		    Else
 		      If IsNumeric(tmp.Trim) Then
 		        g.foreColor= &c0080FF99 'light blue
@@ -1197,7 +1201,7 @@ End
 	#tag EndEvent
 	#tag Event
 		Sub TransferComplete()
-		  loggit("Transfer complete.")
+		  loggit(Chr(4) + "Transfer complete.")
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -1246,8 +1250,8 @@ End
 #tag Events PushButton4
 	#tag Event
 		Sub Action()
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child(ReplaceAll(TextField1.Text, "/", "_"))
-		  Client.RETR(TextField1.Text, f)
+		  Dim f As FolderItem = GetSaveFolderItem("", ReplaceAll(TextField1.Text, "/", "_"))
+		  If f <> Nil Then Client.RETR(TextField1.Text, f)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
