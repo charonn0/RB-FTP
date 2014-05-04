@@ -39,7 +39,7 @@ Inherits FTPSocket
 
 	#tag Event
 		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
-		  Return RaiseEvent TransferProgress(BytesSent * 100 / (BytesLeft + BytesSent))
+		  Return RaiseEvent TransferProgress(100 - (BytesLeft * 100 / DataBuffer.Length))
 		End Function
 	#tag EndEvent
 

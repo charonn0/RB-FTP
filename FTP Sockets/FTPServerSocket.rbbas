@@ -36,6 +36,13 @@ Inherits FTPSocket
 		End Sub
 	#tag EndEvent
 
+	#tag Event
+		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  If InactivityTimer <> Nil Then InactivityTimer.Reset()
+		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
+		End Function
+	#tag EndEvent
+
 
 	#tag Method, Flags = &h1000
 		Sub Constructor()
@@ -716,6 +723,10 @@ Inherits FTPSocket
 
 	#tag Hook, Flags = &h0
 		Event SITE(Arguments As String, ByRef ResponseCode As Integer, ByRef ResponseMessage As String) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
 	#tag EndHook
 
 	#tag Hook, Flags = &h0

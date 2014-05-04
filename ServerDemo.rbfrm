@@ -60,7 +60,7 @@ Begin Window ServerDemo
       ScrollbarHorizontal=   False
       ScrollBarVertical=   True
       SelectionType   =   0
-      TabIndex        =   0
+      TabIndex        =   8
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -92,7 +92,7 @@ Begin Window ServerDemo
       Italic          =   False
       Left            =   204
       LimitText       =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   False
@@ -101,7 +101,7 @@ Begin Window ServerDemo
       Password        =   False
       ReadOnly        =   False
       Scope           =   0
-      TabIndex        =   4
+      TabIndex        =   5
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   21
@@ -128,14 +128,14 @@ Begin Window ServerDemo
       InitialParent   =   ""
       Italic          =   False
       Left            =   19
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   False
-      LockTop         =   True
+      LockTop         =   False
       Scope           =   0
       State           =   0
-      TabIndex        =   5
+      TabIndex        =   6
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -159,15 +159,15 @@ Begin Window ServerDemo
       InitialParent   =   ""
       Italic          =   ""
       Left            =   5
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   ""
-      LockTop         =   True
+      LockTop         =   False
       Multiline       =   ""
       Scope           =   0
       Selectable      =   False
-      TabIndex        =   6
+      TabIndex        =   7
       TabPanelIndex   =   0
       Text            =   "Listen On:"
       TextAlign       =   2
@@ -207,17 +207,17 @@ Begin Window ServerDemo
       InitialValue    =   "Username	Password	Root"
       Italic          =   ""
       Left            =   237
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   ""
-      LockTop         =   True
+      LockRight       =   True
+      LockTop         =   False
       RequiresSelection=   ""
       Scope           =   0
       ScrollbarHorizontal=   ""
       ScrollBarVertical=   True
       SelectionType   =   0
-      TabIndex        =   7
+      TabIndex        =   3
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -244,13 +244,13 @@ Begin Window ServerDemo
       InitialParent   =   ""
       Italic          =   ""
       Left            =   431
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
-      LockLeft        =   True
-      LockRight       =   ""
-      LockTop         =   True
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   False
       Scope           =   0
-      TabIndex        =   8
+      TabIndex        =   1
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -275,13 +275,13 @@ Begin Window ServerDemo
       InitialParent   =   ""
       Italic          =   ""
       Left            =   513
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
-      LockLeft        =   True
-      LockRight       =   ""
-      LockTop         =   True
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   False
       Scope           =   0
-      TabIndex        =   9
+      TabIndex        =   2
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -325,7 +325,7 @@ Begin Window ServerDemo
       LockRight       =   False
       LockTop         =   False
       Scope           =   0
-      TabIndex        =   10
+      TabIndex        =   0
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -356,7 +356,7 @@ Begin Window ServerDemo
       LockRight       =   False
       LockTop         =   False
       Scope           =   0
-      TabIndex        =   11
+      TabIndex        =   4
       TabPanelIndex   =   0
       TabStop         =   True
       TextFont        =   "System"
@@ -413,9 +413,17 @@ End
 		    End If
 		  Next
 		  
-		  Return AllowAnon.Value And UserName = "anonymous"
+		  If AllowAnon.Value And UserName = "anonymous" Then
+		    Sender.RootDirectory = AnonRoot
+		    Return True
+		  End If
 		End Function
 	#tag EndMethod
+
+
+	#tag Property, Flags = &h21
+		Private AnonRoot As FolderItem
+	#tag EndProperty
 
 
 #tag EndWindowCode
@@ -451,6 +459,22 @@ End
 		    g.FillRect 0,0,g.width,g.height
 		  End If
 		End Function
+	#tag EndEvent
+#tag EndEvents
+#tag Events AllowAnon
+	#tag Event
+		Sub Action()
+		  If Me.Value Then
+		    Dim dlg As New SelectFolderDialog
+		    dlg.Title = "Select anonymous user's root directory"
+		    Dim f As FolderItem = dlg.ShowModal
+		    If f <> Nil And f.Directory Then 
+		      AnonRoot = f
+		    Else
+		      Me.Value = False
+		    End If
+		  End If
+		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events Users

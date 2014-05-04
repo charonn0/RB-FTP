@@ -1127,6 +1127,27 @@ Begin Window ClientDemo
       Visible         =   True
       Width           =   60
    End
+   Begin ProgressBar ProgressBar1
+      AutoDeactivate  =   True
+      Enabled         =   True
+      Height          =   6
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Left            =   0
+      LockBottom      =   ""
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   ""
+      LockTop         =   True
+      Maximum         =   100
+      Scope           =   0
+      TabPanelIndex   =   0
+      Top             =   271
+      Value           =   0
+      Visible         =   True
+      Width           =   600
+   End
 End
 #tag EndWindow
 
@@ -1234,6 +1255,11 @@ End
 		Sub TransferComplete()
 		  loggit(Chr(4) + "Transfer complete.")
 		End Sub
+	#tag EndEvent
+	#tag Event
+		Function TransferProgress(PercentComplete As Single) As Boolean
+		  ProgressBar1.Value = PercentComplete
+		End Function
 	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton19
