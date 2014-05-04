@@ -173,12 +173,13 @@ Inherits FTPSocket
 	#tag Method, Flags = &h21
 		Private Sub ParseResponse(Data As String)
 		  Dim Code As Integer = Val(Left(Data, 3))
-		  Dim msg As String = data.Replace(Format(Code, "000"), "").Trim
-		  
-		  If msg <> "" Then
+		  Dim msg As String = data.Replace(Format(Code, "000"), "")'.Trim
+		  If Code > 0 And msg <> "" Then
 		    FTPLog(Str(Code) + " " + msg)
-		  Else
+		  ElseIf Code > 0 Then
 		    FTPLog(Str(Code) + " " + FTPCodeToMessage(Code).Trim)
+		  Else
+		    FTPLog(msg)
 		  End If
 		  
 		  Select Case LastVerb.Verb
@@ -260,13 +261,15 @@ Inherits FTPSocket
 		    End If
 		    
 		  Case "FEAT"
-		    ServerFeatures = Split(msg, EndOfLine.Windows)
-		    ServerFeatures.Remove(ServerFeatures.Ubound)
-		    ServerFeatures.Remove(0)
-		    For Each Feature As String In ServerFeatures
-		      Feature = Feature.Trim
-		      FTPLog("   " + Feature)
-		    Next
+		    Select Case Left(msg, 1)
+		    Case "-"
+		      Return
+		    Case " "
+		      ServerFeatures.Append(msg.Trim)
+		    Else
+		      Return
+		    End Select
+		    
 		  Case "SYST"
 		    ServerType = msg
 		  Case "CWD"
