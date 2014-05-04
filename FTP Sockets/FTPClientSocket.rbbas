@@ -71,8 +71,8 @@ Inherits FTPSocket
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub Close()
+	#tag Method, Flags = &h0
+		Sub Close()
 		  VerbDispatchTimer = Nil
 		  mWorkingDirectory = ""
 		  LastVerb.Verb = ""
