@@ -1102,7 +1102,7 @@ End
 #tag WindowCode
 	#tag Method, Flags = &h0
 		Sub Loggit(line As String)
-		  Listbox1.AddRow(line)
+		  Listbox1.AddRow(Replace(line, Chr(5), ""))
 		  Listbox1.RowTag(Listbox1.LastIndex) = Left(Line, 3)
 		  Listbox1.ScrollPosition = Listbox1.LastIndex * Listbox1.RowHeight
 		End Sub
@@ -1143,11 +1143,18 @@ End
 		  #pragma Unused column
 		  If row <= Me.LastIndex Then
 		    Dim tmp As String = Me.RowTag(Row)
-		    If IsNumeric(tmp.Trim) Then
-		      g.foreColor= &c0080FF99
-		    else
-		      g.foreColor= &c00FF4099
-		    end if
+		    Select Case Left(tmp, 1)
+		    Case " "
+		      g.foreColor= &c8080FF00 'light purple
+		    Case Chr(5)
+		      g.ForeColor = &cFFFF8000 'light yellow
+		    Else
+		      If IsNumeric(tmp.Trim) Then
+		        g.foreColor= &c0080FF99 'light blue
+		      Else
+		        g.foreColor= &c00FF4099 'light green
+		      end if
+		    End Select
 		    g.FillRect 0,0,g.width,g.height
 		  End If
 		End Function
@@ -1184,7 +1191,7 @@ End
 	#tag Event
 		Sub ListResponse(Listing() As String)
 		  For i As Integer = 0 To UBound(listing)
-		    loggit(listing(i))
+		    loggit(Chr(5) + listing(i))
 		  Next
 		End Sub
 	#tag EndEvent
