@@ -53,8 +53,9 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub APPE(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1)
+		Sub APPE(RemoteFileName As String, LocalFile As FolderItem, Mode As Integer = 1, StartOffset As Integer = 0)
 		  DataBuffer = BinaryStream.Open(LocalFile)
+		  DataBuffer.Position = StartOffset
 		  TYPE = Mode
 		  If Me.Passive Then
 		    PASV()
@@ -235,7 +236,7 @@ Inherits FTPSocket
 		  Case "STOR", "APPE"
 		    Select Case Code
 		    Case 150  'Ready
-		      Me.TransmitData(DataBuffer.Read(DataBuffer.Length))
+		      Me.TransmitData(DataBuffer.Read(DataBuffer.Length - DataBuffer.Position))
 		      TransferInProgress = True
 		    Case 226  'Success
 		      TransferComplete()
@@ -506,7 +507,7 @@ Inherits FTPSocket
 		  End If
 		  
 		Exception Err As KeyNotFoundException
-		  FTPLog("Local file could not be found to upload!")
+		  FTPLog("Local file could not be found!")
 		  If DataBuffer <> Nil Then DataBuffer.Close
 		  
 		  
