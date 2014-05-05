@@ -297,10 +297,6 @@ Begin Window ServerDemo
       Index           =   -2147483648
       Left            =   612
       LockedInPosition=   False
-      MaximumSocketsConnected=   25
-      MinimumSocketsAvailable=   10
-      Port            =   21
-      Scope           =   0
       TabPanelIndex   =   0
       Top             =   0
       Width           =   32
@@ -393,14 +389,14 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub LogHandler(Sender As FTPServerSocket, LogLine As String)
+		Private Sub LogHandler(Sender As FTP.ServerHandler, LogLine As String)
 		  #pragma Unused Sender
 		  If LogLine.Trim <> "" Then loggit(LogLine)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function UserLogonHandler(Sender As FTPServerSocket, UserName As String, Password As String) As Boolean
+		Private Function UserLogonHandler(Sender As FTP.ServerHandler, UserName As String, Password As String) As Boolean
 		  #pragma Unused Sender
 		  For i As Integer = 0 To Users.ListCount - 1
 		    Dim u, p As String
@@ -468,7 +464,7 @@ End
 		    Dim dlg As New SelectFolderDialog
 		    dlg.Title = "Select anonymous user's root directory"
 		    Dim f As FolderItem = dlg.ShowModal
-		    If f <> Nil And f.Directory Then 
+		    If f <> Nil And f.Directory Then
 		      AnonRoot = f
 		    Else
 		      Me.Value = False
@@ -514,7 +510,7 @@ End
 #tag Events FTPServer
 	#tag Event
 		Function AddSocket() As TCPSocket
-		  Dim client As New FTPServerSocket
+		  Dim client As New FTP.ServerHandler
 		  client.Banner = "Welcome to BSFTPd!"
 		  client.AllowWrite = True
 		  client.TimeOutPeriod = 60000

@@ -404,21 +404,20 @@ Begin Window ClientDemo
       Visible         =   True
       Width           =   56
    End
-   Begin FTPClientSocket Client
-      Address         =   "192.168.1.4"
+   Begin FTP.ClientHandler Client1
+      Address         =   ""
       Anonymous       =   False
       Height          =   32
       Index           =   -2147483648
-      InitialParent   =   ""
       Left            =   649
       LockedInPosition=   False
       Passive         =   True
-      Password        =   "passwordtest"
+      Password        =   ""
       Port            =   21
       Scope           =   0
       TabPanelIndex   =   0
       Top             =   213
-      Username        =   "BSTest"
+      Username        =   ""
       Width           =   32
    End
    Begin TextField TextField2
@@ -1238,7 +1237,7 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events Client
+#tag Events Client1
 	#tag Event
 		Sub FTPLog(LogLine As String)
 		  If LogLine.Trim <> "" Then loggit(LogLine)
@@ -1286,7 +1285,7 @@ End
 #tag Events PushButton18
 	#tag Event
 		Sub Action()
-		  Client.TYPE = FTPSocket.ASCIIMode
+		  Client.TYPE = FTP.TransferModes.ASCII
 		End Sub
 	#tag EndEvent
 #tag EndEvents
@@ -1347,7 +1346,7 @@ End
 #tag Events PushButton10
 	#tag Event
 		Sub Action()
-		  Client.TYPE = Client.BinaryMode
+		  Client.TYPE = FTP.TransferModes.Binary
 		End Sub
 	#tag EndEvent
 #tag EndEvents
