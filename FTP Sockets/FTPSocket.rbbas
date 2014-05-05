@@ -495,7 +495,29 @@ Inherits TCPSocket
 
 	#tag Method, Flags = &h1
 		Protected Sub TransmitData(Data As String)
-		  Me.DataSocket.Write(Data)
+		  ' If the current TransferMode is ASCII or EBCDIC and the passed Data string has encoding data associated with it
+		  ' then the Data is CONVERTED prior to being written; otherwise, the data are written verbatim.
+		  
+		  Select Case TransferMode
+		  Case BinaryMode, LocalMode, PortalMode
+		    Me.DataSocket.Write(Data)
+		    
+		  Case EBCDICMode, ASCIIMode
+		    Dim out As String
+		    If Data.Encoding <> Nil Then
+		      Dim outen As TextEncoding
+		      If TransferMode = ASCIIMode Then
+		        outen = Encodings.ASCII
+		      Else
+		        outen = GetTextEncoding(&h0C01) 'EBCDIC
+		      End If
+		      Dim conv As TextConverter = GetTextConverter(Data.Encoding, outen)
+		      out = conv.convert(Data)
+		    Else
+		      out = Data
+		    End If
+		    Me.DataSocket.Write(out)
+		  End Select
 		  
 		End Sub
 	#tag EndMethod
