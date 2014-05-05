@@ -404,7 +404,7 @@ Begin Window ClientDemo
       Visible         =   True
       Width           =   56
    End
-   Begin FTP.ClientHandler Client1
+   Begin FTP.ClientHandler Client
       Address         =   ""
       Anonymous       =   False
       Height          =   32
@@ -1237,7 +1237,7 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events Client1
+#tag Events Client
 	#tag Event
 		Sub FTPLog(LogLine As String)
 		  If LogLine.Trim <> "" Then loggit(LogLine)

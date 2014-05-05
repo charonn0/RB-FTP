@@ -297,6 +297,10 @@ Begin Window ServerDemo
       Index           =   -2147483648
       Left            =   612
       LockedInPosition=   False
+      MaximumSocketsConnected=   10
+      MinimumSocketsAvailable=   2
+      Port            =   0
+      Scope           =   0
       TabPanelIndex   =   0
       Top             =   0
       Width           =   32
