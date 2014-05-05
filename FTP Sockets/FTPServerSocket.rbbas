@@ -441,10 +441,9 @@ Inherits FTPSocket
 		  Case "APPE"
 		    saveTo = FindFile(Argument, True)
 		    If Not saveTo.Exists Then
-		      DoResponse(450, "File does not exist")
-		      Return
+		      Me.DataBuffer = BinaryStream.Create(saveTo, False)
 		    Else
-		      Me.DataBuffer = BinaryStream.Open(saveTo, False)
+		      Me.DataBuffer = BinaryStream.Open(saveTo, True)
 		      Me.DataBuffer.Position = Me.DataBuffer.Length
 		    End If
 		    
