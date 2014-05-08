@@ -404,22 +404,22 @@ Begin Window ClientDemo
       Visible         =   True
       Width           =   56
    End
-   Begin FTPClientSocket Client
-      Address         =   "192.168.1.4"
+   Begin FTP.Client Client
+      Address         =   ""
       Anonymous       =   False
       Height          =   32
       Index           =   -2147483648
-      InitialParent   =   ""
-      Left            =   649
+      Left            =   6.5e+2
       LockedInPosition=   False
       Passive         =   True
-      Password        =   "passwordtest"
+      Password        =   ""
       Port            =   21
       Scope           =   0
       TabPanelIndex   =   0
-      Top             =   213
-      Username        =   "BSTest"
+      Top             =   2.12e+2
+      Username        =   ""
       Width           =   32
+      WorkingDirectory=   "/"
    End
    Begin TextField TextField2
       AcceptTabs      =   False
@@ -1286,7 +1286,7 @@ End
 #tag Events PushButton18
 	#tag Event
 		Sub Action()
-		  Client.TYPE = FTPSocket.ASCIIMode
+		  Client.TYPE = FTP.ASCIIMode
 		End Sub
 	#tag EndEvent
 #tag EndEvents
