@@ -25,7 +25,7 @@ Protected Module FTP
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function FTPCodeToMessage(Code As Integer) As String
+		Function FormatCode(Code As Integer) As String
 		  Select Case Code
 		  Case 110
 		    Return "Restart marker reply"
@@ -335,5 +335,40 @@ Protected Module FTP
 	#tag EndStructure
 
 
+	#tag ViewBehavior
+		#tag ViewProperty
+			Name="Index"
+			Visible=true
+			Group="ID"
+			InitialValue="-2147483648"
+			InheritedFrom="Object"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Left"
+			Visible=true
+			Group="Position"
+			InitialValue="0"
+			InheritedFrom="Object"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Name"
+			Visible=true
+			Group="ID"
+			InheritedFrom="Object"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Super"
+			Visible=true
+			Group="ID"
+			InheritedFrom="Object"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Top"
+			Visible=true
+			Group="Position"
+			InitialValue="0"
+			InheritedFrom="Object"
+		#tag EndViewProperty
+	#tag EndViewBehavior
 End Module
 #tag EndModule

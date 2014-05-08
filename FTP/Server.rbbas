@@ -55,7 +55,7 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h1
 		Protected Sub DoResponse(Code As Integer, Params As String = "")
-		  If Params.Trim = "" Then Params = FTPCodeToMessage(Code)
+		  If Params.Trim = "" Then Params = FTP.FormatCode(Code)
 		  params = Trim(Str(Code) + " " + Params)
 		  If UTFMode Then params = ConvertEncoding(params, Encodings.UTF8)
 		  Me.Write(params + CRLF)

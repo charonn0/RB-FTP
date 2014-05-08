@@ -180,11 +180,11 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h21
 		Private Sub ParseResponse(Data As String)
 		  Dim Code As Integer = Val(Left(Data, 3))
-		  Dim msg As String = data.Replace(Format(Code, "000"), "")'.Trim
+		  Dim msg As String = data.Replace(Format(Code, "000"), "")
 		  If Code > 0 And msg <> "" Then
 		    FTPLog(Str(Code) + " " + msg)
 		  ElseIf Code > 0 Then
-		    FTPLog(Str(Code) + " " + FTPCodeToMessage(Code).Trim)
+		    FTPLog(Str(Code) + " " + FTP.FormatCode(Code))
 		  Else
 		    FTPLog(msg)
 		  End If
