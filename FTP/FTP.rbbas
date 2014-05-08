@@ -181,61 +181,6 @@ Protected Module FTP
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Function ParseFileList(Raw As String) As Dictionary
-		  'work in progress
-		  Dim lines() As String = Split(ReplaceLineEndings(Raw, CRLF), CRLF)
-		  Dim res As New Dictionary
-		  
-		  For i As Integer = 0 To UBound(lines)
-		    Dim item As New Dictionary
-		    Dim nm As String = NthField(lines(i), Encodings.ASCII.Chr(&o11), 2).Trim
-		    lines(i) = Replace(lines(i), nm, "").Trim
-		    Dim facts() As String = Split(lines(i), ",")
-		    For j As Integer = 0 To UBound(facts)
-		      Dim fact As String = facts(j)
-		      Dim char As String = Left(fact, 1)
-		      If char = "+" Then
-		        fact = Replace(fact, "+", "")
-		        char = Left(fact, 1)
-		      ElseIf char = "u" Then
-		        If Left(fact, 2) = "up" Then
-		          char = Left(fact, 2)
-		        Else
-		          Raise New UnsupportedFormatException
-		        End If
-		      End If
-		      fact = Replace(fact, char, "")
-		      
-		      Select Case char
-		      Case "r" ' file
-		        item.Value("Directory") = False
-		      Case "/" ' directory
-		        item.Value("Directory") = True
-		      Case "s" 'size
-		        item.Value("Size") = CDbl(fact)
-		        
-		      Case "m" ' modification time
-		        Dim d As Date
-		        If ParseDate(fact, d) Then
-		          item.Value("Modified") = d
-		        End If
-		        
-		      Case "i" ' identifier
-		        
-		      Case "u" ' UP; Permissions
-		        
-		      Else
-		        Continue For j
-		      End Select
-		    Next
-		    res.Value(nm) = item
-		  Next
-		  
-		  Return res
-		End Function
-	#tag EndMethod
-
 	#tag Method, Flags = &h1
 		Protected Function PASV_to_IPv4(PASVParams As String) As String
 		  Dim p1, p2 As Integer
