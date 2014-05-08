@@ -510,6 +510,9 @@ Inherits FTPSocket
 		  Case "I", "L"
 		    Me.TransferMode = BinaryMode
 		    DoResponse(200)
+		  Case "E"
+		    Me.TransferMode = EBCDICMode
+		    DoResponse(200)
 		  Else
 		    DoResponse(504) 'Command not implemented for param
 		  End Select
