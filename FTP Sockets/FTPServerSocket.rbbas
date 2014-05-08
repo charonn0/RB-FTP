@@ -481,6 +481,72 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub DoVerb_STAT(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  If Argument.Trim <> "" Then ' file status
+		    Dim g As FolderItem
+		    If Argument.Trim <> "" Then
+		      g = FindFile(Argument.Trim)
+		    End If
+		    
+		    If g = Nil Or Not g.Exists Then
+		      DoResponse(450, "Name not recognized.")
+		    Else
+		      Dim listing As String
+		      If g.IsReadable Then
+		        listing = listing + "r,"
+		      End If
+		      
+		      If g.Directory Then
+		        listing = listing + "/,"
+		      Else
+		        listing = listing + "s" + Str(g.Length) + ","
+		      End If
+		      
+		      Dim epoch As New Date(1970, 1, 1, 0, 0, 0, 0) 'UNIX epoch
+		      Dim filetime As Date = g.ModificationDate
+		      filetime.GMTOffset = 0
+		      listing = listing + "m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ","
+		      #If TargetMacOS Or TargetLinux Then
+		        listing = listing + "UP" + Format(g.Permissions, "000") + ","
+		      #Else
+		        Dim p As Integer
+		        If g.IsReadable Then p = p + 4
+		        If g.IsWriteable Then p = p + 2
+		        p = p + 1 'executable
+		        listing = listing + "UP" + Str(p) + Str(p) + Str(p)
+		      #endif
+		      Dim code As Integer
+		      If g.Directory Then
+		        code = 213
+		      Else
+		        code = 212
+		      End If
+		      Me.Write(Str(Code) + "-Status of " + g.Name + ": " + CRLF)
+		      Me.Write(" " + listing + Encodings.ASCII.Chr(&o011) + g.Name + CRLF)
+		      DoResponse(code, "End of status")
+		    End If
+		    
+		  Else '  server status
+		    Me.Write("211-FTP Server status:" + CRLF)
+		    Me.Write(" Connected to " + Me.RemoteAddress + CRLF)
+		    Me.Write(" Logged in as " + Me.Username + CRLF)
+		    Me.Write(" Session timeout in seconds is " + Format(Me.TimeOutPeriod \ 1000, "###,##0") + CRLF)
+		    Select Case Me.TransferMode
+		    Case BinaryMode, LocalMode
+		      Me.Write(" TYPE: BINARY" + CRLF)
+		    Case ASCIIMode
+		      Me.Write(" TYPE: ASCII" + CRLF)
+		    Case EBCDICMode
+		      Me.Write(" TYPE: EBCDIC" + CRLF)
+		    End Select
+		    DoResponse(211, "End of status")
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub DoVerb_STOR(Verb As String, Argument As String)
 		  If Not AllowWrite Then
 		    DoResponse(550, "Permission denied.")
@@ -679,6 +745,9 @@ Inherits FTPSocket
 		      DoVerb_SIZE(vb, args)
 		    Case "MDTM"
 		      DoVerb_MDTM(vb, args)
+		      
+		    Case "STAT"
+		      DoVerb_STAT(vb, args)
 		      
 		    Case "FEAT"
 		      DoVerb_FEAT(vb, args)
