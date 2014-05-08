@@ -52,7 +52,7 @@ Inherits FTPSocket
 		  // Constructor() -- From TCPSocket
 		  // Constructor() -- From SocketCore
 		  Super.Constructor
-		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM", ",")
+		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM,TVFS", ",")
 		End Sub
 	#tag EndMethod
 
