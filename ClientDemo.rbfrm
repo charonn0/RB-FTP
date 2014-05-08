@@ -1256,6 +1256,11 @@ End
 		  ProgressBar1.Value = PercentComplete
 		End Function
 	#tag EndEvent
+	#tag Event
+		Sub FTPLog(LogLine As String)
+		  If LogLine.Trim <> "" Then loggit(LogLine)
+		End Sub
+	#tag EndEvent
 #tag EndEvents
 #tag Events PushButton19
 	#tag Event
