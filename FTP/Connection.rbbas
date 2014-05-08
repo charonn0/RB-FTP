@@ -199,7 +199,7 @@ Inherits TCPSocket
 		  ' then the Data is CONVERTED prior to being written; otherwise, the data are written verbatim.
 		  
 		  Select Case TransferMode
-		  Case BinaryMode, LocalMode, PortalMode
+		  Case BinaryMode, LocalMode
 		    Me.DataSocket.Write(Data)
 		    
 		  Case EBCDICMode, ASCIIMode
@@ -501,25 +501,6 @@ Inherits TCPSocket
 	#tag Property, Flags = &h0
 		Username As String
 	#tag EndProperty
-
-
-	#tag Constant, Name = ASCIIMode, Type = Double, Dynamic = False, Default = \"2", Scope = Public
-	#tag EndConstant
-
-	#tag Constant, Name = BinaryMode, Type = Double, Dynamic = False, Default = \"1", Scope = Public
-	#tag EndConstant
-
-	#tag Constant, Name = EBCDICMode, Type = Double, Dynamic = False, Default = \"4", Scope = Public
-	#tag EndConstant
-
-	#tag Constant, Name = FTPVersion, Type = Double, Dynamic = False, Default = \"0.1", Scope = Protected
-	#tag EndConstant
-
-	#tag Constant, Name = LocalMode, Type = Double, Dynamic = False, Default = \"3", Scope = Public
-	#tag EndConstant
-
-	#tag Constant, Name = PortalMode, Type = Double, Dynamic = False, Default = \"-1", Scope = Public
-	#tag EndConstant
 
 
 	#tag ViewBehavior

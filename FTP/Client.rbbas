@@ -334,8 +334,6 @@ Inherits FTP.Connection
 		        Me.TransferMode = LocalMode
 		      Case "I"
 		        Me.TransferMode = BinaryMode
-		      Case "P"
-		        Me.TransferMode = PortalMode
 		      Case "E"
 		        Me.TransferMode = EBCDICMode
 		      End Select
@@ -480,8 +478,6 @@ Inherits FTP.Connection
 		    DoVerb("TYPE", "L8")
 		  Case BinaryMode
 		    DoVerb("TYPE", "I")
-		  Case PortalMode
-		    DoVerb("TYPE", "V")
 		  Case EBCDICMode
 		    DoVerb("TYPE", "E")
 		  End Select

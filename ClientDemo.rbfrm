@@ -1240,11 +1240,6 @@ End
 #tag EndEvents
 #tag Events Client
 	#tag Event
-		Sub FTPLog(LogLine As String)
-		  If LogLine.Trim <> "" Then loggit(LogLine)
-		End Sub
-	#tag EndEvent
-	#tag Event
 		Sub ListResponse(Listing() As String)
 		  For i As Integer = 0 To UBound(listing)
 		    loggit(Chr(5) + listing(i))
@@ -1347,7 +1342,7 @@ End
 #tag Events PushButton10
 	#tag Event
 		Sub Action()
-		  Client.TYPE = Client.BinaryMode
+		  Client.TYPE = FTP.BinaryMode
 		End Sub
 	#tag EndEvent
 #tag EndEvents
