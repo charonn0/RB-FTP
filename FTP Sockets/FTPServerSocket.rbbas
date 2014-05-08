@@ -417,6 +417,43 @@ Inherits FTPSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub DoVerb_SIZE(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  Dim g As FolderItem
+		  If Argument.Trim <> "" Then
+		    g = FindFile(Argument.Trim)
+		  End If
+		  
+		  If g = Nil Then
+		    DoResponse(550, "Name not recognized.")
+		  ElseIf g.Directory Then
+		    DoResponse(550, "That's a directory.")
+		  Else
+		    Dim bs As BinaryStream = BinaryStream.Open(g, False)
+		    Dim data As String
+		    Select Case Me.TransferMode
+		    Case BinaryMode, LocalMode
+		      data = bs.Read(bs.Length)
+		      bs.Close
+		    Case EBCDICMode
+		      data = bs.Read(bs.Length)
+		      bs.Close
+		      Dim conv As TextConverter = GetTextConverter(Data.Encoding, GetTextEncoding(&h0C01))
+		      data = conv.convert(Data)
+		      
+		    Case ASCIIMode
+		      data = bs.Read(bs.Length)
+		      bs.Close
+		      Dim conv As TextConverter = GetTextConverter(Data.Encoding, Encodings.ASCII)
+		      data = conv.convert(Data)
+		    End Select
+		    DoResponse(213, Format(data.LenB, "######################0"))
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub DoVerb_STOR(Verb As String, Argument As String)
 		  If Not AllowWrite Then
 		    DoResponse(550, "Permission denied.")
@@ -607,6 +644,9 @@ Inherits FTPSocket
 		      
 		    Case "STOR", "STORU", "APPE"
 		      Me.DoVerb_STOR(vb, args)
+		      
+		    Case "SIZE"
+		      DoVerb_SIZE(vb, args)
 		      
 		    Case "FEAT"
 		      DoVerb_FEAT(vb, args)
