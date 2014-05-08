@@ -52,7 +52,7 @@ Inherits FTPSocket
 		  // Constructor() -- From TCPSocket
 		  // Constructor() -- From SocketCore
 		  Super.Constructor
-		  Me.ServerFeatures = Split("PASV UTF8 MDTM SIZE")
+		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM", ",")
 		End Sub
 	#tag EndMethod
 
@@ -306,9 +306,12 @@ Inherits FTPSocket
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_REST(Verb As String, Argument As String)
 		  #pragma Unused Verb
-		  
-		  DataBuffer.Position = Val(Argument)
-		  DoResponse(350)
+		  If IsNumeric(Argument.Trim) Then
+		    RestartPos = Val(Argument)
+		    DoResponse(350)
+		  Else
+		    DoResponse(554) ' invalid REST param.
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -574,7 +577,15 @@ Inherits FTPSocket
 		      Me.DataBuffer = BinaryStream.Create(saveTo, False)
 		    Else
 		      Me.DataBuffer = BinaryStream.Open(saveTo, True)
-		      Me.DataBuffer.Position = Me.DataBuffer.Length
+		      If RestartPos > -1 Then
+		        If RestartPos > Me.DataBuffer.Length Then
+		          DoResponse(554) ' invalid REST param
+		        Else
+		          Me.DataBuffer.Position = RestartPos
+		        End If
+		      Else
+		        Me.DataBuffer.Position = Me.DataBuffer.Length
+		      End If
 		    End If
 		    
 		    
@@ -1084,6 +1095,10 @@ Inherits FTPSocket
 
 	#tag Property, Flags = &h21
 		Private mWorkingDirectory As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private RestartPos As Integer = -1
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
