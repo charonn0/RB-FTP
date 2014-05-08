@@ -52,7 +52,7 @@ Inherits FTPSocket
 		  // Constructor() -- From TCPSocket
 		  // Constructor() -- From SocketCore
 		  Super.Constructor
-		  Me.ServerFeatures = Split("PASV UTF8")
+		  Me.ServerFeatures = Split("PASV UTF8 MDTM SIZE")
 		End Sub
 	#tag EndMethod
 
@@ -162,6 +162,33 @@ Inherits FTPSocket
 		  End If
 		  Me.CloseData
 		  DoResponse(226)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_MDTM(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  Dim g As FolderItem
+		  If Argument.Trim <> "" Then
+		    g = FindFile(Argument.Trim)
+		  End If
+		  
+		  If g = Nil Then
+		    DoResponse(550, "Name not recognized.")
+		  ElseIf g.Directory Then
+		    DoResponse(550, "That's a directory.")
+		  Else
+		    Dim d As Date = g.ModificationDate
+		    Dim y, m, dy, h, mt, s As String
+		    y = Format(d.Year, "0000")
+		    m = Format(d.Month, "00")
+		    dy = Format(d.Day, "00")
+		    h = Format(d.Hour, "00")
+		    mt = Format(d.Minute, "00")
+		    s = Format(d.Second, "00")
+		    DoResponse(213, y + m + dy + h + mt + s)
+		  End If
+		  
 		End Sub
 	#tag EndMethod
 
@@ -650,6 +677,8 @@ Inherits FTPSocket
 		      
 		    Case "SIZE"
 		      DoVerb_SIZE(vb, args)
+		    Case "MDTM"
+		      DoVerb_MDTM(vb, args)
 		      
 		    Case "FEAT"
 		      DoVerb_FEAT(vb, args)
