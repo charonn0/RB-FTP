@@ -2,7 +2,7 @@
 Protected Class Server
 Inherits FTP.Connection
 	#tag Event
-		Sub Connected()
+		Sub Control_Connected()
 		  FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
 		  DoResponse(220, Banner)
 		  RaiseEvent Connected()
@@ -10,7 +10,7 @@ Inherits FTP.Connection
 	#tag EndEvent
 
 	#tag Event
-		Sub DataAvailable()
+		Sub Control_DataAvailable()
 		  Dim i As Integer = InStrB(Me.Lookahead, CRLF)
 		  Do Until i <= 0
 		    Dim data As String = Me.Read(i + 1)
@@ -22,14 +22,7 @@ Inherits FTP.Connection
 	#tag EndEvent
 
 	#tag Event
-		Sub Disconnected()
-		  FTPLog("Remote host closed the connection.")
-		  Me.Close
-		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Sub TransferComplete(UserAborted As Boolean)
+		Sub Data_SendComplete(DataSocket As TCPSocket, UserAborted As Boolean)
 		  #pragma Unused UserAborted
 		  Me.CloseData()
 		  DoResponse(226, "Transfer complete.")
@@ -37,7 +30,7 @@ Inherits FTP.Connection
 	#tag EndEvent
 
 	#tag Event
-		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		Function Data_SendProgress(DataSocket As TCPSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
 		  If InactivityTimer <> Nil Then InactivityTimer.Reset()
 		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
 		End Function
