@@ -203,18 +203,6 @@ Protected Module FTP
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Function PathDecode(Path As String) As String
-		  Return ReplaceAll(Path, Chr(&o0), Chr(&o12))
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h1
-		Protected Function PathEncode(Path As String) As String
-		  Return ReplaceAll(Path, Chr(&o12), Chr(&o0))
-		End Function
-	#tag EndMethod
-
 	#tag Method, Flags = &h21
 		Private Function SocketErrorMessage(Sender As SocketCore) As String
 		  Dim err As String = "Socket error " + Str(Sender.LastErrorCode)

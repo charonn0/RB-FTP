@@ -39,6 +39,7 @@ Inherits FTP.Connection
 
 	#tag Event
 		Function TransferProgress(BytesSent As Integer, BytesLeft As Integer) As Boolean
+		  #pragma Unused BytesSent
 		  Return RaiseEvent TransferProgress(100 - (BytesLeft * 100 / DataBuffer.Length))
 		End Function
 	#tag EndEvent
@@ -136,7 +137,7 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h0
 		Sub List(TargetDirectory As String = "")
 		  'Retrieves a directory listing
-		  TargetDirectory = PathEncode(TargetDirectory)
+		  TargetDirectory = TargetDirectory
 		  If Me.Passive Then
 		    PASV()
 		  Else
@@ -161,7 +162,7 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h0
 		Sub NLST(TargetDirectory As String = "")
 		  'Retrieves a directory listing
-		  TargetDirectory = PathEncode(TargetDirectory)
+		  TargetDirectory = TargetDirectory
 		  If Me.Passive Then
 		    PASV()
 		  Else
