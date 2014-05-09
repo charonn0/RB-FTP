@@ -90,10 +90,10 @@ Inherits FTP.Connection
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Connect()
+		Sub Connect(ClearPending As Boolean = True)
 		  VerbDispatchTimer = Nil
-		  ReDim PendingVerbs(-1)
-		  PendingTransfers = New Dictionary
+		  If ClearPending Then ReDim PendingVerbs(-1)
+		  If ClearPending Or PendingTransfers = Nil Then PendingTransfers = New Dictionary
 		  Super.Connect()
 		End Sub
 	#tag EndMethod
