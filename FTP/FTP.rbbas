@@ -186,7 +186,7 @@ Protected Module FTP
 		  Dim p1, p2 As Integer
 		  Dim h1, h2, h3, h4 As String
 		  PASVParams = NthField(PASVParams, " ", CountFields(PASVParams, " "))
-		  Dim parentheticals() As String = Split("(){}[]<>", "")
+		  Dim parentheticals() As String = Array("(", ")", "{", "}", "[", "]", "<", ">")
 		  For Each paren As String In parentheticals
 		    PASVParams = Replace(PASVParams, paren, "")
 		  Next

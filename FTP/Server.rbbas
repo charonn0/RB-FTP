@@ -317,18 +317,17 @@ Inherits FTP.Connection
 		  #pragma Unused Verb
 		  If Me.IsDataConnected Then
 		    Dim f As FolderItem = FindFile(Argument)
-		    If f <> Nil Then
+		    If f = Nil Then
+		      DoResponse(451, "Name not recognized.")
+		    ElseIf f.Directory Then
+		      DoResponse(451, "That's a directory.")
+		    Else
 		      DataBuffer = BinaryStream.Open(f)
-		    End If
-		    
-		    If DataBuffer <> Nil Then
 		      DoResponse(150)
 		      RETRTimer = New Timer
 		      RETRTimer.Period = 200
 		      AddHandler RETRTimer.Action, WeakAddressOf Me.RETRHandler
 		      RETRTimer.Mode = Timer.ModeMultiple
-		    Else
-		      DoResponse(451) 'bad file
 		    End If
 		  Else
 		    DoResponse(425) 'No data connection
@@ -679,22 +678,26 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h1
 		Protected Function FindFile(Name As String, AllowNonExistant As Boolean = False) As FolderItem
-		  Name = Name.Trim
-		  If Name = "" Then Return mWorkingDirectory
-		  If Name = "/" Then Return RootDirectory
-		  Dim path As String
-		  If Left(Name, 1) = "/" Then 'Relative to root
-		    path = RootDirectory.AbsolutePath
-		    Name = Right(Name, Name.Len - 1)
-		  Else 'Relative to WorkingDir
-		    path = RootDirectory.AbsolutePath + WorkingDirectory
-		  End If
+		  Dim out As FolderItem = RootDirectory
+		  Dim rootpath As String = RootDirectory.AbsolutePath
 		  
-		  Dim found As FolderItem = GetFolderItem(path + Name)
-		  
-		  If (found.Exists Or AllowNonExistant) And ChildOfParent(found, Me.RootDirectory) Then
-		    Return found
-		  End If
+		  For i As Integer = 1 To CountFields(Name, "/")
+		    Dim element As String = DecodeURLComponent(NthField(Name, "/", i))
+		    If element = "" Then Continue
+		    Select Case element.Trim
+		    Case ".." ' up one
+		      If out.Parent = Nil Then Return Nil ' cannot go up from the volume root
+		      Dim pp As String = out.Parent.AbsolutePath
+		      If Left(pp, rootpath.Len) <> rootpath Then Return Nil ' not contained within root
+		      out = out.Parent
+		    Case ".", "" ' current
+		      out = out ' No-op
+		    Case Else
+		      out = out.Child(element)
+		      If Not out.Exists And Not AllowNonExistant Then Return Nil
+		    End Select
+		  Next
+		  Return out
 		  
 		Exception
 		  Return Nil
@@ -751,6 +754,7 @@ Inherits FTP.Connection
 		      
 		    Case "SIZE"
 		      DoVerb_SIZE(vb, args)
+		      
 		    Case "MDTM"
 		      DoVerb_MDTM(vb, args)
 		      
@@ -797,10 +801,10 @@ Inherits FTP.Connection
 		    Case "DELE"
 		      DoVerb_DELE(vb, args)
 		      
-		    Case "RNFR"
+		    Case "RNFR" ' ReNameFRom
 		      DoVerb_RNF(vb, args)
 		      
-		    Case "RNTO"
+		    Case "RNTO" ' ReNameTO
 		      DoVerb_RNTO(vb, args)
 		      
 		    Case "QUIT"
@@ -808,7 +812,7 @@ Inherits FTP.Connection
 		      Me.Close
 		      
 		    Case "NOOP" 'Keep alive; no operation
-		      DoResponse(200, "Nothing? I can do that!")
+		      DoResponse(200)
 		      
 		    Case "OPTS"
 		      DoVerb_OPTS(vb, args)
@@ -827,7 +831,7 @@ Inherits FTP.Connection
 		    DoResponse(530)  'not logged in
 		  End If
 		  
-		Exception Err
+		Exception Err As RuntimeException
 		  If Err IsA EndException Or Err IsA ThreadEndException Then Raise Err
 		  DoResponse(500, "Runtime exception")
 		  
