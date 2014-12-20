@@ -203,10 +203,14 @@ Inherits FTP.Connection
 		  Case "PASS"
 		    Select Case Code
 		    Case 230 'Logged in with pass
-		      LoginOK = True
-		      RaiseEvent Connected()
+		      If Not LoginOK Then ' some servers send multi-line log-in messages, we only want the first one
+		        LoginOK = True
+		        RaiseEvent Connected()
+		      End If
 		    Case 530  'USER not set!
-		      DoVerb("USER", Me.Username, True) 'Warning: some FTP servers (Microsoft IIS) send this code for ALL errors, resulting in an infinite loop.
+		      If LastVerb.Verb <> "USER" Then
+		        DoVerb("USER", Me.Username, True) 'Warning: some FTP servers (Microsoft IIS) send this code for ALL errors, resulting in an infinite loop.
+		      End If
 		    End Select
 		  Case "RETR"
 		    Select Case Code
