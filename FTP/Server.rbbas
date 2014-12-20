@@ -634,43 +634,43 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h1
 		Protected Function FileListing(Directory As FolderItem, NamesOnly As Boolean = False) As String
-		  Dim listing As String
-		  If NamesOnly Then
-		    For i As Integer = 1 To Directory.Count
-		      listing = listing + Directory.Item(i).Name + CRLF
-		    Next
-		  Else
-		    'http://cr.yp.to/ftp/list/eplf.html
-		    Dim count As Integer = Directory.Count
-		    For i As Integer = 1 To Count
-		      Dim item As FolderItem = Directory.Item(i)
-		      listing = listing + Encodings.ASCII.Chr(&o053)
-		      If item.IsReadable Then
-		        listing = listing + "r,"
-		      End If
-		      
-		      If item.Directory Then
-		        listing = listing + "/,"
-		      Else
-		        listing = listing + "s" + Str(item.Length) + ","
-		      End If
-		      
-		      Dim epoch As New Date(1970, 1, 1, 0, 0, 0, 0) 'UNIX epoch
-		      Dim filetime As Date = item.ModificationDate
-		      filetime.GMTOffset = 0
-		      listing = listing + "m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ","
-		      #If TargetMacOS Or TargetLinux Then
-		        listing = listing + "UP" + Format(item.Permissions, "000") + ","
-		      #Else
-		        Dim p As Integer
-		        If item.IsReadable Then p = p + 4
-		        If item.IsWriteable Then p = p + 2
-		        p = p + 1 'executable
-		        listing = listing + "UP" + Str(p) + Str(p) + Str(p)
-		      #endif
-		      listing = listing + Encodings.ASCII.Chr(&o011) + item.Name + CRLF
-		    Next
-		  End If
+		  Dim listing As New MemoryBlock(0)
+		  Dim output As New BinaryStream(listing)
+		  'http://cr.yp.to/ftp/list/eplf.html
+		  Dim count As Integer = Directory.Count
+		  For i As Integer = 1 To Count
+		    If NamesOnly Then
+		      output.Write(Directory.Item(i).Name + CRLF)
+		      Continue
+		    End If
+		    Dim item As FolderItem = Directory.Item(i)
+		    output.Write(Encodings.ASCII.Chr(&o053))
+		    If item.IsReadable Then
+		      output.Write("r,")
+		    End If
+		    
+		    If item.Directory Then
+		      output.Write("/,")
+		    Else
+		      output.Write("s" + Str(item.Length) + ",")
+		    End If
+		    
+		    Dim epoch As New Date(1970, 1, 1, 0, 0, 0, 0) 'UNIX epoch
+		    Dim filetime As Date = item.ModificationDate
+		    filetime.GMTOffset = 0
+		    output.Write("m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ",")
+		    #If TargetMacOS Or TargetLinux Then
+		      output.Write("UP" + Format(item.Permissions, "000") + ",")
+		    #Else
+		      Dim p As Integer
+		      If item.IsReadable Then p = p + 4
+		      If item.IsWriteable Then p = p + 2
+		      p = p + 1 'executable
+		      output.Write("UP" + Str(p) + Str(p) + Str(p))
+		    #endif
+		    output.Write(Encodings.ASCII.Chr(&o011) + item.Name + CRLF)
+		  Next
+		  output.Close
 		  'If listing.Trim = "" And Directory <> Nil And Directory.Exists And Directory.Directory Then listing = "." + CRLF + ".." + CRLF
 		  Return listing
 		End Function
