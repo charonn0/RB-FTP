@@ -409,14 +409,14 @@ Begin Window ClientDemo
       Anonymous       =   False
       Height          =   32
       Index           =   -2147483648
-      Left            =   6.5e+2
+      Left            =   650
       LockedInPosition=   False
       Passive         =   True
       Password        =   ""
       Port            =   21
       Scope           =   0
       TabPanelIndex   =   0
-      Top             =   2.12e+2
+      Top             =   212
       Username        =   ""
       Width           =   32
       WorkingDirectory=   "/"
@@ -1247,7 +1247,7 @@ End
 		End Sub
 	#tag EndEvent
 	#tag Event
-		Sub TransferComplete()
+		Sub TransferComplete(RemoteFileName As String, Success As Boolean)
 		  loggit(Chr(4) + "Transfer complete.")
 		End Sub
 	#tag EndEvent

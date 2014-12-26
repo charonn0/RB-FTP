@@ -230,12 +230,12 @@ Inherits FTP.Connection
 		    Case 451, 551 'Disk read error
 		      DataBuffer.Close
 		      Call GetData()
-		      TransferComplete()
+		      TransferComplete(LastVerb.Arguments, False)
 		    Case 226 'Done
 		      Dim s As String = Me.GetData
 		      DataBuffer.Write(s)
 		      DataBuffer.Close
-		      TransferComplete()
+		      TransferComplete(LastVerb.Arguments, True)
 		    End Select
 		    
 		  Case "STOR", "APPE"
@@ -244,7 +244,7 @@ Inherits FTP.Connection
 		      Me.TransmitData(DataBuffer.Read(DataBuffer.Length - DataBuffer.Position))
 		      TransferInProgress = True
 		    Case 226  'Success
-		      TransferComplete()
+		      TransferComplete(LastVerb.Arguments, True)
 		      Me.CloseData
 		    Case 425  'No data connection!
 		      Dim lv, la As String
@@ -259,7 +259,7 @@ Inherits FTP.Connection
 		    Case 426  'Data connection lost
 		      DataBuffer.Close
 		      Call GetData()
-		      TransferComplete()
+		      TransferComplete(LastVerb.Arguments, False)
 		    End Select
 		  Case "STAT"
 		    If Code = 211 Or Code = 212 Or Code = 213 Then
@@ -525,7 +525,7 @@ Inherits FTP.Connection
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event TransferComplete()
+		Event TransferComplete(RemoteFileName As String, Success As Boolean)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
