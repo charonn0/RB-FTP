@@ -537,7 +537,13 @@ End
 		    FTPServer.StopListening
 		    Me.Caption = "Listen"
 		  Else
-		    FTPServer.NetworkInterface = nic.RowTag(nic.ListIndex)
+		    Dim n As NetworkInterface
+		    If nic.ListIndex <> -1 Then
+		      n = nic.RowTag(nic.ListIndex)
+		    Else
+		      n = System.GetNetworkInterface(0)
+		    End If
+		    FTPServer.NetworkInterface = n
 		    FTPServer.Port = Val(port.Text)
 		    FTPServer.Listen()
 		    Me.Caption = "Listening..."
