@@ -207,10 +207,10 @@ Inherits FTP.Connection
 		        LoginOK = True
 		        RaiseEvent Connected()
 		      End If
-		    Case 530  'USER not set!
-		      If LastVerb.Verb <> "USER" Then
-		        DoVerb("USER", Me.Username, True) 'Warning: some FTP servers (Microsoft IIS) send this code for ALL errors, resulting in an infinite loop.
-		      End If
+		    Case 530  'not logged in
+		      'If LastVerb.Verb <> "USER" Then
+		      'DoVerb("USER", Me.Username, True) 'Warning: some FTP servers (Microsoft IIS) send this code for ALL errors, resulting in an infinite loop.
+		      'End If
 		    End Select
 		  Case "RETR"
 		    Select Case Code
