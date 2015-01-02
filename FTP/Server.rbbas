@@ -529,7 +529,7 @@ Inherits FTP.Connection
 		    
 		  Else '  server status
 		    Me.Write("211-FTP Server status:" + CRLF)
-		    Me.Write(" Connected to " + Me.RemoteAddress + CRLF)
+		    Me.Write(" Connected to " + Me.LocalAddress + CRLF)
 		    Me.Write(" Logged in as " + Me.Username + CRLF)
 		    Me.Write(" Session timeout in seconds is " + Format(Me.TimeOutPeriod \ 1000, "###,##0") + CRLF)
 		    Select Case Me.TransferMode
@@ -678,7 +678,17 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h1
 		Protected Function FindFile(Name As String, AllowNonExistant As Boolean = False) As FolderItem
-		  Dim out As FolderItem = RootDirectory
+		  Dim out As FolderItem
+		  If Left(Name, 1) = "/" Then ' absolute
+		    out = RootDirectory
+		  Else
+		    out = RootDirectory
+		    For i As Integer = 0 To CountFields(WorkingDirectory, "/")
+		      If NthField(WorkingDirectory, "/", i).Trim <> "" Then
+		        out = out.Child(NthField(WorkingDirectory, "/", i).Trim)
+		      End If
+		    Next
+		  End If
 		  Dim rootpath As String = RootDirectory.AbsolutePath
 		  
 		  For i As Integer = 1 To CountFields(Name, "/")
@@ -688,7 +698,7 @@ Inherits FTP.Connection
 		    Case ".." ' up one
 		      If out.Parent = Nil Then Return Nil ' cannot go up from the volume root
 		      Dim pp As String = out.Parent.AbsolutePath
-		      If Left(pp, rootpath.Len) <> rootpath Then Return Nil ' not contained within root
+		      If StrComp(Left(pp, rootpath.Len), rootpath, 0) <> 0 Then Return Nil ' not contained within root; case sensitive
 		      out = out.Parent
 		    Case ".", "" ' current
 		      out = out ' No-op
