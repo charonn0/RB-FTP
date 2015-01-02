@@ -1135,11 +1135,11 @@ Begin Window ClientDemo
       Index           =   -2147483648
       InitialParent   =   ""
       Left            =   0
-      LockBottom      =   ""
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   ""
-      LockTop         =   True
+      LockRight       =   True
+      LockTop         =   False
       Maximum         =   100
       Scope           =   0
       TabPanelIndex   =   0
