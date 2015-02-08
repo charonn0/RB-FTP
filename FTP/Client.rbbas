@@ -432,6 +432,7 @@ Inherits FTP.Connection
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
+		  If PendingTransfers = Nil Then PendingTransfers = New Dictionary
 		  PendingTransfers.Value(RemoteFileName.Trim) = SaveTo
 		  DoVerb("RETR", RemoteFileName.Trim)
 		End Sub
@@ -463,6 +464,7 @@ Inherits FTP.Connection
 		  Else
 		    PORT(Me.Port + 1)
 		  End If
+		  If PendingTransfers = Nil Then PendingTransfers = New Dictionary
 		  PendingTransfers.Value(RemoteFileName.Trim) = LocalFile
 		  DoVerb("STOR", RemoteFileName.Trim)
 		End Sub
