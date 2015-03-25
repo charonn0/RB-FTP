@@ -196,7 +196,7 @@ Inherits TCPSocket
 	#tag Method, Flags = &h1
 		Protected Sub TransmitData(Data As String)
 		  ' If the current TransferMode is ASCII or EBCDIC and the passed Data string has encoding data associated with it
-		  ' then the Data is CONVERTED prior to being written; otherwise, the data are written verbatim.
+		  ' then the Data are CONVERTED prior to being written; otherwise, the data are written verbatim.
 		  
 		  Select Case TransferMode
 		  Case BinaryMode, LocalMode

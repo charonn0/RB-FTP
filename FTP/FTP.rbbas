@@ -29,6 +29,7 @@ Protected Module FTP
 		  Select Case Code
 		  Case 110
 		    Return "Restart marker reply"
+		    
 		  Case 120
 		    Return "Service ready in nnn minutes."
 		    

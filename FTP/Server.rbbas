@@ -382,33 +382,36 @@ Inherits FTP.Connection
 		Private Sub DoVerb_RNTO(Verb As String, Argument As String)
 		  #pragma Unused Verb
 		  
-		  If AllowWrite Then
-		    If RNF <> Nil Then
-		      If Argument.Trim <> "" Then
-		        RNT = FindFile(Argument.Trim, True)
-		        If RNT <> Nil Then
-		          Dim newname As String = RNT.Name.Trim
-		          RNF.Name = newname
-		          If RNF.LastErrorCode = 0 Then
-		            DoResponse(250, "Rename successful.")
-		          Else
-		            DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
-		          End If
-		        Else
-		          DoResponse(501, "You must specify a new name.")
-		        End If
-		      Else
-		        DoResponse(553, "Name not recognized.")
-		      End If
-		    Else
-		      DoResponse(503, "You must use RNFR before RNTO.")
-		    End If
-		    RNF = Nil
-		    RNT = Nil
-		    
-		  Else
+		  If Not AllowWrite Then
 		    DoResponse(450, "Permission denied.")
+		    Return
 		  End If
+		  If RNF = Nil Then
+		    DoResponse(503, "You must use RNFR before RNTO.")
+		    Return
+		  End If
+		  If Argument.Trim = "" Then
+		    DoResponse(553, "Name not recognized.")
+		    Return
+		  End If
+		  
+		  RNT = FindFile(Argument.Trim, True)
+		  If RNT = Nil Then
+		    DoResponse(501, "You must specify a new name.")
+		    Return
+		  End If
+		  
+		  Dim newname As String = RNT.Name.Trim
+		  RNF.Name = newname
+		  If RNF.LastErrorCode = 0 Then
+		    DoResponse(250, "Rename successful.")
+		  Else
+		    DoResponse(451, "System error: " + Str(RNF.LastErrorCode))
+		  End If
+		  
+		  RNF = Nil
+		  RNT = Nil
+		  
 		End Sub
 	#tag EndMethod
 
