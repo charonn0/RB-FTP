@@ -503,8 +503,9 @@ Inherits FTP.Connection
 		      DataBuffer = BinaryStream.Create(PendingTransfers.Value(nextverb.Arguments), True)
 		      PendingTransfers.Remove(nextverb.Arguments)
 		    End If
-		    FTPLog(nextverb.Verb + " " + nextverb.Arguments)
-		    Me.Write(nextverb.Verb + " " + nextverb.Arguments + CRLF)
+		    Dim cmd As String = Trim(nextverb.Verb + " " + nextverb.Arguments)
+		    FTPLog(cmd)
+		    Me.Write(cmd + CRLF)
 		    LastVerb = nextverb
 		    Sender.Mode = Timer.ModeOff
 		  End If
