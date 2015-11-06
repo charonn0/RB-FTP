@@ -246,6 +246,7 @@ Inherits FTP.Connection
 		    Case 226  'Success
 		      TransferComplete(LastVerb.Arguments, True)
 		      Me.CloseData
+		      DataBuffer.Close
 		    Case 425  'No data connection!
 		      Dim lv, la As String
 		      lv = LastVerb.Verb
