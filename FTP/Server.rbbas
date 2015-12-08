@@ -784,7 +784,7 @@ Inherits FTP.Connection
 		    Case "CWD", "XCWD"
 		      DoVerb_CWD(vb, args)
 		      
-		    Case "PWD"
+		    Case "PWD", "XPWD"
 		      DoVerb_PWD(vb, args)
 		      
 		    Case "LIST", "NLST"
