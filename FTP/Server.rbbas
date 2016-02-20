@@ -49,7 +49,7 @@ Inherits FTP.Connection
 		  // Calling the overridden superclass constructor.
 		  // Constructor() -- From TCPSocket
 		  Super.Constructor
-		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM,TVFS", ",")
+		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM,TVFS,MLST,XPWD,XCWD", ",")
 		End Sub
 	#tag EndMethod
 
@@ -143,7 +143,7 @@ Inherits FTP.Connection
 		  
 		  Dim dir As FolderItem = FindFile(Argument)
 		  If dir = Nil Then dir = Me.mWorkingDirectory
-		  Dim s As String = FileListing(dir, Verb.Trim = "NLST")
+		  Dim s As String = FileListing(dir, Verb.Trim)
 		  If s.Trim <> "" Then
 		    DoResponse(150)
 		    If Me.UTFMode Then
@@ -208,6 +208,33 @@ Inherits FTP.Connection
 		  Else
 		    DoResponse(550, "directory already exists")
 		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_MLST(Verb As String, Argument As String)
+		  If Argument = "-a" or Argument.Trim = "" Then Argument = WorkingDirectory
+		  
+		  Dim dir As FolderItem = FindFile(Argument)
+		  If dir = Nil Then dir = Me.mWorkingDirectory
+		  Dim s As String = FileListing(dir, Verb.Trim)
+		  If s.Trim <> "" Then
+		    Me.Write("250- Listing " + dir.Name + CRLF)
+		    If Me.UTFMode Then
+		      s = ConvertEncoding(s, Encodings.UTF8)
+		    Else
+		      s = ConvertEncoding(s, Encodings.ASCII)
+		    End If
+		    Me.Write(s)
+		    DoResponse(250, "End")
+		    
+		  ElseIf dir.Exists Then
+		    DoResponse(150)
+		  Else
+		    DoResponse(550, "That directory does not exist.")
+		  End If
+		  Me.CloseData
+		  DoResponse(226)
 		End Sub
 	#tag EndMethod
 
@@ -636,45 +663,62 @@ Inherits FTP.Connection
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function FileListing(Directory As FolderItem, NamesOnly As Boolean = False) As String
+		Protected Function FileListing(Directory As FolderItem, Verb As String) As String
 		  Dim listing As New MemoryBlock(0)
 		  Dim output As New BinaryStream(listing)
 		  'http://cr.yp.to/ftp/list/eplf.html
 		  Dim count As Integer = Directory.Count
 		  For i As Integer = 1 To Count
-		    If NamesOnly Then
-		      output.Write(Directory.Item(i).Name + CRLF)
+		    Dim item As FolderItem
+		    If Directory.Directory Then item = Directory.Item(i) Else item = Directory
+		    Select Case Verb
+		    Case "NLST"
+		      output.Write(item.Name + CRLF)
 		      Continue
-		    End If
-		    Dim item As FolderItem = Directory.Item(i)
-		    output.Write(Encodings.ASCII.Chr(&o053))
-		    If item.IsReadable Then
-		      output.Write("r,")
-		    End If
-		    
-		    If item.Directory Then
-		      output.Write("/,")
+		    Case "LIST"
+		      output.Write(Encodings.ASCII.Chr(&o053))
+		      If item.IsReadable Then output.Write("r,")
+		      If item.Directory Then output.Write("/,") Else output.Write("s" + Str(item.Length) + ",")
+		      Dim epoch As New Date(1970, 1, 1, 0, 0, 0, 0) 'UNIX epoch
+		      Dim filetime As Date = item.ModificationDate
+		      filetime.GMTOffset = 0
+		      output.Write("m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ",")
+		      #If TargetMacOS Or TargetLinux Then
+		        output.Write("UP" + Format(item.Permissions, "000") + ",")
+		      #Else
+		        Dim p As Integer
+		        If item.IsReadable Then p = p + 4
+		        If item.IsWriteable Then p = p + 2
+		        p = p + 1 'executable
+		        output.Write("UP" + Str(p) + Str(p) + Str(p))
+		      #endif
+		      output.Write(Encodings.ASCII.Chr(&o011) + item.Name + CRLF)
+		      
+		    Case "MLST", "MLSD"
+		      Dim facts() As String
+		      If item.Directory Then facts.Append("Type=dir") Else facts.Append("Type=file")
+		      If Not item.Directory Then facts.Append("Size=" + Format(item.Length, "#########################0")) Else facts.Append("Type=file")
+		      Dim d As Date = item.ModificationDate
+		      facts.Append("Modify=" + Str(d.Year, "0000") + Str(d.Month, "00") + Str(d.Day, "00") + Str(d.Hour, "00") + Str(d.Minute, "00") + Str(d.Second, "00"))
+		      d = item.CreationDate
+		      facts.Append("Create=" + Str(d.Year, "0000") + Str(d.Month, "00") + Str(d.Day, "00") + Str(d.Hour, "00") + Str(d.Minute, "00") + Str(d.Second, "00"))
+		      Dim path As String
+		      If Verb = "MLSD" Then
+		        path = item.Name
+		      Else
+		        path = FindPath(item)
+		      End If
+		      output.Write(" " + Join(facts, ";") + " " + path + CRLF)
 		    Else
-		      output.Write("s" + Str(item.Length) + ",")
-		    End If
-		    
-		    Dim epoch As New Date(1970, 1, 1, 0, 0, 0, 0) 'UNIX epoch
-		    Dim filetime As Date = item.ModificationDate
-		    filetime.GMTOffset = 0
-		    output.Write("m" + Format(filetime.TotalSeconds - epoch.TotalSeconds, "#####################") + ",")
-		    #If TargetMacOS Or TargetLinux Then
-		      output.Write("UP" + Format(item.Permissions, "000") + ",")
-		    #Else
-		      Dim p As Integer
-		      If item.IsReadable Then p = p + 4
-		      If item.IsWriteable Then p = p + 2
-		      p = p + 1 'executable
-		      output.Write("UP" + Str(p) + Str(p) + Str(p))
-		    #endif
-		    output.Write(Encodings.ASCII.Chr(&o011) + item.Name + CRLF)
+		      Break
+		    End Select
 		  Next
 		  output.Close
 		  'If listing.Trim = "" And Directory <> Nil And Directory.Exists And Directory.Directory Then listing = "." + CRLF + ".." + CRLF
+		  Dim f As FolderItem = SpecialFolder.Desktop.Child("list.bin")
+		  Dim bs As BinaryStream = BinaryStream.Create(f, True)
+		  bs.Write(listing)
+		  bs.Close
 		  Return listing
 		End Function
 	#tag EndMethod
@@ -714,6 +758,17 @@ Inherits FTP.Connection
 		  
 		Exception
 		  Return Nil
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function FindPath(Item As FolderItem) As String
+		  Dim s() As String
+		  Do Until Item.AbsolutePath = mRootDirectory.AbsolutePath
+		    s.Insert(0, Item.Name)
+		    Item = Item.Parent
+		  Loop Until Item = Nil
+		  Return Join(s, "/")
 		End Function
 	#tag EndMethod
 
@@ -787,8 +842,11 @@ Inherits FTP.Connection
 		    Case "PWD", "XPWD"
 		      DoVerb_PWD(vb, args)
 		      
-		    Case "LIST", "NLST"
+		    Case "LIST", "NLST", "MLSD"
 		      DoVerb_List(vb, args)
+		      
+		    Case "MLST"
+		      DoVerb_MLST(vb, args)
 		      
 		    Case "CDUP"
 		      DoVerb_CDUP(vb, args)
