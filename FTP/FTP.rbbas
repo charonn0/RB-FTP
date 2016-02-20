@@ -25,25 +25,30 @@ Protected Module FTP
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function FormatCode(Code As Integer) As String
+		Function FormatCode(Code As Integer, ParamArray Variables() As Pair) As String
+		  Dim vars As New Dictionary
+		  For i As Integer = 0 To UBound(Variables)
+		    vars.Value(Variables(i).Left) = Variables(i).Right
+		  Next
+		  
 		  Select Case Code
 		  Case 110
 		    Return "Restart marker reply"
 		    
 		  Case 120
-		    Return "Service ready in nnn minutes."
+		    Return "Service ready in " + vars.Lookup("RETRYAFTER", "10") + " minutes."
 		    
 		  Case 125
-		    Return "Data connection already open; transfer starting."
+		    Return "The data connection is already open; beginning transfer."
 		    
 		  Case 150
-		    Return "File status okay; about to open data connection."
+		    Return "Command acknowledged; about to open the data connection."
 		    
 		  Case 200
-		    Return "Command okay."
+		    Return "Command successful."
 		    
 		  Case 202
-		    Return "Command not implemented, superfluous at this site."
+		    Return "Command not implemented: it is superfluous at this site."
 		    
 		  Case 211
 		    Return "System status, or system help reply."
@@ -61,52 +66,52 @@ Protected Module FTP
 		    Return "NAME system type."
 		    
 		  Case 220
-		    Return "Service ready for new user."
+		    Return "The service is ready for new users."
 		    
 		  Case 221
-		    Return "Service closing control connection."
+		    Return "The service is closing the control connection, this session will now end. Goodbye."
 		    
 		  Case 225
-		    Return "Data connection open; no transfer in progress."
+		    Return "The data connection is open and no transfer is currently in progress."
 		    
 		  Case 226
-		    Return "Closing data connection."
+		    Return "The service has closed the data connection."
 		    
 		  Case 227
-		    Return "Entering Passive Mode <h1,h2,h3,h4,p1,p2>."
+		    Return "Entering passive mode <" + vars.Lookup("IP", "<h1,h2,h3,h4,p1,p2>") + ">."
 		    
 		  Case 228
-		    Return "Entering Long Passive Mode."
+		    Return "Entering long passive mode."
 		    
 		  Case 229
-		    Return "Extended Passive Mode Entered."
+		    Return "Extended passive mode entered."
 		    
 		  Case 230
-		    Return "User logged in, proceed."
+		    Return "User logged in successfully, proceed."
 		    
 		  Case 250
-		    Return "Requested file action okay, completed."
+		    Return "The requested file action was successful."
 		    
 		  Case 257
-		    Return ""
+		    Return "The requested directory action was successful."
 		    
 		  Case 331
-		    Return "User name okay, need password."
+		    Return "Username received. Proceed by sending the password."
 		    
 		  Case 332
-		    Return "Need account for login."
+		    Return "You need an account to log into this site."
 		    
 		  Case 350
-		    Return "Requested file action pending further information."
+		    Return "The requested file action is pending and requires further information to complete."
 		    
 		  Case 421
-		    Return "Service not available, closing control connection."
+		    Return "The service is not available at this time, this session will now end. Goodbye."
 		    
 		  Case 425
-		    Return "Can't open data connection."
+		    Return "The service was unable to open the data connection."
 		    
 		  Case 426
-		    Return "Connection closed; transfer aborted."
+		    Return "The data connection has been closed and the transfer has been aborted."
 		    
 		  Case 450
 		    Return "Requested file action not taken."
