@@ -428,8 +428,7 @@ Inherits FTP.Connection
 		    Return
 		  End If
 		  
-		  Dim newname As String = RNT.Name.Trim
-		  RNF.Name = newname
+		  RNF.MoveFileTo(RNT)
 		  If RNF.LastErrorCode = 0 Then
 		    DoResponse(250, "Rename successful.")
 		  Else
@@ -587,6 +586,7 @@ Inherits FTP.Connection
 		  End If
 		  
 		  Dim saveTo As FolderItem
+		  Dim msg As String
 		  Select Case Verb
 		  Case "STOR"
 		    saveTo = FindFile(Argument, True)
@@ -615,13 +615,14 @@ Inherits FTP.Connection
 		    End If
 		    
 		    
-		  Case "STORU"
+		  Case "STOU"
 		    saveTo = GetTemporaryFolderItem()
 		    saveTo.MoveFileTo(mWorkingDirectory.Child(Str(Microseconds)))
 		    Me.DataBuffer = BinaryStream.Open(saveTo, True)
+		    msg = saveTo.Name
 		  End Select
 		  
-		  DoResponse(150) 'Ready
+		  DoResponse(150, msg) 'Ready
 		  Me.TransferInProgress = True
 		  STORTimer = New Timer
 		  STORTimer.Period = 200
