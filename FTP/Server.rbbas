@@ -66,16 +66,13 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_AUTH(Verb As String, Argument As String)
 		  If Argument = "TLS" or Argument.Trim = "" Then
-		    
-		    'Dim rand As New Random
-		    'Dim port As Integer = Rand.InRange(1024, 65534)
-		    'Me.IsAuthTLS = True
-		    DoResponse(234, Banner)
+		    DoResponse(234, "AUTH TLS OK.")
+		    Me.Secure = True
 		    Me.ConnectionType = Me.TLSv1
 		    Me.CertificateFile = SpecialFolder.Desktop.Child("cert")
 		    Me.CertificatePassword = "demo"
-		    Me.Secure = True
-		    
+		  Else
+		    DoResponse(553, "Unknown AUTH parameter.")
 		  End If
 		End Sub
 	#tag EndMethod
