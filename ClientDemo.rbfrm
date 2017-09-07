@@ -199,48 +199,6 @@ Begin Window ClientDemo
       Visible         =   True
       Width           =   117
    End
-   Begin TextField Port
-      AcceptTabs      =   False
-      Alignment       =   0
-      AutoDeactivate  =   True
-      AutomaticallyCheckSpelling=   False
-      BackColor       =   "&cFFFFFF00"
-      Bold            =   False
-      Border          =   True
-      CueText         =   ""
-      DataField       =   ""
-      DataSource      =   ""
-      Enabled         =   True
-      Format          =   ""
-      Height          =   22
-      HelpTag         =   ""
-      Index           =   -2147483648
-      Italic          =   False
-      Left            =   367
-      LimitText       =   0
-      LockBottom      =   True
-      LockedInPosition=   False
-      LockLeft        =   True
-      LockRight       =   False
-      LockTop         =   False
-      Mask            =   ""
-      Password        =   False
-      ReadOnly        =   False
-      Scope           =   0
-      TabIndex        =   24
-      TabPanelIndex   =   0
-      TabStop         =   True
-      Text            =   21
-      TextColor       =   "&c00000000"
-      TextFont        =   "System"
-      TextSize        =   0.0
-      TextUnit        =   0
-      Top             =   280
-      Underline       =   False
-      UseFocusRing    =   True
-      Visible         =   True
-      Width           =   20
-   End
    Begin CheckBox CheckBox1
       AutoDeactivate  =   True
       Bold            =   False
@@ -1147,6 +1105,48 @@ Begin Window ClientDemo
       Value           =   0
       Visible         =   True
       Width           =   600
+   End
+   Begin TextField Port
+      AcceptTabs      =   False
+      Alignment       =   0
+      AutoDeactivate  =   True
+      AutomaticallyCheckSpelling=   False
+      BackColor       =   "&cFFFFFF00"
+      Bold            =   False
+      Border          =   True
+      CueText         =   ""
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Format          =   ""
+      Height          =   22
+      HelpTag         =   ""
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   367
+      LimitText       =   0
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   False
+      LockRight       =   False
+      LockTop         =   False
+      Mask            =   ""
+      Password        =   False
+      ReadOnly        =   False
+      Scope           =   0
+      TabIndex        =   24
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   21
+      TextColor       =   "&c00000000"
+      TextFont        =   "System"
+      TextSize        =   0.0
+      TextUnit        =   0
+      Top             =   280
+      Underline       =   False
+      UseFocusRing    =   True
+      Visible         =   True
+      Width           =   20
    End
 End
 #tag EndWindow
