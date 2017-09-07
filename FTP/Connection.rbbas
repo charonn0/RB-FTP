@@ -1,6 +1,6 @@
 #tag Class
 Protected Class Connection
-Inherits TCPSocket
+Inherits SSLSocket
 	#tag Event
 		Sub Error()
 		  If Me.LastErrorCode = 102 Then

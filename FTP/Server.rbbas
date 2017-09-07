@@ -64,6 +64,23 @@ Inherits FTP.Connection
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub DoVerb_AUTH(Verb As String, Argument As String)
+		  If Argument = "TLS" or Argument.Trim = "" Then
+		    
+		    'Dim rand As New Random
+		    'Dim port As Integer = Rand.InRange(1024, 65534)
+		    'Me.IsAuthTLS = True
+		    DoResponse(234, Banner)
+		    Me.ConnectionType = Me.TLSv1
+		    Me.CertificateFile = SpecialFolder.Desktop.Child("cert")
+		    Me.CertificatePassword = "demo"
+		    Me.Secure = True
+		    
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub DoVerb_CDUP(Verb As String, Argument As String)
 		  #pragma Unused Verb
 		  #pragma Unused Argument
@@ -807,8 +824,11 @@ Inherits FTP.Connection
 		  FTPLog(vb + " " + args)
 		  If InactivityTimer <> Nil Then InactivityTimer.Reset()
 		  
-		  If LoginOK Or vb = "USER" Or vb = "PASS" Then
+		  If LoginOK Or vb = "USER" Or vb = "PASS" Or vb = "AUTH" Then
 		    Select Case vb.Trim
+		    Case "AUTH"
+		      DoVerb_AUTH(vb, args)
+		      
 		    Case "USER"
 		      DoVerb_USER(vb, args)
 		      
@@ -972,6 +992,10 @@ Inherits FTP.Connection
 
 	#tag Property, Flags = &h21
 		Private InactivityTimer As Timer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private IsAuthTLS As Boolean
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
