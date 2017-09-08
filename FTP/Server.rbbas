@@ -713,11 +713,6 @@ Inherits FTP.Connection
 		    End Select
 		  Next
 		  output.Close
-		  'If listing.Trim = "" And Directory <> Nil And Directory.Exists And Directory.Directory Then listing = "." + CRLF + ".." + CRLF
-		  Dim f As FolderItem = SpecialFolder.Desktop.Child("list.bin")
-		  Dim bs As BinaryStream = BinaryStream.Create(f, True)
-		  bs.Write(listing)
-		  bs.Close
 		  Return listing
 		End Function
 	#tag EndMethod
