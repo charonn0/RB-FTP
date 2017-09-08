@@ -159,7 +159,7 @@ Protected Module FTP
 		    Return "Requested file action aborted."
 		    
 		  Case 553
-		    Return "Requested action not taken."
+		    Return "Requested AUTH mode is not supported."
 		    
 		  Case 554
 		    Return "Requested action not taken: invalid REST parameter."
@@ -265,8 +265,6 @@ Protected Module FTP
 		WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
 		FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
 		OTHER DEALINGS IN THE SOFTWARE.
-		
-		
 	#tag EndNote
 
 
