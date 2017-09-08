@@ -73,7 +73,7 @@ Inherits SSLSocket
 	#tag Method, Flags = &h21
 		Private Sub CreateDataSocket(PASVParams As String, NetInterface As NetworkInterface = Nil)
 		  Me.CloseData
-		  DataSocket = New TCPSocket
+		  DataSocket = New SSLSocket
 		  If NetInterface <> Nil Then
 		    DataSocket.NetworkInterface = NetInterface
 		  Else
@@ -83,6 +83,13 @@ Inherits SSLSocket
 		  AddHandler DataSocket.Error, WeakAddressOf ErrorHandler
 		  AddHandler DataSocket.SendComplete, WeakAddressOf SendCompleteHandler
 		  AddHandler DataSocket.SendProgress, WeakAddressOf SendProgressHandler
+		  
+		  If Me.SSLConnected And DataProtection = "P" Then ' use SSL/TLS for data connection
+		    DataSocket.ConnectionType = Me.ConnectionType
+		    DataSocket.CertificateFile = Me.CertificateFile
+		    DataSocket.CertificatePassword = Me.CertificatePassword
+		    DataSocket.Secure = True
+		  End If
 		  
 		  If PASVParams.Trim <> "" Then
 		    PASVParams = PASV_to_IPv4(PASVParams)
@@ -268,12 +275,20 @@ Inherits SSLSocket
 		Anonymous As Boolean = False
 	#tag EndProperty
 
+	#tag Property, Flags = &h1
+		Protected DataProtection As String = "C"
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected DataProtectionBufferSize As Integer = -1
+	#tag EndProperty
+
 	#tag Property, Flags = &h21
 		Private DataReadBuffer As String
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private DataSocket As TCPSocket
+		Private DataSocket As SSLSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
@@ -326,18 +341,40 @@ Inherits SSLSocket
 
 	#tag ViewBehavior
 		#tag ViewProperty
-			Name="Address"
-			Visible=true
-			Group="Behavior"
-			Type="String"
-			InheritedFrom="TCPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
 			Name="Anonymous"
 			Visible=true
 			Group="Behavior"
 			InitialValue="False"
 			Type="Boolean"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CertificateFile"
+			Visible=true
+			Group="Behavior"
+			Type="FolderItem"
+			InheritedFrom="SSLSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CertificatePassword"
+			Visible=true
+			Group="Behavior"
+			Type="String"
+			InheritedFrom="SSLSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CertificateRejectionFile"
+			Visible=true
+			Group="Behavior"
+			Type="FolderItem"
+			InheritedFrom="SSLSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ConnectionType"
+			Visible=true
+			Group="Behavior"
+			InitialValue="2"
+			Type="Integer"
+			InheritedFrom="SSLSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"
@@ -374,12 +411,11 @@ Inherits SSLSocket
 			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 		#tag ViewProperty
-			Name="Port"
+			Name="Secure"
 			Visible=true
 			Group="Behavior"
-			InitialValue="21"
-			Type="Integer"
-			InheritedFrom="TCPSocket"
+			Type="Boolean"
+			InheritedFrom="SSLSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Super"

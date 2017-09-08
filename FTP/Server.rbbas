@@ -3,9 +3,11 @@ Protected Class Server
 Inherits FTP.Connection
 	#tag Event
 		Sub Connected()
-		  FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
-		  DoResponse(220, Banner)
-		  RaiseEvent Connected()
+		  If Not mIsRenegotiating Then
+		    FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
+		    DoResponse(220, Banner)
+		    RaiseEvent Connected()
+		  End If
 		End Sub
 	#tag EndEvent
 
@@ -49,7 +51,7 @@ Inherits FTP.Connection
 		  // Calling the overridden superclass constructor.
 		  // Constructor() -- From SSLSocket
 		  Super.Constructor
-		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM,TVFS,MLST,XPWD,XCWD", ",")
+		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM,TVFS,MLST,XPWD,XCWD,AUTH TLS,PBSZ,PROT", ",")
 		End Sub
 	#tag EndMethod
 
@@ -65,13 +67,38 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_AUTH(Verb As String, Argument As String)
-		  If Argument = "TLS" Or Argument.Trim = "" Then
-		    DoResponse(234, "AUTH TLS OK.")
-		    Me.Flush()
-		    Me.ConnectionType = SSLSocket.TLSv1
-		    Me.Secure = True
+		  Select Case Argument.Trim
+		  Case "TLS"
+		    If Me.CertificateFile <> Nil And Me.CertificatePassword <> "" Then
+		      DoResponse(234, "AUTH TLS OK.")
+		      Me.Flush()
+		      'Me.LoginOK = False ' user must log on again
+		      mIsRenegotiating = True
+		      Me.ConnectionType = SSLSocket.TLSv1
+		      Me.Secure = True
+		    Else
+		      DoResponse(431, "This site is not configured to accept secure connections.")
+		    End If
+		    
+		  Case "SSL"
+		    DoResponse(534, "SSL is not acceptable at this site. Use AUTH TLS instead.")
+		    
 		  Else
-		    DoResponse(553, "Unknown AUTH parameter.")
+		    DoResponse(504, "Unknown AUTH parameter.")
+		  End Select
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_CCC(Verb As String, Argument As String)
+		  If Me.SSLConnected Then
+		    DoResponse(200, "The connection is no longer secure.")
+		    Me.Flush()
+		    Me.LoginOK = False ' user must log on again
+		    Me.Secure = False
+		    
+		  Else
+		    DoResponse(504, "This command may not be issued over an insecure connection.")
 		  End If
 		End Sub
 	#tag EndMethod
@@ -317,10 +344,60 @@ Inherits FTP.Connection
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub DoVerb_PBSZ(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  If Not IsNumeric(Argument.Trim) Then
+		    DoResponse(501, "Buffer size must be a number.")
+		    Return
+		  End If
+		  Dim i As Integer = Val(Argument.Trim)
+		  If i >= 0 Then
+		    Me.DataProtectionBufferSize = i
+		    DoResponse(200)
+		  Else
+		    DoResponse(501, "Unrecognized buffer size parameter.")
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub DoVerb_PORT(Verb As String, Argument As String)
 		  #pragma Unused Verb
 		  DoResponse(200, Argument)
 		  Me.ConnectData(Argument)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub DoVerb_PROT(Verb As String, Argument As String)
+		  #pragma Unused Verb
+		  
+		  If Not Me.SSLConnected Then
+		    DoResponse(503, "You must use AUTH before PROT.")
+		    Return
+		  End If
+		  
+		  If Me.DataProtectionBufferSize = -1 Then
+		    DoResponse(503, "You must use PBSZ before PROT.")
+		    Return
+		  End If
+		  
+		  Select Case Argument.Trim
+		  Case "C" ' clear
+		    Me.DataProtection = Argument
+		    DoResponse(200, "Data connection security disabled.")
+		    
+		  Case "S" ' safe
+		    DoResponse(504, "Use 'PROT P' to enable security features for the data connection.") ' not implemented for that param
+		    
+		  Case "E" ' confidential
+		    DoResponse(504, "Use 'PROT P' to enable security features for the data connection.") ' not implemented for that param
+		    
+		  Case "P" ' private
+		    DoResponse(200, "Data connections security enabled.")
+		    Me.DataProtection = "P"
+		  End Select
 		End Sub
 	#tag EndMethod
 
@@ -799,6 +876,7 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h0
 		Sub Listen()
+		  mIsRenegotiating = False
 		  Super.Listen
 		  FTPLog("Now listening on port " + Str(Me.Port))
 		End Sub
@@ -818,10 +896,21 @@ Inherits FTP.Connection
 		  FTPLog(vb + " " + args)
 		  If InactivityTimer <> Nil Then InactivityTimer.Reset()
 		  
-		  If LoginOK Or vb = "USER" Or vb = "PASS" Or vb = "AUTH" Then
+		  Static preauthcmds() As String = Array("USER", "PASS", "AUTH", "PBSZ", "PROT") ' these verbs can be sent before logging in
+		  
+		  If LoginOK Or preauthcmds.IndexOf(vb) > -1 Then
 		    Select Case vb.Trim
 		    Case "AUTH"
 		      DoVerb_AUTH(vb, args)
+		      
+		    Case "PBSZ"
+		      DoVerb_PBSZ(vb, args)
+		      
+		    Case "PROT"
+		      DoVerb_PROT(vb, args)
+		      
+		    Case "CCC"
+		      DoVerb_CCC(vb, args)
 		      
 		    Case "USER"
 		      DoVerb_USER(vb, args)
@@ -993,6 +1082,10 @@ Inherits FTP.Connection
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mIsRenegotiating As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mRootDirectory As FolderItem
 	#tag EndProperty
 
@@ -1093,12 +1186,6 @@ Inherits FTP.Connection
 
 	#tag ViewBehavior
 		#tag ViewProperty
-			Name="Address"
-			Group="Behavior"
-			Type="String"
-			InheritedFrom="TCPSocket"
-		#tag EndViewProperty
-		#tag ViewProperty
 			Name="AllowWrite"
 			Visible=true
 			Group="Behavior"
@@ -1120,6 +1207,35 @@ Inherits FTP.Connection
 			InitialValue="Welcome to BSFTPd!"
 			Type="String"
 			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CertificateFile"
+			Visible=true
+			Group="Behavior"
+			Type="FolderItem"
+			InheritedFrom="SSLSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CertificatePassword"
+			Visible=true
+			Group="Behavior"
+			Type="String"
+			InheritedFrom="SSLSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CertificateRejectionFile"
+			Visible=true
+			Group="Behavior"
+			Type="FolderItem"
+			InheritedFrom="SSLSocket"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ConnectionType"
+			Visible=true
+			Group="Behavior"
+			InitialValue="2"
+			Type="Integer"
+			InheritedFrom="SSLSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"
@@ -1159,12 +1275,11 @@ Inherits FTP.Connection
 			InheritedFrom="FTPSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
-			Name="Port"
+			Name="Secure"
 			Visible=true
 			Group="Behavior"
-			InitialValue="21"
-			Type="Integer"
-			InheritedFrom="TCPSocket"
+			Type="Boolean"
+			InheritedFrom="SSLSocket"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Super"
