@@ -68,7 +68,6 @@ Inherits FTP.Connection
 		  If Argument = "TLS" Or Argument.Trim = "" Then
 		    DoResponse(234, "AUTH TLS OK.")
 		    Me.Flush()
-		    Call Me.ReadAll
 		    Me.ConnectionType = SSLSocket.TLSv1
 		    Me.Secure = True
 		  Else
