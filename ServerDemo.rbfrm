@@ -519,6 +519,8 @@ End
 		  client.AllowWrite = True
 		  client.TimeOutPeriod = 60000
 		  client.NetworkInterface = Me.NetworkInterface
+		  client.CertificateFile = SpecialFolder.Desktop.Child("cert")
+		  client.CertificatePassword = "demo"
 		  AddHandler client.FTPLog, WeakAddressOf LogHandler
 		  AddHandler client.UserLogon, WeakAddressOf UserLogonHandler
 		  Return client

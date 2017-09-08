@@ -47,7 +47,7 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h1000
 		Sub Constructor()
 		  // Calling the overridden superclass constructor.
-		  // Constructor() -- From TCPSocket
+		  // Constructor() -- From SSLSocket
 		  Super.Constructor
 		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM,TVFS,MLST,XPWD,XCWD", ",")
 		End Sub
@@ -65,12 +65,12 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_AUTH(Verb As String, Argument As String)
-		  If Argument = "TLS" or Argument.Trim = "" Then
+		  If Argument = "TLS" Or Argument.Trim = "" Then
 		    DoResponse(234, "AUTH TLS OK.")
+		    Me.Flush()
+		    Call Me.ReadAll
+		    Me.ConnectionType = SSLSocket.TLSv1
 		    Me.Secure = True
-		    Me.ConnectionType = Me.TLSv1
-		    Me.CertificateFile = SpecialFolder.Desktop.Child("cert")
-		    Me.CertificatePassword = "demo"
 		  Else
 		    DoResponse(553, "Unknown AUTH parameter.")
 		  End If
