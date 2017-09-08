@@ -233,8 +233,6 @@ Inherits FTP.Connection
 		  Else
 		    DoResponse(550, "That directory does not exist.")
 		  End If
-		  Me.CloseData
-		  DoResponse(226)
 		End Sub
 	#tag EndMethod
 
