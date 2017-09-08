@@ -96,7 +96,7 @@ Begin Window ServerDemo
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   False
-      LockTop         =   True
+      LockTop         =   False
       Mask            =   ""
       Password        =   False
       ReadOnly        =   False
