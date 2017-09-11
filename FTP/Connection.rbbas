@@ -71,6 +71,19 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub ConnectedHandler(Sender As SSLSocket)
+		  'Handles DataSocket.Connected
+		  'If DataProtection And Not Sender.SSLConnected Then ' initial connection
+		  'If SSLConnecting Then Break
+		  'Sender.ConnectionType = Me.ConnectionType
+		  'Sender.CertificateFile = Me.CertificateFile
+		  'Sender.CertificatePassword = Me.CertificatePassword
+		  'Sender.Secure = True
+		  'End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub CreateDataSocket(PASVParams As String, NetInterface As NetworkInterface = Nil)
 		  Me.CloseData
 		  DataSocket = New SSLSocket
@@ -79,17 +92,11 @@ Inherits SSLSocket
 		  Else
 		    DataSocket.NetworkInterface = Self.NetworkInterface
 		  End If
+		  AddHandler DataSocket.Connected, WeakAddressOf ConnectedHandler
 		  AddHandler DataSocket.DataAvailable, WeakAddressOf DataAvailableHandler
 		  AddHandler DataSocket.Error, WeakAddressOf ErrorHandler
 		  AddHandler DataSocket.SendComplete, WeakAddressOf SendCompleteHandler
 		  AddHandler DataSocket.SendProgress, WeakAddressOf SendProgressHandler
-		  
-		  If Me.SSLConnected And DataProtection = "P" Then ' use SSL/TLS for data connection
-		    DataSocket.ConnectionType = Me.ConnectionType
-		    DataSocket.CertificateFile = Me.CertificateFile
-		    DataSocket.CertificatePassword = Me.CertificatePassword
-		    DataSocket.Secure = True
-		  End If
 		  
 		  If PASVParams.Trim <> "" Then
 		    PASVParams = PASV_to_IPv4(PASVParams)
@@ -102,13 +109,20 @@ Inherits SSLSocket
 		  Else
 		    Dim rand As New Random
 		    DataSocket.Address = DataSocket.NetworkInterface.IPAddress
-		    DataSocket.Port = Rand.InRange(1025, 65534)
+		    DataSocket.Port = Rand.InRange(32636, 65534)
+		  End If
+		  
+		  If DataProtection Then
+		    DataSocket.ConnectionType = Me.ConnectionType
+		    DataSocket.CertificateFile = Me.CertificateFile
+		    DataSocket.CertificatePassword = Me.CertificatePassword
+		    DataSocket.Secure = True
 		  End If
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub DataAvailableHandler(Sender As TCPSocket)
+		Private Sub DataAvailableHandler(Sender As SSLSocket)
 		  'Handles DataSocket.DataAvailable
 		  Dim s As String = Sender.ReadAll
 		  DataReadBuffer = DataReadBuffer + s
@@ -123,7 +137,7 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub ErrorHandler(Sender As TCPSocket)
+		Private Sub ErrorHandler(Sender As SSLSocket)
 		  If Sender.LastErrorCode = 102 Then
 		    Sender.Close
 		    TransferInProgress = False
@@ -157,6 +171,12 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
+		Protected Function IsDataSSLConnected() As Boolean
+		  If DataSocket <> Nil Then Return DataSocket.SSLConnected
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
 		Protected Sub Listen()
 		  If Me.NetworkInterface = Nil Then Me.NetworkInterface = System.GetNetworkInterface(0)
 		  Super.Listen()
@@ -183,7 +203,7 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub SendCompleteHandler(Sender As TCPSocket, UserAborted As Boolean)
+		Private Sub SendCompleteHandler(Sender As SSLSocket, UserAborted As Boolean)
 		  'Handles DataSocket.SendComplete
 		  #pragma Unused Sender
 		  TransferInProgress = False
@@ -192,7 +212,7 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function SendProgressHandler(Sender As TCPSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
+		Private Function SendProgressHandler(Sender As SSLSocket, BytesSent As Integer, BytesLeft As Integer) As Boolean
 		  'Handles DataSocket.SendProgress
 		  #pragma Unused Sender
 		  Return RaiseEvent TransferProgress(BytesSent, BytesLeft)
@@ -265,7 +285,7 @@ Inherits SSLSocket
 		client or server flavor. Other non-socket data which is used in both clients and 
 		servers are also dealt with in FTPSocket.
 		
-		This class is not intended to be used except as the superclass of another TCPSocket 
+		This class is not intended to be used except as the superclass of another SSLSocket 
 		that handles protocol layer stuff via the DataAvailable event and Write, WriteData,
 		Read, and ReadData methods.
 	#tag EndNote
@@ -276,11 +296,7 @@ Inherits SSLSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected DataProtection As String = "C"
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected DataProtectionBufferSize As Integer = -1
+		Protected DataProtection As Boolean
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

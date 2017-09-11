@@ -3,10 +3,12 @@ Protected Class Server
 Inherits FTP.Connection
 	#tag Event
 		Sub Connected()
-		  If Not mIsRenegotiating Then
+		  If Not mIsRenegotiating Then ' first/insecure connection
 		    FTPLog("Remote host connected from " + Me.RemoteAddress + " on port " + Str(Me.Port))
 		    DoResponse(220, Banner)
 		    RaiseEvent Connected()
+		  Else
+		    RaiseEvent SecurityChanged(SSLConnected, DataProtection)
 		  End If
 		End Sub
 	#tag EndEvent
@@ -67,12 +69,12 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_AUTH(Verb As String, Argument As String)
+		  #pragma Unused Verb
 		  Select Case Argument.Trim
 		  Case "TLS"
 		    If Me.CertificateFile <> Nil And Me.CertificatePassword <> "" Then
 		      DoResponse(234, "AUTH TLS OK.")
 		      Me.Flush()
-		      'Me.LoginOK = False ' user must log on again
 		      mIsRenegotiating = True
 		      Me.ConnectionType = SSLSocket.TLSv1
 		      Me.Secure = True
@@ -94,11 +96,10 @@ Inherits FTP.Connection
 		  If Me.SSLConnected Then
 		    DoResponse(200, "The connection is no longer secure.")
 		    Me.Flush()
-		    Me.LoginOK = False ' user must log on again
 		    Me.Secure = False
 		    
 		  Else
-		    DoResponse(504, "This command may not be issued over an insecure connection.")
+		    DoResponse(533, "This command may not be issued over an insecure connection.")
 		  End If
 		End Sub
 	#tag EndMethod
@@ -186,6 +187,7 @@ Inherits FTP.Connection
 		  Dim s As String = FileListing(dir, Verb.Trim)
 		  If s.Trim <> "" Then
 		    DoResponse(150)
+		    Me.Flush
 		    If Me.UTFMode Then
 		      s = ConvertEncoding(s, Encodings.UTF8)
 		    Else
@@ -333,12 +335,18 @@ Inherits FTP.Connection
 		  #pragma Unused Argument
 		  If Not Me.IsDataConnected Then
 		    Dim rand As New Random
-		    Dim port As Integer = Rand.InRange(1024, 65534)
+		    Dim port As Integer = Rand.InRange(32636, 65534)
 		    Me.ListenData(port)
 		    App.DoEvents(100)
 		    DoResponse(227, "Entering Passive Mode (" + Me.PASVAddress + ").")
 		  Else
-		    DoResponse(125)  //already open
+		    If Me.DataProtection And Not Me.IsDataSSLConnected Then
+		      ' already open but not secured
+		      Me.CloseData
+		      DoVerb_PASV(Verb, Argument)
+		    Else
+		      DoResponse(125) ' already open
+		    End If
 		  End If
 		End Sub
 	#tag EndMethod
@@ -346,13 +354,8 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_PBSZ(Verb As String, Argument As String)
 		  #pragma Unused Verb
-		  If Not IsNumeric(Argument.Trim) Then
-		    DoResponse(501, "Buffer size must be a number.")
-		    Return
-		  End If
-		  Dim i As Integer = Val(Argument.Trim)
-		  If i >= 0 Then
-		    Me.DataProtectionBufferSize = i
+		  If Argument.Trim = "0" Then
+		    Me.DataProtectionBufferSize = 0
 		    DoResponse(200)
 		  Else
 		    DoResponse(501, "Unrecognized buffer size parameter.")
@@ -385,7 +388,7 @@ Inherits FTP.Connection
 		  
 		  Select Case Argument.Trim
 		  Case "C" ' clear
-		    Me.DataProtection = Argument
+		    Me.DataProtection = False
 		    DoResponse(200, "Data connection security disabled.")
 		    
 		  Case "S" ' safe
@@ -395,9 +398,14 @@ Inherits FTP.Connection
 		    DoResponse(504, "Use 'PROT P' to enable security features for the data connection.") ' not implemented for that param
 		    
 		  Case "P" ' private
-		    DoResponse(200, "Data connections security enabled.")
-		    Me.DataProtection = "P"
+		    #If Not DATA_TLS_AVAILABLE Then
+		      DoResponse(504, "Data security not available.") ' disable this for the moment
+		    #Else
+		      DoResponse(200, "Data connection security enabled.")
+		      Me.DataProtection = True
+		    #endif
 		  End Select
+		  RaiseEvent SecurityChanged(SSLConnected, DataProtection)
 		End Sub
 	#tag EndMethod
 
@@ -1044,6 +1052,10 @@ Inherits FTP.Connection
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
+		Event SecurityChanged(ControlTLSEnabled As Boolean, DataTLSEnabled As Boolean)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
 		Event SITE(Arguments As String, ByRef ResponseCode As Integer, ByRef ResponseMessage As String) As Boolean
 	#tag EndHook
 
@@ -1066,6 +1078,10 @@ Inherits FTP.Connection
 
 	#tag Property, Flags = &h1
 		Protected DataBuffer As BinaryStream
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private DataProtectionBufferSize As Integer = -1
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -1177,6 +1193,10 @@ Inherits FTP.Connection
 		#tag EndSetter
 		WorkingDirectory As String
 	#tag EndComputedProperty
+
+
+	#tag Constant, Name = DATA_TLS_AVAILABLE, Type = Boolean, Dynamic = False, Default = \"False", Scope = Private
+	#tag EndConstant
 
 
 	#tag ViewBehavior
