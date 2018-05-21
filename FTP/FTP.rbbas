@@ -69,7 +69,7 @@ Protected Module FTP
 		    Return "The service is ready for new users."
 		    
 		  Case 221
-		    Return "The service is closing the control connection, this session will now end. Goodbye."
+		    Return "The service is closing the control connection; this session will now end. Goodbye."
 		    
 		  Case 225
 		    Return "The data connection is open and no transfer is currently in progress."
@@ -105,7 +105,7 @@ Protected Module FTP
 		    Return "The requested file action is pending and requires further information to complete."
 		    
 		  Case 421
-		    Return "The service is not available at this time, this session will now end. Goodbye."
+		    Return "The service is not available at this time; this session will now end. Goodbye."
 		    
 		  Case 425
 		    Return "The service was unable to open the data connection."

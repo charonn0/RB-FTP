@@ -1248,7 +1248,11 @@ End
 	#tag EndEvent
 	#tag Event
 		Sub TransferComplete(RemoteFileName As String, Success As Boolean)
-		  loggit(Chr(4) + "Transfer complete.")
+		  If Success Then
+		    loggit(Chr(4) + "Transfer of '" + RemoteFileName + "' completed.")
+		  Else
+		    loggit(Chr(4) + "Transfer of '" + RemoteFileName + "' failed.")
+		  End If
 		End Sub
 	#tag EndEvent
 	#tag Event
