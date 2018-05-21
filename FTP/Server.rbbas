@@ -800,101 +800,102 @@ Inherits FTP.Connection
 		  FTPLog(vb + " " + args)
 		  If InactivityTimer <> Nil Then InactivityTimer.Reset()
 		  
-		  If LoginOK Or vb = "USER" Or vb = "PASS" Then
-		    Select Case vb.Trim
-		    Case "USER"
-		      DoVerb_USER(vb, args)
-		      
-		    Case "PASS"
-		      DoVerb_PASS(vb, args)
-		      
-		    Case "RETR"
-		      DoVerb_RETR(vb, args)
-		      
-		    Case "STOR", "STORU", "APPE"
-		      Me.DoVerb_STOR(vb, args)
-		      
-		    Case "SIZE"
-		      DoVerb_SIZE(vb, args)
-		      
-		    Case "MDTM"
-		      DoVerb_MDTM(vb, args)
-		      
-		    Case "STAT"
-		      DoVerb_STAT(vb, args)
-		      
-		    Case "FEAT"
-		      DoVerb_FEAT(vb, args)
-		      
-		    Case "SYST"
-		      'We'll claim to be UNIX even if we aren't
-		      DoResponse(215, "UNIX Type: L8")
-		      
-		    Case "CWD", "XCWD"
-		      DoVerb_CWD(vb, args)
-		      
-		    Case "PWD", "XPWD"
-		      DoVerb_PWD(vb, args)
-		      
-		    Case "LIST", "NLST", "MLSD"
-		      DoVerb_List(vb, args)
-		      
-		    Case "MLST"
-		      DoVerb_MLST(vb, args)
-		      
-		    Case "CDUP"
-		      DoVerb_CDUP(vb, args)
-		      
-		    Case "PASV"
-		      DoVerb_PASV(vb, args)
-		      
-		    Case "REST"
-		      DoVerb_REST(vb, args)
-		      
-		    Case "PORT"
-		      DoVerb_PORT(vb, args)
-		      
-		    Case "TYPE"
-		      DoVerb_TYPE(vb, args)
-		      
-		    Case "MKD"
-		      DoVerb_MKD(vb, args)
-		      
-		    Case "RMD"
-		      DoVerb_RMD(vb, args)
-		      
-		    Case "DELE"
-		      DoVerb_DELE(vb, args)
-		      
-		    Case "RNFR" ' ReNameFRom
-		      DoVerb_RNF(vb, args)
-		      
-		    Case "RNTO" ' ReNameTO
-		      DoVerb_RNTO(vb, args)
-		      
-		    Case "QUIT"
-		      DoResponse(221, "Bye.")
-		      Me.Close
-		      
-		    Case "NOOP" 'Keep alive; no operation
-		      DoResponse(200)
-		      
-		    Case "OPTS"
-		      DoVerb_OPTS(vb, args)
-		      
-		    Case "SITE"
-		      DoVerb_SITE(vb, args)
-		      
-		    Case "ACCT"
-		      DoResponse(202) 'superfluous; not an error
-		      
-		    Else
-		      DoResponse(500)  'syntax error or unknown verb
-		      
-		    End Select
-		  Else
+		  If Not LoginOK And vb <> "USER" And vb <> "PASS" Then
 		    DoResponse(530)  'not logged in
+		    Return
 		  End If
+		  
+		  Select Case vb.Trim
+		  Case "USER"
+		    DoVerb_USER(vb, args)
+		    
+		  Case "PASS"
+		    DoVerb_PASS(vb, args)
+		    
+		  Case "RETR"
+		    DoVerb_RETR(vb, args)
+		    
+		  Case "STOR", "STORU", "APPE"
+		    Me.DoVerb_STOR(vb, args)
+		    
+		  Case "SIZE"
+		    DoVerb_SIZE(vb, args)
+		    
+		  Case "MDTM"
+		    DoVerb_MDTM(vb, args)
+		    
+		  Case "STAT"
+		    DoVerb_STAT(vb, args)
+		    
+		  Case "FEAT"
+		    DoVerb_FEAT(vb, args)
+		    
+		  Case "SYST"
+		    'We'll claim to be UNIX even if we aren't
+		    DoResponse(215, "UNIX Type: L8")
+		    
+		  Case "CWD", "XCWD"
+		    DoVerb_CWD(vb, args)
+		    
+		  Case "PWD", "XPWD"
+		    DoVerb_PWD(vb, args)
+		    
+		  Case "LIST", "NLST", "MLSD"
+		    DoVerb_List(vb, args)
+		    
+		  Case "MLST"
+		    DoVerb_MLST(vb, args)
+		    
+		  Case "CDUP"
+		    DoVerb_CDUP(vb, args)
+		    
+		  Case "PASV"
+		    DoVerb_PASV(vb, args)
+		    
+		  Case "REST"
+		    DoVerb_REST(vb, args)
+		    
+		  Case "PORT"
+		    DoVerb_PORT(vb, args)
+		    
+		  Case "TYPE"
+		    DoVerb_TYPE(vb, args)
+		    
+		  Case "MKD"
+		    DoVerb_MKD(vb, args)
+		    
+		  Case "RMD"
+		    DoVerb_RMD(vb, args)
+		    
+		  Case "DELE"
+		    DoVerb_DELE(vb, args)
+		    
+		  Case "RNFR" ' ReNameFRom
+		    DoVerb_RNF(vb, args)
+		    
+		  Case "RNTO" ' ReNameTO
+		    DoVerb_RNTO(vb, args)
+		    
+		  Case "QUIT"
+		    DoResponse(221, "Goodbye.")
+		    Me.Close
+		    
+		  Case "NOOP" 'Keep alive; no operation
+		    DoResponse(200)
+		    
+		  Case "OPTS"
+		    DoVerb_OPTS(vb, args)
+		    
+		  Case "SITE"
+		    DoVerb_SITE(vb, args)
+		    
+		  Case "ACCT"
+		    DoResponse(202) 'superfluous; not an error
+		    
+		  Else
+		    DoResponse(500)  'syntax error or unknown verb
+		    
+		  End Select
 		  
 		Exception Err As RuntimeException
 		  If Err IsA EndException Or Err IsA ThreadEndException Then Raise Err
