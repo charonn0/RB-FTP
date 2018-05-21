@@ -583,7 +583,7 @@ Inherits FTP.Connection
 		    Return
 		  End If
 		  If Not Me.IsDataConnected Then
-		    DoResponse(425)
+		    DoResponse(503, "You must use PASV or PORT to open the data connection before using this command.")
 		    Return
 		  End If
 		  
