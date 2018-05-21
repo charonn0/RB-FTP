@@ -386,20 +386,23 @@ Inherits FTP.Connection
 		Private Sub DoVerb_RNF(Verb As String, Argument As String)
 		  #pragma Unused Verb
 		  
-		  If AllowWrite Then
-		    If Argument.Trim <> "" Then
-		      RNF = FindFile(Argument)
-		      If RNF <> Nil Then
-		        DoResponse(350, "Rename OK. Send new name now.")
-		      Else
-		        DoResponse(550, "File not found.")
-		      End If
-		    Else
-		      DoResponse(501, "You must specify a file or directory.")
-		    End If
-		  Else
+		  If Not AllowWrite Then
 		    DoResponse(450, "Permission denied.")
+		    Return
 		  End If
+		  
+		  If Argument.Trim = "" Then
+		    DoResponse(501, "You must specify a file or directory.")
+		    Return
+		  End If
+		  
+		  RNF = FindFile(Argument)
+		  If RNF = Nil Then
+		    DoResponse(550, "File not found.")
+		    Return
+		  End If
+		  
+		  DoResponse(350, "Rename OK. Send new name now.")
 		End Sub
 	#tag EndMethod
 
