@@ -1032,10 +1032,14 @@ Inherits FTP.Connection
 		#tag Setter
 			Set
 			  mTimeOutPeriod = value
-			  InactivityTimer = New Timer
-			  InactivityTimer.Period = mTimeOutPeriod
-			  AddHandler InactivityTimer.Action, WeakAddressOf InactivityHandler
-			  InactivityTimer.Mode = Timer.ModeMultiple
+			  If mTimeOutPeriod > 0 Then
+			    InactivityTimer = New Timer
+			    InactivityTimer.Period = mTimeOutPeriod
+			    AddHandler InactivityTimer.Action, WeakAddressOf InactivityHandler
+			    InactivityTimer.Mode = Timer.ModeMultiple
+			  Else
+			    InactivityTimer = Nil
+			  End If
 			End Set
 		#tag EndSetter
 		TimeOutPeriod As Integer
