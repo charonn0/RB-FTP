@@ -139,13 +139,18 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_LIST(Verb As String, Argument As String)
+		  If Not Me.IsDataConnected Then
+		    DoResponse(503, "You must use PASV or PORT to open the data connection before using this command.")
+		    Return
+		  End If
+		  
 		  If Argument = "-a" or Argument.Trim = "" Then Argument = WorkingDirectory
 		  
 		  Dim dir As FolderItem = FindFile(Argument)
-		  If dir = Nil Then dir = Me.mWorkingDirectory
+		  If dir = Nil Then dir = mWorkingDirectory
 		  Dim s As String = FileListing(dir, Verb.Trim)
 		  If s.Trim <> "" Then
-		    DoResponse(150)
+		    DoResponse(125)
 		    If Me.UTFMode Then
 		      s = ConvertEncoding(s, Encodings.UTF8)
 		    Else
