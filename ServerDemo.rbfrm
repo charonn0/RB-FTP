@@ -368,6 +368,38 @@ Begin Window ServerDemo
       Visible         =   True
       Width           =   121
    End
+   Begin CheckBox InactiveKick
+      AutoDeactivate  =   True
+      Bold            =   False
+      Caption         =   "Inactivity timeout"
+      DataField       =   ""
+      DataSource      =   ""
+      Enabled         =   True
+      Height          =   20
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   False
+      Left            =   19
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   False
+      Scope           =   0
+      State           =   1
+      TabIndex        =   9
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextFont        =   "System"
+      TextSize        =   0.0
+      TextUnit        =   0
+      Top             =   380
+      Underline       =   False
+      Value           =   True
+      Visible         =   True
+      Width           =   131
+   End
 End
 #tag EndWindow
 
@@ -517,7 +549,11 @@ End
 		  Dim client As New FTP.Server
 		  client.Banner = "Welcome to BSFTPd!"
 		  client.AllowWrite = True
-		  client.TimeOutPeriod = 60000
+		  If InactiveKick.Value Then
+		    client.TimeOutPeriod = 60000
+		  Else
+		    client.TimeOutPeriod = 0
+		  End If
 		  client.NetworkInterface = Me.NetworkInterface
 		  AddHandler client.FTPLog, WeakAddressOf LogHandler
 		  AddHandler client.UserLogon, WeakAddressOf UserLogonHandler
@@ -569,6 +605,22 @@ End
 		      Me.ListIndex = i
 		    End If
 		  Next
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events InactiveKick
+	#tag Event
+		Sub Action()
+		  If Me.Value Then
+		    Dim dlg As New SelectFolderDialog
+		    dlg.Title = "Select anonymous user's root directory"
+		    Dim f As FolderItem = dlg.ShowModal
+		    If f <> Nil And f.Directory Then
+		      AnonRoot = f
+		    Else
+		      Me.Value = False
+		    End If
+		  End If
 		End Sub
 	#tag EndEvent
 #tag EndEvents
