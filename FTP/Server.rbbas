@@ -276,18 +276,12 @@ Inherits FTP.Connection
 		  If Username.Trim = "" Then
 		    DoResponse(530, "USER not set.")  'USER not set!
 		    LoginOK = False
-		  ElseIf Me.Anonymous And Username = "anonymous" Then
-		    Call UserLogon(Username, Password)  'anon users passwords don't matter
-		    DoResponse(230) 'Logged in with pass
+		  ElseIf RaiseEvent UserLogon(Username, Password) Or (Me.Anonymous And Username = "anonymous") Then  'anon users passwords don't matter
 		    LoginOK = True
+		    DoResponse(230) 'Logged in with pass
 		  Else
-		    If UserLogon(Username, Password) Then
-		      DoResponse(230) 'Logged in with pass
-		      LoginOK = True
-		    Else
-		      DoResponse(530, "Invalid USER or PASS.") 'Bad password!
-		      LoginOK = False
-		    End If
+		    LoginOK = False
+		    DoResponse(530, "Invalid USER or PASS.") 'Bad password!
 		  End If
 		End Sub
 	#tag EndMethod
