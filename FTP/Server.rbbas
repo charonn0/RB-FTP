@@ -340,22 +340,23 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_RETR(Verb As String, Argument As String)
 		  #pragma Unused Verb
-		  If Me.IsDataConnected Then
-		    Dim f As FolderItem = FindFile(Argument)
-		    If f = Nil Then
-		      DoResponse(451, "Name not recognized.")
-		    ElseIf f.Directory Then
-		      DoResponse(451, "That's a directory.")
-		    Else
-		      DataBuffer = BinaryStream.Open(f)
-		      DoResponse(150)
-		      RETRTimer = New Timer
-		      RETRTimer.Period = 200
-		      AddHandler RETRTimer.Action, WeakAddressOf Me.RETRHandler
-		      RETRTimer.Mode = Timer.ModeMultiple
-		    End If
+		  If Not Me.IsDataConnected Then
+		    DoResponse(503, "You must use PASV or PORT to open the data connection before using this command.")
+		    Return
+		  End If
+		  
+		  Dim f As FolderItem = FindFile(Argument)
+		  If f = Nil Then
+		    DoResponse(451, "Name not recognized.")
+		  ElseIf f.Directory Then
+		    DoResponse(451, "That's a directory.")
 		  Else
-		    DoResponse(425) 'No data connection
+		    DataBuffer = BinaryStream.Open(f)
+		    DoResponse(150)
+		    RETRTimer = New Timer
+		    RETRTimer.Period = 200
+		    AddHandler RETRTimer.Action, WeakAddressOf Me.RETRHandler
+		    RETRTimer.Mode = Timer.ModeMultiple
 		  End If
 		End Sub
 	#tag EndMethod
