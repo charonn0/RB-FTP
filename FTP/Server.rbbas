@@ -99,7 +99,7 @@ Inherits FTP.Connection
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
-		    DoResponse(450, "Permission denied.")
+		    DoResponse(550, "Permission denied.")
 		    Return
 		  End If
 		  
@@ -197,6 +197,11 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_MKD(Verb As String, Argument As String)
 		  #pragma Unused Verb
+		  
+		  If Not AllowWrite Then
+		    DoResponse(550, "Permission denied.")
+		    Return
+		  End If
 		  
 		  Dim dir As FolderItem = FindFile(Argument.Trim, True)
 		  If dir = Nil Then
@@ -364,6 +369,11 @@ Inherits FTP.Connection
 		Private Sub DoVerb_RMD(Verb As String, Argument As String)
 		  #pragma Unused Verb
 		  
+		  If Not AllowWrite Then
+		    DoResponse(550, "Permission denied.")
+		    Return
+		  End If
+		  
 		  Dim dir As FolderItem = FindFile(Argument.Trim)
 		  If dir = Nil Then
 		    DoResponse(550, "no such directory")
@@ -387,7 +397,7 @@ Inherits FTP.Connection
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
-		    DoResponse(450, "Permission denied.")
+		    DoResponse(550, "Permission denied.")
 		    Return
 		  End If
 		  
@@ -411,7 +421,7 @@ Inherits FTP.Connection
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
-		    DoResponse(450, "Permission denied.")
+		    DoResponse(550, "Permission denied.")
 		    Return
 		  End If
 		  If RNF = Nil Then
