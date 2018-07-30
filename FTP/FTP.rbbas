@@ -123,7 +123,7 @@ Protected Module FTP
 		    Return "Requested action not taken."
 		    
 		  Case 500
-		    Return "Syntax error, command unrecognized."
+		    Return "Command not recognized."
 		    
 		  Case 501
 		    Return "Syntax error in parameters or arguments."
@@ -144,10 +144,10 @@ Protected Module FTP
 		    Return "Protocol not supported."
 		    
 		  Case 530
-		    Return "Not logged in."
+		    Return "You are not logged in."
 		    
 		  Case 532
-		    Return "Need account for storing files."
+		    Return "You need account for storing files."
 		    
 		  Case 550
 		    Return "Requested action not taken."
@@ -265,8 +265,6 @@ Protected Module FTP
 		WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
 		FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
 		OTHER DEALINGS IN THE SOFTWARE.
-		
-		
 	#tag EndNote
 
 
