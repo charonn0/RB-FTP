@@ -88,17 +88,19 @@ Inherits FTP.Connection
 		  #pragma Unused Verb
 		  
 		  Dim g As FolderItem = FindFile(Argument)
-		  If g <> Nil Then
-		    If g.Directory Then
-		      mWorkingDirectory = g
-		      DoResponse(250)  'OK
-		    Else
-		      DoResponse(553, "That is not a directory")
-		    End If
-		    
-		  Else
+		  
+		  If g = Nil Then
 		    DoResponse(553, "Name not recognized.")  'bad file
+		    Return
 		  End If
+		  
+		  If g.Directory Then
+		    mWorkingDirectory = g
+		    DoResponse(250)  'OK
+		  Else
+		    DoResponse(553, "That is not a directory")
+		  End If
+		  
 		End Sub
 	#tag EndMethod
 
@@ -120,17 +122,17 @@ Inherits FTP.Connection
 		  
 		  If g = Nil Then
 		    DoResponse(553, "Name not recognized.")
+		    Return
+		  ElseIf g.Directory Then
+		    DoResponse(550, "That's a directory.")
+		    Return
+		  End If
+		  
+		  g.Delete
+		  If g.LastErrorCode = 0 Then
+		    DoResponse(250, "Delete successful.")
 		  Else
-		    If Not g.Directory Then
-		      g.Delete
-		      If g.LastErrorCode = 0 Then
-		        DoResponse(250, "Delete successful.")
-		      Else
-		        DoResponse(451, "System error: " + Str(g.LastErrorCode))
-		      End If
-		    Else
-		      DoResponse(550, "That's a directory.")
-		    End If
+		    DoResponse(451, "System error: " + Str(g.LastErrorCode))
 		  End If
 		  
 		End Sub
@@ -164,7 +166,11 @@ Inherits FTP.Connection
 		  Dim dir As FolderItem = FindFile(Argument)
 		  If dir = Nil Then dir = mWorkingDirectory
 		  Dim s As String = FileListing(dir, Verb.Trim)
-		  If s.Trim <> "" Then
+		  
+		  Select Case True
+		  Case s.Trim = "" And Not dir.Exists
+		    DoResponse(550, "That directory does not exist.")
+		  Case s.Trim <> ""
 		    DoResponse(125)
 		    If Me.UTFMode Then
 		      s = ConvertEncoding(s, Encodings.UTF8)
@@ -172,11 +178,12 @@ Inherits FTP.Connection
 		      s = ConvertEncoding(s, Encodings.ASCII)
 		    End If
 		    TransmitData(s)
-		  ElseIf dir.Exists Then
+		  Case dir.Exists
 		    DoResponse(150)
 		  Else
-		    DoResponse(550, "That directory does not exist.")
-		  End If
+		    DoResponse(553, "Name not recognized.")
+		    Return
+		  End Select
 		  Me.CloseData
 		  DoResponse(226)
 		End Sub
@@ -194,19 +201,21 @@ Inherits FTP.Connection
 		  
 		  If g = Nil Then
 		    DoResponse(550, "Name not recognized.")
+		    Return
 		  ElseIf g.Directory Then
 		    DoResponse(550, "That's a directory.")
-		  Else
-		    Dim d As Date = g.ModificationDate
-		    Dim y, m, dy, h, mt, s As String
-		    y = Format(d.Year, "0000")
-		    m = Format(d.Month, "00")
-		    dy = Format(d.Day, "00")
-		    h = Format(d.Hour, "00")
-		    mt = Format(d.Minute, "00")
-		    s = Format(d.Second, "00")
-		    DoResponse(213, y + m + dy + h + mt + s)
+		    Return
 		  End If
+		  
+		  Dim d As Date = g.ModificationDate
+		  Dim y, m, dy, h, mt, s As String
+		  y = Format(d.Year, "0000")
+		  m = Format(d.Month, "00")
+		  dy = Format(d.Day, "00")
+		  h = Format(d.Hour, "00")
+		  mt = Format(d.Minute, "00")
+		  s = Format(d.Second, "00")
+		  DoResponse(213, y + m + dy + h + mt + s)
 		  
 		End Sub
 	#tag EndMethod
@@ -224,18 +233,18 @@ Inherits FTP.Connection
 		  
 		  Dim dir As FolderItem = FindFile(Argument.Trim, True)
 		  If dir = Nil Then
-		    DoResponse(550, "invalid name")
+		    DoResponse(550, "Invalid directory name.")
+		    Return
+		  ElseIf dir.Exists Then
+		    DoResponse(550, "That directory already exists.")
 		    Return
 		  End If
-		  If Not dir.Exists Then
-		    dir.CreateAsFolder
-		    If dir.Exists Then
-		      DoResponse(257, "directory created")
-		    Else
-		      DoResponse(550, "directory NOT created")
-		    End If
+		  
+		  dir.CreateAsFolder
+		  If dir.Exists Then
+		    DoResponse(257, "The directory was created.")
 		  Else
-		    DoResponse(550, "directory already exists")
+		    DoResponse(550, "The directory was NOT created.")
 		  End If
 		End Sub
 	#tag EndMethod
@@ -249,7 +258,12 @@ Inherits FTP.Connection
 		  Dim dir As FolderItem = FindFile(Argument)
 		  If dir = Nil Then dir = Me.mWorkingDirectory
 		  Dim s As String = FileListing(dir, Verb.Trim)
-		  If s.Trim <> "" Then
+		  
+		  Select Case True
+		  Case s.Trim = "" And Not dir.Exists
+		    DoResponse(550, "That directory does not exist.")
+		    
+		  Case s.Trim <> ""
 		    Me.Write("250- Listing " + dir.Name + CRLF)
 		    If Me.UTFMode Then
 		      s = ConvertEncoding(s, Encodings.UTF8)
@@ -259,11 +273,13 @@ Inherits FTP.Connection
 		    Me.Write(s)
 		    DoResponse(250, "End")
 		    
-		  ElseIf dir.Exists Then
+		  Case dir.Exists
 		    DoResponse(150)
+		    
 		  Else
-		    DoResponse(550, "That directory does not exist.")
-		  End If
+		    DoResponse(553, "Name not recognized.")
+		  End Select
+		  
 		End Sub
 	#tag EndMethod
 
@@ -387,16 +403,19 @@ Inherits FTP.Connection
 		  Dim f As FolderItem = FindFile(Argument)
 		  If f = Nil Then
 		    DoResponse(451, "Name not recognized.")
+		    Return
 		  ElseIf f.Directory Then
 		    DoResponse(451, "That's a directory.")
-		  Else
-		    DataBuffer = BinaryStream.Open(f)
-		    DoResponse(150)
-		    RETRTimer = New Timer
-		    RETRTimer.Period = 200
-		    AddHandler RETRTimer.Action, WeakAddressOf Me.RETRHandler
-		    RETRTimer.Mode = Timer.ModeMultiple
+		    Return
 		  End If
+		  
+		  DataBuffer = BinaryStream.Open(f)
+		  DoResponse(150)
+		  RETRTimer = New Timer
+		  RETRTimer.Period = 200
+		  AddHandler RETRTimer.Action, WeakAddressOf Me.RETRHandler
+		  RETRTimer.Mode = Timer.ModeMultiple
+		  
 		End Sub
 	#tag EndMethod
 
@@ -413,19 +432,20 @@ Inherits FTP.Connection
 		  
 		  Dim dir As FolderItem = FindFile(Argument.Trim)
 		  If dir = Nil Then
-		    DoResponse(550, "no such directory")
+		    DoResponse(550, "Invalid directory name.")
+		    Return
+		  ElseIf Not dir.Exists Then
+		    DoResponse(550, "That directory does not exist.")
 		    Return
 		  End If
-		  If dir.Exists Then
-		    If dir.Count = 0 Then
-		      dir.Delete
-		      DoResponse(250, "directory deleted")
-		    Else
-		      DoResponse(450, "directory is not empty")
-		    End If
+		  
+		  If dir.Count = 0 Then
+		    dir.Delete
+		    DoResponse(250, "The directory was deleted successfully.")
 		  Else
-		    DoResponse(550, "directory does not exist")
+		    DoResponse(450, "The directory is not empty.")
 		  End If
+		  
 		End Sub
 	#tag EndMethod
 
@@ -447,11 +467,11 @@ Inherits FTP.Connection
 		  
 		  RNF = FindFile(Argument)
 		  If RNF = Nil Then
-		    DoResponse(550, "File not found.")
+		    DoResponse(550, "No such file or directory exists.")
 		    Return
 		  End If
 		  
-		  DoResponse(350, "Rename OK. Send new name now.")
+		  DoResponse(350, "The rename operation is pending. Proceed by sending the new name.")
 		End Sub
 	#tag EndMethod
 
@@ -464,13 +484,11 @@ Inherits FTP.Connection
 		  If Not AllowWrite Then
 		    DoResponse(550, "Permission denied.")
 		    Return
-		  End If
-		  If RNF = Nil Then
+		  ElseIf RNF = Nil Then
 		    DoResponse(503, "You must use RNFR before RNTO.")
 		    Return
-		  End If
-		  If Argument.Trim = "" Then
-		    DoResponse(553, "Name not recognized.")
+		  ElseIf Argument.Trim = "" Then
+		    DoResponse(553, "You must provide a new name with RNTO.")
 		    Return
 		  End If
 		  
@@ -500,26 +518,26 @@ Inherits FTP.Connection
 		  #pragma Unused Verb
 		  Dim code As Integer = 504 ' not implemented
 		  Dim msg As String
-		  If Not RaiseEvent SITE(Argument, code, msg) Then
-		    Select Case NthField(Argument, " ", 1).Trim.Uppercase
-		    Case "CHMOD"
-		      #If Not TargetWin32 Then
-		        Dim f As FolderItem = FindFile(NthField(Argument, " ", 3).Trim)
-		        If f <> Nil And AllowWrite Then
-		          f.Permissions = Val("&u" + NthField(Argument, " ", 2).Trim)
-		          code = 200
-		        ElseIf AllowWrite Then
-		          code = 451 ' action aborted due to error
-		          msg = "Not found."
-		        Else
-		          code = 450 ' action not taken
-		          msg = "Permission denied."
-		        End If
-		      #Else
-		        code = 202 ' not implemented; superfluous
-		      #endif
-		    End Select
-		  End If
+		  If RaiseEvent SITE(Argument, code, msg) Then Return ' subclass handled it
+		  
+		  Select Case NthField(Argument, " ", 1).Trim.Uppercase
+		  Case "CHMOD"
+		    #If Not TargetWin32 Then
+		      Dim f As FolderItem = FindFile(NthField(Argument, " ", 3).Trim)
+		      If f <> Nil And AllowWrite Then
+		        f.Permissions = Val("&u" + NthField(Argument, " ", 2).Trim)
+		        code = 200
+		      ElseIf AllowWrite Then
+		        code = 451 ' action aborted due to error
+		        msg = "Not found."
+		      Else
+		        code = 450 ' action not taken
+		        msg = "Permission denied."
+		      End If
+		    #Else
+		      code = 202 ' not implemented; superfluous
+		    #endif
+		  End Select
 		  
 		  DoResponse(code, msg)
 		End Sub
@@ -537,29 +555,31 @@ Inherits FTP.Connection
 		  
 		  If g = Nil Then
 		    DoResponse(550, "Name not recognized.")
+		    Return
 		  ElseIf g.Directory Then
 		    DoResponse(550, "That's a directory.")
-		  Else
-		    Dim bs As BinaryStream = BinaryStream.Open(g, False)
-		    Dim data As String
-		    Select Case Me.TransferMode
-		    Case BinaryMode, LocalMode
-		      data = bs.Read(bs.Length)
-		      bs.Close
-		    Case EBCDICMode
-		      data = bs.Read(bs.Length)
-		      bs.Close
-		      Dim conv As TextConverter = GetTextConverter(Data.Encoding, GetTextEncoding(&h0C01))
-		      data = conv.convert(Data)
-		      
-		    Case ASCIIMode
-		      data = bs.Read(bs.Length)
-		      bs.Close
-		      Dim conv As TextConverter = GetTextConverter(Data.Encoding, Encodings.ASCII)
-		      data = conv.convert(Data)
-		    End Select
-		    DoResponse(213, Format(data.LenB, "######################0"))
+		    Return
 		  End If
+		  
+		  Dim bs As BinaryStream = BinaryStream.Open(g, False)
+		  Dim data As String
+		  Select Case Me.TransferMode
+		  Case BinaryMode, LocalMode
+		    data = bs.Read(bs.Length)
+		    bs.Close
+		  Case EBCDICMode
+		    data = bs.Read(bs.Length)
+		    bs.Close
+		    Dim conv As TextConverter = GetTextConverter(Data.Encoding, GetTextEncoding(&h0C01))
+		    data = conv.convert(Data)
+		    
+		  Case ASCIIMode
+		    data = bs.Read(bs.Length)
+		    bs.Close
+		    Dim conv As TextConverter = GetTextConverter(Data.Encoding, Encodings.ASCII)
+		    data = conv.convert(Data)
+		  End Select
+		  DoResponse(213, Format(data.LenB, "######################0"))
 		  
 		End Sub
 	#tag EndMethod
@@ -635,8 +655,7 @@ Inherits FTP.Connection
 		  If Not AllowWrite Then
 		    DoResponse(550, "Permission denied.")
 		    Return
-		  End If
-		  If Not Me.IsDataConnected Then
+		  ElseIf Not Me.IsDataConnected Then
 		    DoResponse(503, "You must use PASV or PORT to open the data connection before using this command.")
 		    Return
 		  End If
@@ -726,13 +745,13 @@ Inherits FTP.Connection
 		  
 		  Dim listing As New MemoryBlock(0)
 		  Dim output As New BinaryStream(listing)
-		  'http://cr.yp.to/ftp/list/eplf.html
 		  Dim count As Integer = Directory.Count
+		  
 		  For i As Integer = 1 To Count
 		    Dim item As FolderItem
 		    If Directory.Directory Then item = Directory.Item(i) Else item = Directory
 		    Select Case Verb
-		    Case "NLST"
+		    Case "NLST" ' names only
 		      output.Write(item.Name + CRLF)
 		      Continue
 		      
@@ -772,8 +791,7 @@ Inherits FTP.Connection
 		        path = FindPath(item)
 		      End If
 		      output.Write(" " + Join(facts, ";") + " " + path + CRLF)
-		    Else
-		      Break
+		      
 		    End Select
 		  Next
 		  output.Close
