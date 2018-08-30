@@ -49,12 +49,15 @@ Inherits FTP.Connection
 		  // Calling the overridden superclass constructor.
 		  // Constructor() -- From TCPSocket
 		  Super.Constructor
-		  Me.ServerFeatures = Split("PASV,UTF8,MDTM,SIZE,REST STREAM,TVFS,MLST,XPWD,XCWD", ",")
+		  Me.ServerFeatures = Array("PASV", "UTF8", "MDTM", "SIZE", "REST STREAM", "TVFS", "MLST", "XPWD", "XCWD")
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub DoResponse(Code As Integer, Params As String = "")
+		  ' Sends an FTP response. If Params is not specified then the
+		  ' default message for the Code is used.
+		  
 		  If Params.Trim = "" Then Params = FTP.FormatCode(Code)
 		  params = Trim(Str(Code) + " " + Params)
 		  If UTFMode Then params = ConvertEncoding(params, Encodings.UTF8)
@@ -65,6 +68,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_CDUP(Verb As String, Argument As String)
+		  ' Move up one directory.
+		  
 		  #pragma Unused Verb
 		  #pragma Unused Argument
 		  If RootDirectory.AbsolutePath = mWorkingDirectory.Parent.AbsolutePath Or ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
@@ -78,7 +83,10 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_CWD(Verb As String, Argument As String)
+		  ' Change the working directory
+		  
 		  #pragma Unused Verb
+		  
 		  Dim g As FolderItem = FindFile(Argument)
 		  If g <> Nil Then
 		    If g.Directory Then
@@ -96,6 +104,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_DELE(Verb As String, Argument As String)
+		  ' Delete the specified file.
+		  
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
@@ -122,11 +132,14 @@ Inherits FTP.Connection
 		      DoResponse(550, "That's a directory.")
 		    End If
 		  End If
+		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_FEAT(Verb As String, Argument As String)
+		  ' Send the list of supported features.
+		  
 		  #pragma Unused Verb
 		  #pragma Unused Argument
 		  Me.Write("211-Features:" + CRLF)
@@ -139,6 +152,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_LIST(Verb As String, Argument As String)
+		  ' Generate a directory listing.
+		  
 		  If Not Me.IsDataConnected Then
 		    DoResponse(503, "You must use PASV or PORT to open the data connection before using this command.")
 		    Return
@@ -169,6 +184,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_MDTM(Verb As String, Argument As String)
+		  ' Query a file's modification date
+		  
 		  #pragma Unused Verb
 		  Dim g As FolderItem
 		  If Argument.Trim <> "" Then
@@ -196,6 +213,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_MKD(Verb As String, Argument As String)
+		  ' Make a new directory
+		  
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
@@ -223,6 +242,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_MLST(Verb As String, Argument As String)
+		  ' Generate a machine-readable directory listing and send it over the control connection.
+		  
 		  If Argument = "-a" or Argument.Trim = "" Then Argument = WorkingDirectory
 		  
 		  Dim dir As FolderItem = FindFile(Argument)
@@ -248,6 +269,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_OPTS(Verb As String, Argument As String)
+		  ' Turn an optional server option on or off. Raises the OPTS event.
+		  
 		  #pragma Unused Verb
 		  
 		  Dim option As String
@@ -276,6 +299,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_PASS(Verb As String, Argument As String)
+		  ' Checks that the password is valid for the user. Raises the UserLogon event.
+		  
 		  #pragma Unused Verb
 		  Password = Argument.Trim
 		  If Username.Trim = "" Then
@@ -293,6 +318,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_PASV(Verb As String, Argument As String)
+		  ' Open a new data connection for the client to connect to.
+		  
 		  #pragma Unused Verb
 		  #pragma Unused Argument
 		  If Not Me.IsDataConnected Then
@@ -309,6 +336,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_PORT(Verb As String, Argument As String)
+		  ' Connects the data connection to the address and port provided by the client.
+		  
 		  #pragma Unused Verb
 		  DoResponse(200, Argument)
 		  Me.ConnectData(Argument)
@@ -317,6 +346,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_PWD(Verb As String, Argument As String)
+		  ' Print the current working directory
+		  
 		  #pragma Unused Verb
 		  #pragma Unused Argument
 		  Dim dir As String = WorkingDirectory
@@ -331,6 +362,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_REST(Verb As String, Argument As String)
+		  ' Restart an interrupted transfer
+		  
 		  #pragma Unused Verb
 		  If IsNumeric(Argument.Trim) Then
 		    RestartPos = Val(Argument)
@@ -343,6 +376,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_RETR(Verb As String, Argument As String)
+		  ' Transfer a file to the client using the data connection.
+		  
 		  #pragma Unused Verb
 		  If Not Me.IsDataConnected Then
 		    DoResponse(503, "You must use PASV or PORT to open the data connection before using this command.")
@@ -367,6 +402,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_RMD(Verb As String, Argument As String)
+		  ' Remove a directory
+		  
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
@@ -394,6 +431,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_RNF(Verb As String, Argument As String)
+		  ' Specify a file to be renamed.
+		  
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
@@ -418,6 +457,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_RNTO(Verb As String, Argument As String)
+		  ' Specify the new name in a RNFR operation.
+		  
 		  #pragma Unused Verb
 		  
 		  If Not AllowWrite Then
@@ -454,6 +495,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_SITE(Verb As String, Argument As String)
+		  ' Custom/site-specific commands. Raises The SITE event.
+		  
 		  #pragma Unused Verb
 		  Dim code As Integer = 504 ' not implemented
 		  Dim msg As String
@@ -484,6 +527,8 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h21
 		Private Sub DoVerb_SIZE(Verb As String, Argument As String)
+		  ' Writes the size of a file to the control connection
+		  
 		  #pragma Unused Verb
 		  Dim g As FolderItem
 		  If Argument.Trim <> "" Then
@@ -676,6 +721,9 @@ Inherits FTP.Connection
 
 	#tag Method, Flags = &h1
 		Protected Function FileListing(Directory As FolderItem, Verb As String) As String
+		  ' Generates a file listing for the specified directory in the format
+		  ' specified by the Verb
+		  
 		  Dim listing As New MemoryBlock(0)
 		  Dim output As New BinaryStream(listing)
 		  'http://cr.yp.to/ftp/list/eplf.html
@@ -687,7 +735,9 @@ Inherits FTP.Connection
 		    Case "NLST"
 		      output.Write(item.Name + CRLF)
 		      Continue
-		    Case "LIST"
+		      
+		    Case "LIST" ' The server may use any format
+		      ' This implements the Easily Parsed LIST Format: http://cr.yp.to/ftp/list/eplf.html
 		      output.Write(Encodings.ASCII.Chr(&o053))
 		      If item.IsReadable Then output.Write("r,")
 		      If item.Directory Then output.Write("/,") Else output.Write("s" + Str(item.Length) + ",")
@@ -706,7 +756,8 @@ Inherits FTP.Connection
 		      #endif
 		      output.Write(Encodings.ASCII.Chr(&o011) + item.Name + CRLF)
 		      
-		    Case "MLST", "MLSD"
+		    Case "MLST", "MLSD" ' Listings for Machine Processing
+		      ' https://tools.ietf.org/html/rfc3659
 		      Dim facts() As String
 		      If item.Directory Then facts.Append("Type=dir") Else facts.Append("Type=file")
 		      If Not item.Directory Then facts.Append("Size=" + Format(item.Length, "#########################0")) Else facts.Append("Type=file")
