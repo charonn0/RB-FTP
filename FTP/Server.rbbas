@@ -124,11 +124,11 @@ Inherits FTP.Connection
 		    DoResponse(553, "Name not recognized.")
 		    Return
 		  ElseIf g.Directory Then
-		    DoResponse(550, "That's a directory.")
+		    DoResponse(550, "The DELE command cannot be used on a directory.")
 		    Return
 		  End If
 		  
-		  g.Delete
+		  g.Delete()
 		  If g.LastErrorCode = 0 Then
 		    DoResponse(250, "Delete successful.")
 		  Else
