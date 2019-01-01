@@ -243,7 +243,7 @@ Protected Module FTP
 	#tag Note, Name = Copying
 		The MIT License (MIT)
 		
-		Copyright (c) 2012-16 Andrew Lambert
+		Copyright (c) 2012-19 Andrew Lambert
 		
 		Permission is hereby granted, free of charge, to any person 
 		obtaining a copy of this software and associated 
