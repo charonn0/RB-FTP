@@ -236,7 +236,11 @@ Inherits FTP.Connection
 		    DoResponse(550, "Invalid directory name.")
 		    Return
 		  ElseIf dir.Exists Then
-		    DoResponse(550, "That directory already exists.")
+		    If dir.Directory Then
+		      DoResponse(550, "That directory already exists.")
+		    Else
+		      DoResponse(550, "A file with that name already exists.")
+		    End If
 		    Return
 		  End If
 		  
