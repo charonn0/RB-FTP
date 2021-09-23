@@ -1,5 +1,15 @@
 #tag Module
 Protected Module FTP
+	#tag Method, Flags = &h21
+		Private Function AbsolutePath_(Extends f As FolderItem) As String
+		  #If RBVersion > 2019 Then
+		    Return f.NativePath
+		  #Else
+		    Return f.AbsolutePath
+		  #endif
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
 		Protected Function ChildOfParent(Child As FolderItem, Parent As FolderItem) As Boolean
 		  'A method to determine whether the Child FolderItem is contained within the Parent
@@ -7,7 +17,7 @@ Protected Module FTP
 		  #pragma BreakOnExceptions Off
 		  If Not Parent.Directory Then Return False
 		  While Child.Parent <> Nil
-		    If Child.Parent.AbsolutePath = Parent.AbsolutePath Or Child.AbsolutePath = Parent.AbsolutePath Then
+		    If Child.Parent.AbsolutePath_ = Parent.AbsolutePath_ Or Child.AbsolutePath_ = Parent.AbsolutePath_ Then
 		      Return True
 		    End If
 		    Child = Child.Parent

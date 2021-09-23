@@ -517,7 +517,11 @@ End
 		  If column = 2 And row > -1 And row <= Me.ListIndex Then
 		    Dim f As FolderItem = SelectFolder()
 		    If f <> Nil Then
-		      Me.Cell(row, column) = f.AbsolutePath
+		      #If RBVersion > 2019 Then
+		        Me.Cell(row, column) = f.NativePath
+		      #Else
+		        Me.Cell(row, column) = f.AbsolutePath
+		      #endif
 		    End If
 		    Return True
 		  End If

@@ -80,7 +80,11 @@ Inherits TCPSocket
 		    DataSocket.NetworkInterface = Self.NetworkInterface
 		  End If
 		  AddHandler DataSocket.DataAvailable, WeakAddressOf DataAvailableHandler
-		  AddHandler DataSocket.Error, WeakAddressOf ErrorHandler
+		  #If RBVersion > 2019.01 Then
+		    AddHandler DataSocket.Error, WeakAddressOf ErrorHandlerAPI2
+		  #Else
+		    AddHandler DataSocket.Error, WeakAddressOf ErrorHandler
+		  #EndIf
 		  AddHandler DataSocket.SendComplete, WeakAddressOf SendCompleteHandler
 		  AddHandler DataSocket.SendProgress, WeakAddressOf SendProgressHandler
 		  
@@ -125,6 +129,13 @@ Inherits TCPSocket
 		    Sender.Close
 		    RaiseEvent FTPLog(SocketErrorMessage(Sender))
 		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub ErrorHandlerAPI2(Sender As TCPSocket, Error As RuntimeException)
+		  #pragma Unused Error
+		  ErrorHandler(Sender)
 		End Sub
 	#tag EndMethod
 

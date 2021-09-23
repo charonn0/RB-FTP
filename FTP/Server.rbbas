@@ -72,7 +72,7 @@ Inherits FTP.Connection
 		  
 		  #pragma Unused Verb
 		  #pragma Unused Argument
-		  If RootDirectory.AbsolutePath = mWorkingDirectory.Parent.AbsolutePath Or ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
+		  If RootDirectory.AbsolutePath_ = mWorkingDirectory.Parent.AbsolutePath_ Or ChildOfParent(mWorkingDirectory.Parent, RootDirectory) Then
 		    mWorkingDirectory = mWorkingDirectory.Parent
 		    DoResponse(250)
 		  Else
@@ -816,7 +816,7 @@ Inherits FTP.Connection
 		      End If
 		    Next
 		  End If
-		  Dim rootpath As String = RootDirectory.AbsolutePath
+		  Dim rootpath As String = RootDirectory.AbsolutePath_
 		  
 		  For i As Integer = 1 To CountFields(Name, "/")
 		    Dim element As String = DecodeURLComponent(NthField(Name, "/", i))
@@ -824,7 +824,7 @@ Inherits FTP.Connection
 		    Select Case element.Trim
 		    Case ".." ' up one
 		      If out.Parent = Nil Then Return Nil ' cannot go up from the volume root
-		      Dim pp As String = out.Parent.AbsolutePath
+		      Dim pp As String = out.Parent.AbsolutePath_
 		      If StrComp(Left(pp, rootpath.Len), rootpath, 0) <> 0 Then Return Nil ' not contained within root; case sensitive
 		      out = out.Parent
 		    Case ".", "" ' current
@@ -844,7 +844,7 @@ Inherits FTP.Connection
 	#tag Method, Flags = &h1
 		Protected Function FindPath(Item As FolderItem) As String
 		  Dim s() As String
-		  Do Until Item.AbsolutePath = mRootDirectory.AbsolutePath
+		  Do Until Item.AbsolutePath_ = mRootDirectory.AbsolutePath_
 		    s.Insert(0, Item.Name)
 		    Item = Item.Parent
 		  Loop Until Item = Nil
@@ -1136,7 +1136,7 @@ Inherits FTP.Connection
 		#tag Getter
 			Get
 			  If mWorkingDirectory <> Nil And RootDirectory <> Nil Then
-			    return Replace(mWorkingDirectory.AbsolutePath, RootDirectory.AbsolutePath, "/")
+			    return Replace(mWorkingDirectory.AbsolutePath_, RootDirectory.AbsolutePath_, "/")
 			  Else
 			    Return "/"
 			  End If
